@@ -1,0 +1,25 @@
+[package]
+name = "sdset"
+description = """
+Set operations for sorted and deduplicated slices.
+Much performances! Such Wow!
+"""
+version = "0.4.0"
+documentation = "https://docs.rs/sdset"
+repository = "https://github.com/Kerollmops/sdset"
+authors = ["Kerollmops <renault.cle@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+keywords = ["set", "operation", "slice", "sort", "dedup"]
+categories = ["algorithms"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[dev-dependencies]
+quickcheck = "0.6"
+fnv = "1.0"
+
+[features]
+unstable = []

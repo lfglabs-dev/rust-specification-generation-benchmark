@@ -1,0 +1,1 @@
+import PartitionSlicePartition.Assumptions.FunsExternal

@@ -1,0 +1,12 @@
+.lake/
+__pycache__/
+*.pyc
+*.egg-info/
+.env
+results/*
+!results/20261002-*-normal.jsonl
+!results/20261002-*-normal.tar.zst
+!results/20261009-*-normal.jsonl
+!results/20261009-*-normal.tar.zst
+!results/20261010-*-normal.jsonl
+!results/20261010-*-normal.tar.zst

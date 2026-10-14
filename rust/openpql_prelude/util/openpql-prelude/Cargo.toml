@@ -1,0 +1,64 @@
+[package]
+description = "Basic library for card handling and evaluation of Hold'em Short Deck poker."
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "openpql-prelude"
+repository.workspace = true
+version.workspace = true
+
+[lib]
+name = "openpql_prelude"
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+derive_more = { workspace = true, features = [
+  "index",
+  "into_iterator",
+  "from",
+  "into",
+  "display",
+  "std",
+  "add",
+  "add_assign",
+] }
+fastrand = { workspace = true, optional = true }
+quickcheck = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
+rayon = { workspace = true, optional = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true, optional = true }
+speedy = { workspace = true, optional = true }
+
+# rand needs getrandom's js backend on wasm32-unknown-unknown; enabling it
+# here keeps wasm consumers from having to opt in themselves
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+getrandom = { workspace = true, optional = true, features = ["wasm_js"] }
+
+[dev-dependencies]
+approx.workspace = true
+criterion.workspace = true
+fastrand.workspace = true
+itertools.workspace = true
+quickcheck.workspace = true
+quickcheck_macros.workspace = true
+regex.workspace = true
+serde_test.workspace = true
+
+[features]
+default = ["rand"]
+quickcheck = ["dep:quickcheck", "fastrand"]
+rand = ["dep:rand", "dep:getrandom"]
+rayon = ["dep:rayon"]
+serde = ["dep:serde"]
+speedy = ["dep:speedy"]
+full = ["quickcheck", "rand", "rayon", "serde", "speedy"]
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "rating"
+harness = false

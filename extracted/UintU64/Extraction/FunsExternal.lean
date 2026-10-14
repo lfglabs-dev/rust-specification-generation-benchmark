@@ -1,0 +1,1 @@
+import UintU64.Assumptions.FunsExternal

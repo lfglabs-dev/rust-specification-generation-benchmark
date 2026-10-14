@@ -1,0 +1,11 @@
+{
+  "hax": {"version": "0.4.1", "release": "cargo-hax-v0.4.1", "commit": "8d6a41802f32918fe7ebbaad0dfc86937ba3011d", "asset": "cargo-hax-x86_64-unknown-linux-gnu.tar.zst"},
+  "charon": {"version": "nightly-2026.09.02", "managed_by": "cargo hax tools (checksum-verified)"},
+  "aeneas": {"version": "build-183e4f0", "commit": "183e4f0642e5f261f89215549366043a9a3d72ff", "managed_by": "cargo hax tools (checksum-verified)"},
+  "rust_toolchain_for_charon": "nightly-2026-08-18 (rustc 1.100.0-nightly 8fa1c96cf 2026-08-17)",
+  "rust_toolchain_for_pbt": "stable 1.98.1 (48a229cea 2026-09-01)",
+  "lean": "leanprover/lean4:v4.31.0",
+  "hax_lean_lib": {"repo": "https://github.com/cryspen/hax-lean", "rev": "v0.3.27", "commit": "007650df191c3c0e014f3cf84d7b218a183f496c"},
+  "aeneas_lean_lib": {"repo": "https://github.com/cryspen/aeneas", "rev": "build-183e4f0", "subdir": "backends/lean"},
+  "mathlib": {"rev": "fabf563a7c95a166b8d7b6efca11c8b4dc9d911f", "note": "transitive dependency of the Aeneas Lean library"}
+}

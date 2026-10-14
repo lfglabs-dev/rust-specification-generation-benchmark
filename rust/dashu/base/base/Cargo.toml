@@ -1,0 +1,35 @@
+[package]
+name = "dashu-base"
+version = "0.6.1"
+authors = ["Jacob Zhong <cmpute@gmail.com>"]
+edition = "2021"
+description = "Common trait definitions, error types, and utilities shared by the dashu math crates (integers, floats, rationals, and complex numbers). Defines the core abstractions the library builds on — Approximation, AbsOrd, Signed, SquareRoot, CubicRoot, EstimatedLog2, BitTest, and FloatEncoding — plus the Sign type and conversion errors."
+keywords = ["mathematics", "numerics"]
+categories = ["mathematics", "no-std"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/cmpute/dashu"
+homepage = "https://github.com/cmpute/dashu/tree/master/base"
+documentation = "https://docs.rs/dashu-base"
+readme = "README.md"
+rust-version = "1.68"
+
+[package.metadata]
+maintenance = "actively-developed"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = ["std"]
+std = []
+
+[dependencies]
+num-modular = { version = "0.6.5", default-features = false }
+
+[dev-dependencies]
+rand = { version = "0.8.3" }
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmarks"
+harness = false

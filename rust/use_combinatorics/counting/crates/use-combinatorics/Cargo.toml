@@ -1,0 +1,21 @@
+[package]
+name = "use-combinatorics"
+description = "Utility-first checked combinatorics helpers for RustUse"
+publish = true
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+readme = "README.md"
+homepage = "https://github.com/RustUse/use-math"
+documentation = "https://docs.rs/use-combinatorics"
+keywords = ["math", "combinatorics", "counting", "factorial", "binomial"]
+categories = ["mathematics", "algorithms"]
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

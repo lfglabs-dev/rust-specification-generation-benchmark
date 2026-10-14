@@ -1,0 +1,50 @@
+[package]
+name = "lilliput-core"
+description = "Low-level implementation of encoding/decoding logic for lilliput format"
+repository = { workspace = true }
+license = { workspace = true }
+edition = "2021"
+rust-version = "1.71.0"
+version = "0.1.0"
+
+[dependencies]
+decorum = { version = "0.4.0", default-features = false }
+num-traits = { version = "0.2.19", default-features = false }
+ordermap = { version = "0.5.5", optional = true }
+proptest = { workspace = true, optional = true }
+proptest-derive = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_bytes = { version = "0.11.17", default-features = false, optional = true }
+thiserror = { workspace = true }
+tracing = { workspace = true, features = ["release_max_level_error"], optional = true }
+lilliput-float = { version = "0.1.0", path = "../lilliput-float" }
+
+[dev-dependencies]
+criterion = { workspace = true }
+proptest = { workspace = true }
+proptest-derive = { workspace = true }
+rand = { workspace = true }
+rand_xorshift = { workspace = true }
+test-log = { workspace = true }
+
+[[bench]]
+name = "headers"
+harness = false
+
+[[bench]]
+name = "values"
+harness = false
+
+[features]
+default = ["std"]
+alloc = ["serde_bytes?/alloc"]
+std = ["alloc", "serde_bytes?/std"]
+preserve_order = [
+    "ordermap"
+]
+serde = [
+    "dep:serde", "dep:serde_bytes", "ordermap?/serde"
+]
+testing = [
+    "proptest", "proptest-derive"
+]

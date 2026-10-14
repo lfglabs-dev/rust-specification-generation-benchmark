@@ -1,0 +1,3 @@
+-- Umbrella module. Case modules are built through the `Benchmark.Cases` glob;
+-- they are not imported together because distinct cases may extract the same
+-- Rust crate namespace.

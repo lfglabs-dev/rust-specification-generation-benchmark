@@ -1,0 +1,56 @@
+[package]
+name = "scrunch"
+version = "0.14.0"
+authors = ["Robert Escriva <robert@rescrv.net>"]
+edition = { workspace = true }
+description = "Scrunch provides full-text-searching compression."
+license = "Apache-2.0"
+repository = "https://github.com/rescrv/blue"
+
+[features]
+default = ["binaries"]
+
+binaries = []
+
+[dependencies]
+buffertk = { workspace = true }
+prototk = { workspace = true }
+prototk_derive = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+
+arrrg = { workspace = true }
+guacamole = { workspace = true }
+libc = { workspace = true }
+statslicer = { workspace = true }
+
+[[bin]]
+name = "scrunch"
+path = "src/bin/scrunch.rs"
+required-features=["binaries"]
+
+[[bin]]
+name = "scrunch-inspect"
+path = "src/bin/scrunch-inspect.rs"
+required-features=["binaries"]
+
+[[bench]]
+name = "sparse_bit_vector"
+harness = false
+
+[[bench]]
+name = "rrr_bit_vector"
+harness = false
+
+[[bench]]
+name = "wavelet_psi"
+harness = false
+
+[[bench]]
+name = "sais"
+harness = false
+
+[[bench]]
+name = "exemplars"
+harness = false

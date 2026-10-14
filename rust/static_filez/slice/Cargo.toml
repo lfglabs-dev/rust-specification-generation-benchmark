@@ -1,0 +1,31 @@
+[package]
+name = "static-filez"
+version = "0.1.0"
+authors = ["Pascal Hertleif <killercup@gmail.com>"]
+description = "Build compressed archives for static files and serve them over HTTP"
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+repository = "https://github.com/killercup/static-filez"
+
+[dependencies]
+inflate = "0.4.3"
+deflate = { version = "0.7.19", features = ["gzip"] }
+hyper = "0.12.11"
+fst = "0.3.2"
+structopt = "0.2.12"
+quicli = "0.4.0"
+exitfailure = "0.5.1"
+clap-port-flag = "0.3.0"
+walkdir = "2.2.5"
+futures = "0.1.25"
+tokio = "0.1.11"
+mime_guess = "1.8.6"
+memmap = "0.7"
+
+[dev-dependencies]
+proptest = "0.8"
+
+[workspace]
+#members = [
+#    "examples/*"
+#]

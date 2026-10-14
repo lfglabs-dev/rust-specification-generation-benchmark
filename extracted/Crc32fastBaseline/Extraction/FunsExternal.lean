@@ -1,0 +1,1 @@
+import Crc32fastBaseline.Assumptions.FunsExternal
