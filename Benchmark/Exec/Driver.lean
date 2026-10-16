@@ -23,21 +23,30 @@ open Lean Meta Elab Command Term
 
 namespace RSGB.Exec
 
-/-- Names whose `Prop`-valued definitions may be unfolded to find a `Decidable` instance. -/
-def unfoldable (env : Environment) (n : Name) : Bool :=
+/-- Is `n` a non-recursive benchmark/candidate definition whose type is `∀ …, Prop`?
+Only those are unfolded when searching for a `Decidable` instance: data-valued
+helpers stay folded (they are evaluated by compiled code), and recursive
+definitions would unfold to `brecOn`/`WellFounded.fix` terms the code generator
+cannot compile. -/
+def unfoldableProp (n : Name) : MetaM Bool := do
   let s := n.toString
-  (s.startsWith "Benchmark." || s.startsWith "Candidate.") &&
-    match env.find? n with
-    | some (.defnInfo _) => true
-    | _ => false
+  unless s.startsWith "Benchmark." || s.startsWith "Candidate." do return false
+  let some (.defnInfo info) := (← getEnv).find? n | return false
+  let recursive := info.value.getUsedConstants.any fun c =>
+    c == ``WellFounded.fix || (match c with | .str _ "brecOn" => true | _ => false) || c == n
+  if recursive then return false
+  forallTelescopeReducing info.type fun _ body => return body.isProp
 
 /-- Repeatedly delta-expand `Prop`-valued benchmark definitions at the head and
 inside logical connectives, then synthesize `Decidable`. -/
 partial def synthDecidable (p : Expr) : MetaM (Option Expr) := do
-  let env ← getEnv
   if let some inst ← (try? (synthInstance (mkApp (Expr.const ``Decidable []) p))) then
     return some inst
-  let p' ← deltaExpand p (unfoldable env)
+  let mut ok : NameSet := {}
+  for c in p.getUsedConstants do
+    if ← unfoldableProp c then ok := ok.insert c
+  if ok.isEmpty then return none
+  let p' ← deltaExpand p (ok.contains ·)
   let p' ← instantiateMVars (← whnfCore p')
   if p' == p then return none
   synthDecidable p'
