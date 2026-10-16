@@ -1,0 +1,89 @@
+{
+ "id": "rust_crdt/dot",
+ "package": "RustCrdtDot",
+ "module_prefix": "Benchmark.V2.RustCrdt.Dot",
+ "rust_dir": "rust/rust_crdt/dot",
+ "api": [
+  "crdts.dot.Dot.new",
+  "crdts.dot.Dot.apply_inc",
+  "crdts.dot.Dot.inc",
+  "crdts.dot.Dot.Insts.CoreCloneClone.clone",
+  "crdts.dot.Dot.Insts.CoreCmpPartialEqDot.eq",
+  "crdts.dot.Dot.Insts.CoreCmpPartialOrdDot.partial_cmp",
+  "crdts.dot.Dot.Insts.CoreConvertFromPairAU64.from",
+  "crdts.dot.OrdDot.Insts.CoreCloneClone.clone",
+  "crdts.dot.OrdDot.Insts.CoreCmpPartialEqOrdDot.eq",
+  "crdts.dot.OrdDot.Insts.CoreCmpPartialOrdOrdDot.partial_cmp",
+  "crdts.dot.OrdDot.Insts.CoreCmpOrd.cmp",
+  "crdts.dot.Dot.Insts.CoreConvertFromOrdDot.from",
+  "crdts.dot.OrdDot.Insts.CoreConvertFromDot.from"
+ ],
+ "mutation_roots": [
+  "crdts.dot.Dot.new",
+  "crdts.dot.Dot.apply_inc",
+  "crdts.dot.Dot.inc",
+  "crdts.dot.Dot.Insts.CoreCloneClone.clone",
+  "crdts.dot.Dot.Insts.CoreCmpPartialEqDot.eq",
+  "crdts.dot.Dot.Insts.CoreCmpPartialOrdDot.partial_cmp",
+  "crdts.dot.Dot.Insts.CoreConvertFromPairAU64.from",
+  "crdts.dot.OrdDot.Insts.CoreCloneClone.clone",
+  "crdts.dot.OrdDot.Insts.CoreCmpPartialEqOrdDot.eq",
+  "crdts.dot.OrdDot.Insts.CoreCmpPartialOrdOrdDot.partial_cmp",
+  "crdts.dot.OrdDot.Insts.CoreCmpOrd.cmp",
+  "crdts.dot.Dot.Insts.CoreConvertFromOrdDot.from",
+  "crdts.dot.OrdDot.Insts.CoreConvertFromDot.from"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "RustCrdtDot.Extraction"
+ ],
+ "opens": [
+  "crdts"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.RustCrdt.Dot.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.RustCrdt.Dot.Oracle.prop_partial_order",
+  "Benchmark.Cases.RustCrdt.Dot.Oracle.prop_ordered_dot_is_ordered_by_actor_first"
+ ],
+ "intent": "Specify the public API of `crdts::dot` for `u8` actors: `Dot::new`, `Dot::inc`, `Dot::apply_inc`, `From<(A, u64)> for Dot`, `Clone`, `PartialEq` and `PartialOrd` of `Dot`, the `Clone`/`PartialEq`/`PartialOrd`/`Ord` implementations of `OrdDot`, and the `From` conversions between `Dot` and `OrdDot`.",
+ "manual_mutants": [
+  {
+   "decl": "crdts.dot.Dot.inc",
+   "before": "let i ← self.counter + 1#u64",
+   "after": "let i ← (if self.counter.val = 2^64 - 1 then ok 0#u64 else self.counter + 1#u64)",
+   "note": "successor wraps instead of panicking at u64::MAX"
+  },
+  {
+   "decl": "crdts.dot.Dot.Insts.CoreCmpPartialOrdDot.partial_cmp",
+   "before": "if b",
+   "after": "if true",
+   "note": "dots of different actors become comparable by counter"
+  },
+  {
+   "decl": "crdts.dot.OrdDot.Insts.CoreCmpPartialOrdOrdDot.partial_cmp",
+   "before": "| core.cmp.Ordering.Greater => ok o",
+   "after": "| core.cmp.Ordering.Greater => ok (core.option.Option.Some core.cmp.Ordering.Less)",
+   "note": "derived partial order wrong when the actor is greater"
+  },
+  {
+   "decl": "crdts.dot.OrdDot.Insts.CoreCmpOrd.cmp",
+   "before": "core.U64.Insts.CoreCmpOrd.cmp self.counter other.counter",
+   "after": "core.U64.Insts.CoreCmpOrd.cmp other.counter self.counter",
+   "note": "counter tie-break reversed for equal actors"
+  },
+  {
+   "decl": "crdts.dot.OrdDot.Insts.CoreCmpPartialEqOrdDot.eq",
+   "before": "then corecmpPartialEqInst.eq self.actor other.actor",
+   "after": "then ok true",
+   "note": "equality ignores the actor"
+  },
+  {
+   "decl": "crdts.dot.Dot.apply_inc",
+   "before": "let i ← self.counter + 1#u64",
+   "after": "let i ← self.counter + (if self.counter.val = 0 then 2#u64 else 1#u64)",
+   "note": "wrong increment from zero"
+  }
+ ]
+}

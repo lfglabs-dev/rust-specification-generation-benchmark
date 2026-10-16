@@ -1,0 +1,122 @@
+{
+ "id": "etherparse/transport",
+ "package": "EtherparseTransport",
+ "module_prefix": "Benchmark.V2.Etherparse.Transport",
+ "rust_dir": "rust/etherparse/transport",
+ "api": [
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.flags",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_flags",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.s_flag",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_s_flag",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.qrv",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_qrv",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.Insts.CoreCmpPartialEqMembershipQueryWithSourcesHeader.eq",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.Insts.CoreCloneClone.clone",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.LEN",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_FLAGS",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_OFFSET_FLAGS",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_S_FLAG",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_QRV",
+  "etherparse.transport.udp_header.UdpHeader.without_ipv4_checksum",
+  "etherparse.transport.udp_header.UdpHeader.from_bytes",
+  "etherparse.transport.udp_header.UdpHeader.to_bytes",
+  "etherparse.transport.udp_header.UdpHeader.header_len",
+  "etherparse.transport.udp_header.UdpHeader.header_len_u16",
+  "etherparse.transport.udp_header.UdpHeader.LEN",
+  "etherparse.transport.udp_header.UdpHeader.LEN_U16",
+  "etherparse.transport.udp_header.UdpHeader.SERIALIZED_SIZE",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpPartialEqUdpHeader.eq",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpOrd.cmp",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpPartialOrdUdpHeader.partial_cmp",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreDefaultDefault.default",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCloneClone.clone"
+ ],
+ "mutation_roots": [
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.flags",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_flags",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.s_flag",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_s_flag",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.qrv",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_qrv",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.Insts.CoreCmpPartialEqMembershipQueryWithSourcesHeader.eq",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.Insts.CoreCloneClone.clone",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.LEN",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_FLAGS",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_OFFSET_FLAGS",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_S_FLAG",
+  "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_QRV",
+  "etherparse.transport.udp_header.UdpHeader.without_ipv4_checksum",
+  "etherparse.transport.udp_header.UdpHeader.from_bytes",
+  "etherparse.transport.udp_header.UdpHeader.to_bytes",
+  "etherparse.transport.udp_header.UdpHeader.header_len",
+  "etherparse.transport.udp_header.UdpHeader.header_len_u16",
+  "etherparse.transport.udp_header.UdpHeader.LEN",
+  "etherparse.transport.udp_header.UdpHeader.LEN_U16",
+  "etherparse.transport.udp_header.UdpHeader.SERIALIZED_SIZE",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpPartialEqUdpHeader.eq",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpOrd.cmp",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpPartialOrdUdpHeader.partial_cmp",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreDefaultDefault.default",
+  "etherparse.transport.udp_header.UdpHeader.Insts.CoreCloneClone.clone"
+ ],
+ "forbidden_constants": [
+  "etherparse.transport.udp_header.UdpHeader.without_ipv4_checksum.MAX_PAYLOAD_LENGTH"
+ ],
+ "allowed_imports": [
+  "EtherparseTransport.Extraction"
+ ],
+ "opens": [
+  "etherparse"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Etherparse.Transport.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Etherparse.Transport.Oracle.igmp_flags_set"
+ ],
+ "intent": "Specify the public API of etherparse's transport headers: the IGMPv3 `MembershipQueryWithSourcesHeader` (`flags`, `set_flags`, `s_flag`, `set_s_flag`, `qrv`, `set_qrv`, its constants `LEN` and `RAW_BYTE_8_*`, derived `PartialEq::eq` and `Clone::clone`) and `UdpHeader` (`without_ipv4_checksum`, `from_bytes`, `to_bytes`, `header_len`, `header_len_u16`, the constants `LEN`, `LEN_U16`, `SERIALIZED_SIZE`, and the derived `PartialEq::eq`, `Ord::cmp`, `PartialOrd::partial_cmp`, `Default::default`, `Clone::clone`).",
+ "manual_mutants": [
+  {
+   "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_s_flag",
+   "before": "let i1 ← lift (self.raw_byte_8 &&& i)",
+   "after": "let i1 ← lift (self.raw_byte_8 ^^^ transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_S_FLAG)",
+   "note": "clearing the S flag toggles it instead (wrong when it is already clear)"
+  },
+  {
+   "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.qrv",
+   "before": "transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_QRV)",
+   "after": "15#u8)",
+   "note": "QRV mask includes the S bit: qrv panics (debug_assert in Qrv::new_unchecked) when S is set"
+  },
+  {
+   "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_qrv",
+   "before": "let i1 ← lift (self.raw_byte_8 &&& i)",
+   "after": "let i1 ← ok self.raw_byte_8",
+   "note": "set_qrv ORs the new QRV into the old one instead of replacing it"
+  },
+  {
+   "decl": "etherparse.transport.udp_header.UdpHeader.without_ipv4_checksum",
+   "before": "max_allowed := i,",
+   "after": "max_allowed := payload_length,",
+   "note": "error reports the actual value as the maximum"
+  },
+  {
+   "decl": "etherparse.transport.udp_header.UdpHeader.without_ipv4_checksum",
+   "before": "{ source_port, destination_port, length := i2, checksum := 0#u16 })",
+   "after": "{ source_port, destination_port, length := i2, checksum := destination_port })",
+   "note": "checksum not zeroed"
+  },
+  {
+   "decl": "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpOrd.cmp",
+   "before": "core.U16.Insts.CoreCmpOrd.cmp self.checksum other.checksum",
+   "after": "ok core.cmp.Ordering.Equal",
+   "note": "ordering ignores the checksum field"
+  },
+  {
+   "decl": "etherparse.transport.udp_header.UdpHeader.Insts.CoreCmpPartialEqUdpHeader.eq",
+   "before": "then ok (self.checksum = other.checksum)",
+   "after": "then ok true",
+   "note": "equality ignores the checksum field"
+  }
+ ]
+}

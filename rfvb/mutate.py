@@ -75,6 +75,8 @@ class Mutant:
     before: str
     after: str
     status: str = "new"  # new | compile_error | equivalent | unspecified | relevant
+    extra: list = field(default_factory=list)  # further [line, before, after] edits (hand-written bugs)
+    note: str = ""
     differing_inputs: int = 0
     killed_by_gold: list[str] = field(default_factory=list)
 
@@ -94,6 +96,11 @@ def decl_ranges(text: str) -> list[tuple[str, int, int]]:
         mm = DECL_HDR.match(l)
         if mm:
             starts.append((ns + mm.group(1), i))
+        elif re.match(r"^(?:@\[[^\]]*\]\s*)*(?:noncomputable\s+)?(?:partial\s+)?def\s*$", l) and i + 1 < len(lines):
+            # Aeneas puts long names on the next line: `def\n  name …`
+            name = lines[i + 1].strip().split()[0] if lines[i + 1].strip() else ""
+            if name:
+                starts.append((ns + name, i))
     out = []
     for k, (name, i) in enumerate(starts):
         end = starts[k + 1][1] - 1 if k + 1 < len(starts) else len(lines) - 1
@@ -186,9 +193,10 @@ def sample(cands: list[Mutant], k: int, seed: int = 0) -> list[Mutant]:
 
 def apply(text: str, m: Mutant) -> str:
     lines = text.splitlines(keepends=True)
-    nl = "\n" if lines[m.line - 1].endswith("\n") else ""
-    assert lines[m.line - 1].rstrip("\n") == m.before, (m.mid, lines[m.line - 1], m.before)
-    lines[m.line - 1] = m.after + nl
+    for line, before, after in [(m.line, m.before, m.after), *m.extra]:
+        nl = "\n" if lines[line - 1].endswith("\n") else ""
+        assert lines[line - 1].rstrip("\n") == before, (m.mid, lines[line - 1], before)
+        lines[line - 1] = after + nl
     return "".join(lines)
 
 

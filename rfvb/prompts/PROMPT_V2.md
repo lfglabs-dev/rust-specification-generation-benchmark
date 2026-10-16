@@ -19,12 +19,14 @@ functional results (against a simple mathematical model you define yourself),
 algebraic laws and inverse/round-trip relations between API functions,
 output ranges and invariants, behaviour on edge cases (zero, maximum values,
 empty inputs), and the precise conditions under which a function panics or
-returns an error. Weak preconditions are better than strong ones: a property
+returns an error. State what the API *promises*, not incidental details of this
+particular implementation: properties that pin down behaviour the contract
+does not guarantee may be rejected as over-specified. Weak preconditions are better than strong ones: a property
 that only covers a narrow slice of inputs rejects few bugs. Do not merely
 restate the code line by line.
 
-Workflow: read the API, the extracted Lean and the Rust documentation; draft
-properties; run `test_spec` to make sure they elaborate, are executable and
+Workflow: read the API, the extracted Lean and the Rust documentation;
+experiment with `eval_expr`; draft properties; run `test_spec` to make sure they elaborate, are executable and
 hold; refine and strengthen; then `submit` the complete file once.
 
 ## Aeneas & hax Specification Idioms

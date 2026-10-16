@@ -49,6 +49,13 @@ V2_TOOLS = [
             "scope": {"type": "string", "enum": list(SEARCH_SCOPES)}},
             "required": ["pattern", "scope"]}}},
     {"type": "function", "function": {
+        "name": "eval_expr",
+        "description": ("Evaluate Lean expressions against the real (executable) implementation, like a REPL. "
+                        "`exprs` is a list of Lean terms, e.g. [\"permute.obfuscate 42#u64 7#u64\", \"(255#u8).val\"]; "
+                        "the same imports and `open`s as Candidate.lean are in scope. Returns each value."),
+        "parameters": {"type": "object", "properties": {"exprs": {"type": "array", "items": {"type": "string"}}},
+                       "required": ["exprs"]}}},
+    {"type": "function", "function": {
         "name": "test_spec",
         "description": ("Elaborate a complete Candidate.lean and run every `prop_*` property on generated inputs against the "
                         "real implementation. Returns Lean errors, untestable properties, and counterexamples for false "
@@ -170,7 +177,8 @@ specify the behaviour through the public API.
    results, ranges, relations between the functions, edge cases, and exactly which
    inputs panic — not just one obvious property.
 
-Use `test_spec` to check that your properties elaborate, are executable, and hold on
+Use `eval_expr` to run the implementation on inputs of your choice (a REPL), and
+`test_spec` to check that your properties elaborate, are executable, and hold on
 the real implementation before you `submit` (one submission ends the run).
 
 ## Executability rules
@@ -281,6 +289,38 @@ class V2Runner(Runner):
             return "\n".join(lines)
         finally:
             shutil.rmtree(build, ignore_errors=True)
+
+    EVAL_FORBIDDEN = re.compile(r"\bIO\b|IO\.|EIO|BaseIO|System|Process|\bFS\b|Lean\.|unsafe|run_tac|run_cmd|(?<![0-9])#|"
+                                r"\bmacro\b|\belab\b|\bsyntax\b|implemented_by|extern|\bST\b|initialize|"
+                                r"dbg_trace|panic!|unsafeIO|Task|Thread")
+
+    def t_eval_expr(self, args) -> str:
+        exprs = args.get("exprs") or []
+        if isinstance(exprs, str):
+            exprs = [exprs]
+        exprs = [str(e) for e in exprs][:20]
+        if not exprs:
+            return "error: pass a non-empty list `exprs` of Lean terms"
+        for e in exprs:
+            if self.EVAL_FORBIDDEN.search(e) or "\n" in e.strip():
+                return f"error: expression not allowed (single-line pure terms only): {e[:200]}"
+        header = template(self.target).split(f"namespace {self.target.cand_ns}")[0]
+        text = "import Benchmark.Exec.Runtime\n" + header + "\n".join(f"#eval ({e})" for e in exprs) + "\n"
+        from .mutate import run_lean_file
+        from .exec import EXEC_ROOT, lean_path
+        d = EXEC_ROOT / ".rsgb_drivers"
+        d.mkdir(exist_ok=True)
+        with tempfile.NamedTemporaryFile("w", suffix=".lean", dir=d, delete=False) as fh:
+            fh.write(text)
+            path = Path(fh.name)
+        try:
+            out = run_lean_file(EXEC_ROOT, lean_path(), path, timeout=120)
+        finally:
+            path.unlink(missing_ok=True)
+        if out == "RSGB_TIMEOUT":
+            return "error: evaluation timed out (120 s)"
+        out = out.replace(str(path), "<eval>")
+        return out.strip() or "(no output)"
 
     def t_show_task(self, _args) -> str:
         return (self.ws / "TASK.md").read_text(encoding="utf-8")

@@ -1,0 +1,77 @@
+{
+ "id": "sdset/duo_union",
+ "package": "SdsetDuoUnion",
+ "module_prefix": "Benchmark.V2.Sdset.DuoUnion",
+ "rust_dir": "rust/sdset/duo_union",
+ "api": [
+  "sdset.duo.union.Union.new",
+  "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+  "sdset.duo.union.Union.Insts.CoreCloneClone.clone",
+  "sdset.set.Set.as_slice",
+  "sdset.duo.union.Union.Insts.CoreIterTraitsCollectIntoIteratorSharedATUnionIter.into_iter",
+  "sdset.SharedAUnion.Insts.CoreIterTraitsCollectIntoIteratorSharedATUnionIter.into_iter"
+ ],
+ "mutation_roots": [
+  "sdset.duo.union.Union.new",
+  "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+  "sdset.duo.union.Union.Insts.CoreCloneClone.clone",
+  "sdset.set.Set.as_slice",
+  "sdset.duo.union.Union.Insts.CoreIterTraitsCollectIntoIteratorSharedATUnionIter.into_iter",
+  "sdset.SharedAUnion.Insts.CoreIterTraitsCollectIntoIteratorSharedATUnionIter.into_iter",
+  "sdset.duo.union.Union.iter"
+ ],
+ "forbidden_constants": [
+  "sdset.duo.union.Union.iter"
+ ],
+ "allowed_imports": [
+  "SdsetDuoUnion.Extraction"
+ ],
+ "opens": [
+  "sdset"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Sdset.DuoUnion.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Sdset.DuoUnion.Oracle.union_iter_matches_btreeset_union"
+ ],
+ "intent": "Specify the union iterator of `sdset::duo::union` for `i32` elements: `Union::new`, `Clone for Union`, both `IntoIterator` implementations for `Union` / `&Union`, `Iterator::next` of `UnionIter`, and `Set::as_slice`.",
+ "manual_mutants": [
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "ok (core.option.Option.Some first_a, { a := s, b := s1 })",
+   "after": "ok (core.option.Option.Some first_a, { self with a := s })",
+   "note": "common element only consumed on the left: emitted twice"
+  },
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "ok (core.option.Option.Some first_b, { self with b := s })",
+   "after": "ok (core.option.Option.Some first_a, { self with b := s })",
+   "note": "wrong element returned when b's head is smaller"
+  },
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "ok (core.option.Option.Some first_a, { self with a := s })",
+   "after": "ok (core.option.Option.Some first_b, { self with a := s })",
+   "note": "wrong element returned when a's head is smaller"
+  },
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "ok (result, { self with b := s })",
+   "after": "ok (result, self)",
+   "note": "left exhausted: right side never advances (infinite iterator)"
+  },
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "ok (result, { self with a := s })",
+   "after": "ok (result, { a := s, b := s })",
+   "note": "right exhausted: state corrupted after first leftover element"
+  },
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "let b ← core.slice.Slice.is_empty self.a",
+   "after": "let b ← core.slice.Slice.is_empty self.b",
+   "note": "checks the wrong side for exhaustion: drops the rest of a once b is exhausted"
+  }
+ ]
+}

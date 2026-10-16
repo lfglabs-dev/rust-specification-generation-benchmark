@@ -37,6 +37,10 @@ def _decl_blocks(text: str) -> list[tuple[str, str]]:
         m = DECL_RE.search(block)
         if m:
             blocks.append((ns + m.group(1), block))
+        else:
+            m2 = re.search(r"^(?:@\[[^\]]*\]\s*)*(?:noncomputable\s+)?def\s*\n\s+([^\s:(]+)", block, re.M)
+            if m2:
+                blocks.append((ns + m2.group(1), block))
     return blocks
 
 

@@ -1,0 +1,75 @@
+{
+ "id": "dlt_parse/storage_header",
+ "package": "DltParseStorageHeader",
+ "module_prefix": "Benchmark.V2.DltParse.StorageHeader",
+ "rust_dir": "rust/dlt_parse/storage_header",
+ "api": [
+  "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
+  "dlt_parse.storage.storage_header.StorageHeader.from_bytes",
+  "dlt_parse.storage.storage_header.StorageHeader.PATTERN_AT_START",
+  "dlt_parse.storage.storage_header.StorageHeader.BYTE_LEN",
+  "dlt_parse.storage.storage_header.StorageHeader.Insts.CoreCmpPartialEqStorageHeader.eq",
+  "dlt_parse.storage.storage_header.StorageHeader.Insts.CoreCloneClone.clone"
+ ],
+ "mutation_roots": [
+  "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
+  "dlt_parse.storage.storage_header.StorageHeader.from_bytes",
+  "dlt_parse.storage.storage_header.StorageHeader.PATTERN_AT_START",
+  "dlt_parse.storage.storage_header.StorageHeader.BYTE_LEN",
+  "dlt_parse.storage.storage_header.StorageHeader.Insts.CoreCmpPartialEqStorageHeader.eq",
+  "dlt_parse.storage.storage_header.StorageHeader.Insts.CoreCloneClone.clone"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "DltParseStorageHeader.Extraction"
+ ],
+ "opens": [
+  "dlt_parse"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.DltParse.StorageHeader.Specs",
+  "Benchmark.V2.DltParse.StorageHeader.Instances"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.DltParse.StorageHeader.Oracle.from_bytes_roundtrip_and_pattern_error"
+ ],
+ "intent": "Specify the public API of `dlt_parse::storage::StorageHeader` (the DLT storage header): `StorageHeader::to_bytes`, `StorageHeader::from_bytes`, the constants `PATTERN_AT_START` and `BYTE_LEN`, and the derived `PartialEq::eq` and `Clone::clone` of `StorageHeader`.",
+ "manual_mutants": [
+  {
+   "decl": "dlt_parse.storage.storage_header.StorageHeader.from_bytes",
+   "before": "core.num.U32.from_le_bytes (Array.make 4#usize [ i9, i10, i11, i12 ])",
+   "after": "core.num.U32.from_le_bytes (Array.make 4#usize [ i9, i10, i11, i11 ])",
+   "note": "microseconds decoded from a duplicated byte: wrong only when bytes 10 and 11 differ"
+  },
+  {
+   "decl": "dlt_parse.storage.storage_header.StorageHeader.from_bytes",
+   "before": "{ actual_pattern := (Array.make 4#usize [ i, i1, i2, i3 ]) })",
+   "after": "{ actual_pattern := storage.storage_header.StorageHeader.PATTERN_AT_START })",
+   "note": "error reports the expected instead of the actual pattern"
+  },
+  {
+   "decl": "dlt_parse.storage.storage_header.StorageHeader.from_bytes",
+   "before": "(Array.make 4#usize [ i, i1, i2, i3 ])",
+   "after": "(Array.make 4#usize [ i, i1, i2, 1#u8 ])",
+   "note": "pattern check ignores the version byte (byte 3)"
+  },
+  {
+   "decl": "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
+   "before": "let i15 ← Array.index_usize self.ecu_id 3#usize",
+   "after": "let i15 ← Array.index_usize self.ecu_id 2#usize",
+   "note": "last ECU id byte duplicated"
+  },
+  {
+   "decl": "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
+   "before": "let tms ← core.num.U32.to_le_bytes self.timestamp_microseconds",
+   "after": "let tms ← core.num.U32.to_be_bytes self.timestamp_microseconds",
+   "note": "microseconds big-endian on the wire (from_bytes unchanged)"
+  },
+  {
+   "decl": "dlt_parse.storage.storage_header.StorageHeader.Insts.CoreCmpPartialEqStorageHeader.eq",
+   "before": "core.U8.Insts.CoreCmpPartialEqU8 self.ecu_id other.ecu_id",
+   "after": "core.U8.Insts.CoreCmpPartialEqU8 self.ecu_id self.ecu_id",
+   "note": "eq ignores the ECU id"
+  }
+ ]
+}

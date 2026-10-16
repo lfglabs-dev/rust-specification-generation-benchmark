@@ -1,0 +1,63 @@
+{
+ "id": "quantiles/greenwald_khanna",
+ "package": "QuantilesGreenwaldKhanna",
+ "module_prefix": "Benchmark.V2.Quantiles.GreenwaldKhanna",
+ "rust_dir": "rust/quantiles/greenwald_khanna",
+ "api": [
+  "quantiles.greenwald_khanna.find_insert_pos",
+  "quantiles.greenwald_khanna.find_insert_pos_linear"
+ ],
+ "mutation_roots": [
+  "quantiles.greenwald_khanna.find_insert_pos",
+  "quantiles.greenwald_khanna.find_insert_pos_linear"
+ ],
+ "forbidden_constants": [
+  "quantiles.greenwald_khanna.find_insert_pos_linear_loop",
+  "quantiles.greenwald_khanna.find_insert_pos_linear_loop.body"
+ ],
+ "allowed_imports": [
+  "QuantilesGreenwaldKhanna.Extraction"
+ ],
+ "opens": [
+  "quantiles"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Quantiles.GreenwaldKhanna.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Quantiles.GreenwaldKhanna.Oracle.find_insert_pos_matches_linear"
+ ],
+ "intent": "Specify the public functions `quantiles::greenwald_khanna::find_insert_pos(vs: &[T], v: &T) -> usize` and `find_insert_pos_linear(vs: &[T], v: &T) -> usize`, instantiated at `T = i32`. In Lean they are `greenwald_khanna.find_insert_pos core.I32.Insts.CoreCmpOrd vs v` and `greenwald_khanna.find_insert_pos_linear core.I32.Insts.CoreCmpOrd vs v` with `vs : Slice Std.I32`, `v : Std.I32`.",
+ "manual_mutants": [
+  {
+   "note": "elements equal to the pivot send the search to the left half (wrong only when v equals the middle element)",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos",
+   "before": "corecmpOrdInst.PartialOrdInst v pivot",
+   "after": "{ corecmpOrdInst.PartialOrdInst with lt := corecmpOrdInst.PartialOrdInst.le } v pivot"
+  },
+  {
+   "note": "linear scan returns the lower bound (first element >= v) instead of the upper bound",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos_linear_loop.body",
+   "before": "corecmpOrdInst.PartialOrdInst v vi",
+   "after": "{ corecmpOrdInst.PartialOrdInst with lt := corecmpOrdInst.PartialOrdInst.le } v vi"
+  },
+  {
+   "note": "right half starts after the pivot, but the offset is not adjusted (off by one for large slices)",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos",
+   "before": "T) vs { start := middle }",
+   "after": "T) vs { start := (if middle.val + 1 ≤ i.val then ⟨middle.bv + 1⟩ else middle) }"
+  },
+  {
+   "note": "linear scan returns len - 1 when every element is <= v",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos_linear_loop.body",
+   "before": "| core.option.Option.None => let i ← core.slice.Slice.len vs",
+   "after": "| core.option.Option.None => let i ← (do let n ← core.slice.Slice.len vs; if n = 0#usize then ok n else n - 1#usize)"
+  },
+  {
+   "note": "threshold for switching to the linear scan raised but the binary step compares with the element before the middle",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos",
+   "before": "let pivot ← Slice.index_usize vs middle",
+   "after": "let pivot ← (do let m ← middle - 1#usize; Slice.index_usize vs m)"
+  }
+ ]
+}

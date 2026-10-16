@@ -1,0 +1,78 @@
+{
+ "id": "fastdivide/divider",
+ "package": "FastdivideDivider",
+ "module_prefix": "Benchmark.V2.Fastdivide.Divider",
+ "rust_dir": "rust/fastdivide/divider",
+ "api": [
+  "fastdivide.DividerU64.divide_by",
+  "fastdivide.DividerU64.divide",
+  "fastdivide.U64.Insts.CoreOpsArithDivDividerU64U64.div"
+ ],
+ "mutation_roots": [
+  "fastdivide.DividerU64.divide_by",
+  "fastdivide.DividerU64.divide",
+  "fastdivide.U64.Insts.CoreOpsArithDivDividerU64U64.div"
+ ],
+ "forbidden_constants": [
+  "fastdivide.libdivide_mullhi_u64",
+  "fastdivide.floor_log2",
+  "fastdivide.DividerU64.power_of_2_division",
+  "fastdivide.DividerU64.fast_path",
+  "fastdivide.DividerU64.general_path",
+  "fastdivide.DividerU64.divide_by.closure.Insts.CoreOpsFunctionFnOnceTupleOptionDividerU64.call_once",
+  "fastdivide.DividerU64.divide_by.closure_1.Insts.CoreOpsFunctionFnOnceTupleDividerU64.call_once"
+ ],
+ "allowed_imports": [
+  "FastdivideDivider.Extraction"
+ ],
+ "opens": [
+  "fastdivide"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Fastdivide.Divider.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Fastdivide.Divider.Oracle.divide_matches_native_division",
+  "Benchmark.Cases.Fastdivide.Divider.Oracle.divide_by_7_matches_native_division",
+  "Benchmark.Cases.Fastdivide.Divider.Oracle.divide_by_11_matches_native_division"
+ ],
+ "intent": "Specify the public API of the `fastdivide` crate: `DividerU64::divide_by`, `DividerU64::divide` and the `u64 / DividerU64` operator (`impl Div<DividerU64> for u64`).",
+ "manual_mutants": [
+  {
+   "decl": "fastdivide.DividerU64.power_of_2_division",
+   "before": "if b",
+   "after": "if b ∧ divisor ≠ 1#u64",
+   "note": "divisor 1 is not treated as a shift; the general path then computes n/2"
+  },
+  {
+   "decl": "fastdivide.DividerU64.power_of_2_division",
+   "before": "if b",
+   "after": "if b ∧ divisor < 9223372036854775808#u64",
+   "note": "2^63 falls through to the magic-number paths instead of BitShift(63)"
+  },
+  {
+   "decl": "fastdivide.DividerU64.general_path",
+   "before": "let i5 ← e + i4",
+   "after": "let i5 ← (do let e2 ← 2#u128 * e; e2 - i3)",
+   "note": "naive 2^(64+p) computation overflows u128 for divisors >= 2^63 on the general path"
+  },
+  {
+   "decl": "fastdivide.DividerU64.fast_path",
+   "before": "let i7 ← i6 + 1#u64",
+   "after": "let i7 ← i6 + 0#u64",
+   "note": "fast-path magic not rounded up: quotients too small for some large dividends"
+  },
+  {
+   "decl": "fastdivide.DividerU64.general_path",
+   "before": "let m ← 2#u128 + i7",
+   "after": "let m ← 1#u128 + i7",
+   "note": "general-path magic off by one"
+  },
+  {
+   "decl": "fastdivide.DividerU64.divide",
+   "before": "let t ← core.num.U64.wrapping_add i1 q",
+   "after": "let t ← (do let s ← n + q; s >>> 1#i32)",
+   "note": "naive (n + q) / 2 instead of ((n - q) >> 1) + q: overflows (panics) for large dividends on the General path"
+  }
+ ]
+}

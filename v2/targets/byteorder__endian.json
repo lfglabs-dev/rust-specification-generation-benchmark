@@ -1,0 +1,89 @@
+{
+ "id": "byteorder/endian",
+ "package": "ByteorderEndian",
+ "module_prefix": "Benchmark.V2.Byteorder.Endian",
+ "rust_dir": "rust/byteorder/endian",
+ "api": [
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u16",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u32",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u64",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u128",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u16",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u32",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u64",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u128",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u16",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u32",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u64",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u128",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u16",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u32",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u64",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u128"
+ ],
+ "mutation_roots": [
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u16",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u32",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u64",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u128",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u16",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u32",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u64",
+  "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u128",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u16",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u32",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u64",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u128",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u16",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u32",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u64",
+  "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u128"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "ByteorderEndian.Extraction"
+ ],
+ "opens": [
+  "byteorder"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Byteorder.Endian.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Byteorder.Endian.Oracle.u128_little_endian_roundtrip",
+  "Benchmark.Cases.Byteorder.Endian.Oracle.u64_big_endian_roundtrip"
+ ],
+ "intent": "Specify the public fixed-width integer API of `byteorder::ByteOrder` for both `BigEndian` and `LittleEndian`: `read_u16`, `read_u32`, `read_u64`, `read_u128`, `write_u16`, `write_u32`, `write_u64` and `write_u128`.",
+ "manual_mutants": [
+  {
+   "decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.write_u32",
+   "before": "let a \u2190 core.num.U32.to_le_bytes n",
+   "after": "let a \u2190 core.num.U32.to_le_bytes (n &&& 16777215#u32)",
+   "note": "top byte of the value is dropped (only wrong for n >= 2^24)"
+  },
+  {
+   "decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u64",
+   "before": "let a \u2190 core.num.U64.to_be_bytes n",
+   "after": "let a \u2190 core.num.U64.to_be_bytes (UScalar.cast .U64 (UScalar.cast .U32 n))",
+   "note": "value truncated to 32 bits before encoding (only wrong for n >= 2^32)"
+  },
+  {
+   "decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.write_u128",
+   "before": "ok (index_mut_back s2)",
+   "after": "ok buf",
+   "note": "the encoded bytes are never written back into the caller's buffer"
+  },
+  {
+   "decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u64",
+   "before": "core.num.U64.from_le_bytes a",
+   "after": "(core.num.U64.from_le_bytes a) >>= fun r => ok (r &&& 72057594037927935#u64)",
+   "note": "the most significant (last) byte is ignored when reading"
+  },
+  {
+   "decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u16",
+   "before": "core.num.U16.from_be_bytes a",
+   "after": "(core.num.U16.from_be_bytes a) >>= fun r => ok (if r = 65535#u16 then 0#u16 else r)",
+   "note": "wrong result only for the all-ones input"
+  }
+ ]
+}

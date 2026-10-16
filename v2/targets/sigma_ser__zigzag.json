@@ -1,0 +1,41 @@
+{
+ "id": "sigma_ser/zigzag",
+ "package": "SigmaSerZigzag",
+ "module_prefix": "Benchmark.V2.SigmaSer.Zigzag",
+ "rust_dir": "rust/sigma_ser/zigzag",
+ "api": [
+  "sigma_ser.zig_zag_encode.encode_i32",
+  "sigma_ser.zig_zag_encode.decode_u32",
+  "sigma_ser.zig_zag_encode.encode_i64",
+  "sigma_ser.zig_zag_encode.decode_u64"
+ ],
+ "mutation_roots": [
+  "sigma_ser.zig_zag_encode.encode_i32",
+  "sigma_ser.zig_zag_encode.decode_u32",
+  "sigma_ser.zig_zag_encode.encode_i64",
+  "sigma_ser.zig_zag_encode.decode_u64"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "SigmaSerZigzag.Extraction"
+ ],
+ "opens": [
+  "sigma_ser"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.SigmaSer.Zigzag.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.SigmaSer.Zigzag.Oracle.encode_i32_roundtrip",
+  "Benchmark.Cases.SigmaSer.Zigzag.Oracle.encode_i64_roundtrip"
+ ],
+ "intent": "Specify the public ZigZag API of `sigma_ser::zig_zag_encode`: `encode_i32`, `decode_u32`, `encode_i64` and `decode_u64`.",
+ "manual_mutants": [
+  {"decl": "sigma_ser.zig_zag_encode.encode_i32", "before": "ok (IScalar.hcast .U64 i2)", "after": "ok (UScalar.cast .U64 (IScalar.hcast .U32 i2))", "note": "zero-extends the 32-bit code instead of the documented Scala-compatible sign extension; round trip still holds"},
+  {"decl": "sigma_ser.zig_zag_encode.encode_i32", "before": "let i ← v <<< 1#i32", "after": "let i ← v * 2#i32", "note": "checked multiplication instead of shift: panics for |v| >= 2^30"},
+  {"decl": "sigma_ser.zig_zag_encode.encode_i64", "before": "let i ← v <<< 1#i32", "after": "let i ← v * 2#i64", "note": "checked multiplication instead of shift: panics for |v| >= 2^62"},
+  {"decl": "sigma_ser.zig_zag_encode.decode_u32", "before": "let i ← lift (UScalar.cast .U32 v)", "after": "let i ← (if v.val < 2^32 then ok (UScalar.cast .U32 v) else fail .panic)", "note": "u32::try_from(v).unwrap(): rejects the sign-extended codes produced by encode_i32"},
+  {"decl": "sigma_ser.zig_zag_encode.encode_i64", "before": "let i1 ← v >>> 63#i32", "after": "let i1 ← (do let u ← (IScalar.hcast .U64 v) >>> 63#i32; ok (UScalar.hcast .I64 u))", "note": "logical instead of arithmetic shift for the sign mask"},
+  {"decl": "sigma_ser.zig_zag_encode.decode_u64", "before": "let i ← v >>> 1#i32", "after": "let i ← (do let s ← (UScalar.hcast .I64 v) >>> 1#i32; ok (IScalar.hcast .U64 s))", "note": "arithmetic instead of logical shift: wrong for codes >= 2^63"}
+ ]
+}

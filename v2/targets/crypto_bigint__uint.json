@@ -1,0 +1,125 @@
+{
+ "id": "crypto_bigint/uint",
+ "package": "CryptoBigintUint",
+ "module_prefix": "Benchmark.V2.CryptoBigint.Uint",
+ "rust_dir": "rust/crypto_bigint/uint",
+ "api": [
+  "crypto_bigint.uint.add.Uint.carrying_add",
+  "crypto_bigint.uint.add.Uint.adc",
+  "crypto_bigint.uint.add.Uint.wrapping_add",
+  "crypto_bigint.uint.sub.Uint.borrowing_sub",
+  "crypto_bigint.uint.sub.Uint.sbb",
+  "crypto_bigint.uint.sub.Uint.wrapping_sub",
+  "crypto_bigint.uint.sub_mod.Uint.sub_mod",
+  "crypto_bigint.uint.sub_mod.Uint.sub_mod_special",
+  "crypto_bigint.uint.bit_and.Uint.bitand",
+  "crypto_bigint.uint.bit_and.Uint.bitand_limb",
+  "crypto_bigint.uint.bit_and.Uint.wrapping_and",
+  "crypto_bigint.uint.bit_or.Uint.bitor",
+  "crypto_bigint.uint.bit_or.Uint.wrapping_or",
+  "crypto_bigint.uint.bit_xor.Uint.bitxor",
+  "crypto_bigint.uint.bit_xor.Uint.wrapping_xor",
+  "crypto_bigint.uint.encoding.Uint.from_le_slice",
+  "crypto_bigint.uint.encoding.Uint.from_be_slice",
+  "crypto_bigint.uint.Uint.new",
+  "crypto_bigint.limb.add.Limb.carrying_add",
+  "crypto_bigint.limb.add.Limb.overflowing_add",
+  "crypto_bigint.limb.sub.Limb.borrowing_sub",
+  "crypto_bigint.limb.bit_and.Limb.bitand",
+  "crypto_bigint.limb.bit_or.Limb.bitor",
+  "crypto_bigint.limb.bit_xor.Limb.bitxor"
+ ],
+ "mutation_roots": [
+  "crypto_bigint.uint.add.Uint.carrying_add",
+  "crypto_bigint.uint.add.Uint.adc",
+  "crypto_bigint.uint.add.Uint.wrapping_add",
+  "crypto_bigint.uint.sub.Uint.borrowing_sub",
+  "crypto_bigint.uint.sub.Uint.sbb",
+  "crypto_bigint.uint.sub.Uint.wrapping_sub",
+  "crypto_bigint.uint.sub_mod.Uint.sub_mod",
+  "crypto_bigint.uint.sub_mod.Uint.sub_mod_special",
+  "crypto_bigint.uint.bit_and.Uint.bitand",
+  "crypto_bigint.uint.bit_and.Uint.bitand_limb",
+  "crypto_bigint.uint.bit_and.Uint.wrapping_and",
+  "crypto_bigint.uint.bit_or.Uint.bitor",
+  "crypto_bigint.uint.bit_or.Uint.wrapping_or",
+  "crypto_bigint.uint.bit_xor.Uint.bitxor",
+  "crypto_bigint.uint.bit_xor.Uint.wrapping_xor",
+  "crypto_bigint.uint.encoding.Uint.from_le_slice",
+  "crypto_bigint.uint.encoding.Uint.from_be_slice",
+  "crypto_bigint.uint.Uint.new",
+  "crypto_bigint.limb.add.Limb.carrying_add",
+  "crypto_bigint.limb.add.Limb.overflowing_add",
+  "crypto_bigint.limb.sub.Limb.borrowing_sub",
+  "crypto_bigint.limb.bit_and.Limb.bitand",
+  "crypto_bigint.limb.bit_or.Limb.bitor",
+  "crypto_bigint.limb.bit_xor.Limb.bitxor"
+ ],
+ "forbidden_constants": [
+  "crypto_bigint.primitives.carrying_add",
+  "crypto_bigint.primitives.overflowing_add",
+  "crypto_bigint.primitives.borrowing_sub",
+  "crypto_bigint.uint.add.Uint.overflowing_add_limb",
+  "crypto_bigint.uint.add.Uint.wrapping_add_limb",
+  "crypto_bigint.uint.add.Uint.carrying_add_loop",
+  "crypto_bigint.uint.sub.Uint.borrowing_sub_loop",
+  "crypto_bigint.uint.encoding.Uint.from_le_slice_loop0",
+  "crypto_bigint.uint.encoding.Uint.from_be_slice_loop0"
+ ],
+ "allowed_imports": [
+  "CryptoBigintUint.Extraction"
+ ],
+ "opens": [
+  "crypto_bigint"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.CryptoBigint.Uint.Specs",
+  "Benchmark.V2.CryptoBigint.Uint.Instances"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.CryptoBigint.Uint.Oracle.le_bytes_roundtrip",
+  "Benchmark.Cases.CryptoBigint.Uint.Oracle.wrapping_add_matches_biguint",
+  "Benchmark.Cases.CryptoBigint.Uint.Oracle.wrapping_and_matches_biguint",
+  "Benchmark.Cases.CryptoBigint.Uint.Oracle.wrapping_sub_matches_biguint",
+  "Benchmark.Cases.CryptoBigint.Uint.Oracle.wrapping_xor_matches_biguint"
+ ],
+ "intent": "Specify the public fixed-width big-integer API of `crypto_bigint::Uint<LIMBS>` (little-endian 64-bit limbs) included in this extraction: `Uint::carrying_add`, `adc`, `wrapping_add`, `borrowing_sub`, `sbb`, `wrapping_sub`, `sub_mod`, `sub_mod_special`, `bitand`, `bitand_limb`, `wrapping_and`, `bitor`, `wrapping_or`, `bitxor`, `wrapping_xor`, `from_le_slice`, `from_be_slice` and `new`, and the limb primitives `Limb::carrying_add`, `Limb::overflowing_add`, `Limb::borrowing_sub`, `Limb::bitand`, `Limb::bitor` and `Limb::bitxor`.",
+ "manual_mutants": [
+  {
+   "decl": "crypto_bigint.primitives.borrowing_sub",
+   "before": "let i ← core.num.U64.BITS - 1#u32",
+   "after": "let i ← core.num.U64.BITS - 2#u32",
+   "note": "incoming borrow read from bit 62 instead of the top bit: chained borrows (MAX) still work, an explicit borrow word 2^63 is ignored"
+  },
+  {
+   "decl": "crypto_bigint.primitives.carrying_add",
+   "before": "ok (i1, i3)",
+   "after": "ok (i1, if i3 > 0#u64 then 1#u64 else 0#u64)",
+   "note": "carry word clamped to 1: wrong only when a large incoming carry makes the limb sum exceed 2^65"
+  },
+  {
+   "decl": "crypto_bigint.uint.encoding.Uint.from_le_slice_loop0_loop0.body",
+   "before": "let i2 ← i1 + j",
+   "after": "let i2 ← i1 + (7#usize - j)",
+   "note": "bytes within each limb read in big-endian order by from_le_slice"
+  },
+  {
+   "decl": "crypto_bigint.primitives.borrowing_sub",
+   "before": "let i3 ← core.num.U64.wrapping_sub core.num.U64.MIN i2",
+   "after": "let i3 ← ok i2",
+   "note": "borrow word 1 instead of MAX: single-limb results fine, the borrow is lost between limbs"
+  },
+  {
+   "decl": "crypto_bigint.uint.encoding.Uint.from_le_slice",
+   "before": "massert (i = i1)",
+   "after": "massert (i >= i1)",
+   "note": "from_le_slice accepts over-long slices (silently ignoring the extra bytes) instead of panicking"
+  },
+  {
+   "decl": "crypto_bigint.primitives.borrowing_sub",
+   "before": "let i2 ← lift (UScalar.cast_fromBool .U64 (b1 || b2))",
+   "after": "let i2 ← lift (UScalar.cast_fromBool .U64 b1)",
+   "note": "borrow lost when the limb is 0 and a borrow comes in (only visible with rippling borrows)"
+  }
+ ]
+}

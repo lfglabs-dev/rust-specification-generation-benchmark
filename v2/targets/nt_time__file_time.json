@@ -1,0 +1,88 @@
+{
+ "id": "nt_time/file_time",
+ "package": "NtTimeFileTime",
+ "module_prefix": "Benchmark.V2.NtTime.FileTime",
+ "rust_dir": "rust/nt_time/file_time",
+ "api": [
+  "nt_time.file_time.FileTime.new",
+  "nt_time.file_time.FileTime.to_raw",
+  "nt_time.file_time.FileTime.to_be_bytes",
+  "nt_time.file_time.FileTime.to_le_bytes",
+  "nt_time.file_time.FileTime.from_be_bytes",
+  "nt_time.file_time.FileTime.from_le_bytes",
+  "nt_time.file_time.FileTime.to_high_low",
+  "nt_time.file_time.FileTime.from_high_low",
+  "nt_time.file_time.unix_time.FileTime.to_unix_time_nanos",
+  "nt_time.file_time.unix_time.FileTime.from_unix_time_secs"
+ ],
+ "mutation_roots": [
+  "nt_time.file_time.FileTime.new",
+  "nt_time.file_time.FileTime.to_raw",
+  "nt_time.file_time.FileTime.to_be_bytes",
+  "nt_time.file_time.FileTime.to_le_bytes",
+  "nt_time.file_time.FileTime.from_be_bytes",
+  "nt_time.file_time.FileTime.from_le_bytes",
+  "nt_time.file_time.FileTime.to_high_low",
+  "nt_time.file_time.FileTime.from_high_low",
+  "nt_time.file_time.unix_time.FileTime.to_unix_time_nanos",
+  "nt_time.file_time.unix_time.FileTime.from_unix_time_secs"
+ ],
+ "forbidden_constants": [
+  "nt_time.error.FileTimeRangeError.new",
+  "nt_time.file_time.FILE_TIMES_PER_SEC",
+  "nt_time.file_time.unix_time.FileTime.from_unix_time_secs.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromIntErrorFileTimeRangeErrorKind.call_once"
+ ],
+ "allowed_imports": [
+  "NtTimeFileTime.Extraction"
+ ],
+ "opens": [
+  "nt_time"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.NtTime.FileTime.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.NtTime.FileTime.Oracle.from_be_bytes_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.from_high_low_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.from_unix_time_secs_before_nt_time_epoch_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.from_unix_time_secs_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.from_unix_time_secs_with_too_big_date_time_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.to_be_bytes_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.to_high_low_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.to_le_bytes_roundtrip",
+  "Benchmark.Cases.NtTime.FileTime.Oracle.to_unix_time_nanos_roundtrip"
+ ],
+ "intent": "Specify the public API of `nt_time::FileTime` (the extraction represents `FileTime` as its raw `u64`): `new`, `to_raw`, `to_be_bytes`, `to_le_bytes`, `from_be_bytes`, `from_le_bytes`, `to_high_low`, `from_high_low`, `to_unix_time_nanos` and `from_unix_time_secs`.",
+ "manual_mutants": [
+  {
+   "decl": "nt_time.file_time.unix_time.FileTime.from_unix_time_secs",
+   "before": "if secs <= 1833029933770#i64",
+   "after": "if secs <= 1844674407370#i64",
+   "note": "upper bound forgets the epoch offset: late times panic on overflow instead of returning Err(Overflow)"
+  },
+  {
+   "decl": "nt_time.file_time.unix_time.FileTime.from_unix_time_secs",
+   "before": "error.FileTimeRangeErrorKind.Overflow",
+   "after": "error.FileTimeRangeErrorKind.Negative",
+   "note": "too-late times report the wrong error kind"
+  },
+  {
+   "decl": "nt_time.file_time.FileTime.to_high_low",
+   "before": "let i2 \u2190 lift (UScalar.cast .U32 raw)",
+   "after": "let i2 \u2190 lift (UScalar.cast .U32 (raw &&& 2147483647#u64))",
+   "note": "bit 31 of the low half is lost"
+  },
+  {
+   "decl": "nt_time.file_time.FileTime.from_high_low",
+   "before": "let i \u2190 lift (UScalar.cast .U64 high)",
+   "after": "let i \u2190 lift (UScalar.cast .U64 (high &&& 2147483647#u32))",
+   "note": "top bit of the high half is lost (signed-cast style bug)"
+  },
+  {
+   "decl": "nt_time.file_time.unix_time.FileTime.to_unix_time_nanos",
+   "before": "i2 - 11644473600000000000#i128",
+   "after": "i2 - 11644473600000000#i128",
+   "note": "epoch offset in the wrong unit"
+  }
+ ]
+}

@@ -35,5 +35,64 @@
   "Benchmark.Cases.Arxid.Permute.Oracle.output_never_leaves_the_domain",
   "Benchmark.Cases.Arxid.Permute.Oracle.out_of_domain_input_is_reduced_not_rejected"
  ],
- "intent": "Specify the public permutation API of `arxid::permute`: `obfuscate`, `deobfuscate`, `feistel_n` and `feistel_n_inv`."
+ "intent": "Specify the public permutation API of `arxid::permute`: `obfuscate`, `deobfuscate`, `feistel_n` and `feistel_n_inv`.",
+ "manual_mutants": [
+  {
+   "note": "both directions use 5 rounds: still a permutation of the domain, but not feistel_n at (ROUNDS, WIDTH_BITS)",
+   "edits": [
+    {
+     "decl": "arxid.permute.obfuscate",
+     "before": "permute.feistel_n i1 key permute.ROUNDS permute.WIDTH_BITS",
+     "after": "permute.feistel_n i1 key 5#usize permute.WIDTH_BITS"
+    },
+    {
+     "decl": "arxid.permute.deobfuscate",
+     "before": "permute.feistel_n_inv i1 key permute.ROUNDS permute.WIDTH_BITS",
+     "after": "permute.feistel_n_inv i1 key 5#usize permute.WIDTH_BITS"
+    }
+   ]
+  },
+  {
+   "note": "both directions use a 42-bit width: round trip still holds on the domain, outputs leave the domain",
+   "edits": [
+    {
+     "decl": "arxid.permute.obfuscate",
+     "before": "permute.feistel_n i1 key permute.ROUNDS permute.WIDTH_BITS",
+     "after": "permute.feistel_n i1 key permute.ROUNDS 42#u32"
+    },
+    {
+     "decl": "arxid.permute.deobfuscate",
+     "before": "permute.feistel_n_inv i1 key permute.ROUNDS permute.WIDTH_BITS",
+     "after": "permute.feistel_n_inv i1 key permute.ROUNDS 42#u32"
+    }
+   ]
+  },
+  {
+   "note": "odd widths round the half width up in both directions (inverse still holds, range breaks)",
+   "edits": [
+    {
+     "decl": "arxid.permute.feistel_n",
+     "before": "let half \u2190 width / 2#u32",
+     "after": "let half \u2190 (do let w \u2190 width + 1#u32; w / 2#u32)"
+    },
+    {
+     "decl": "arxid.permute.feistel_n_inv",
+     "before": "let half \u2190 width / 2#u32",
+     "after": "let half \u2190 (do let w \u2190 width + 1#u32; w / 2#u32)"
+    }
+   ]
+  },
+  {
+   "note": "deobfuscate masks to 39 bits: round trip fails only for ids with bit 39 set",
+   "decl": "arxid.permute.deobfuscate",
+   "before": "let i1 \u2190 lift (code &&& i)",
+   "after": "let i1 \u2190 lift (code &&& 549755813887#u64)"
+  },
+  {
+   "note": "zero rounds requested by a caller is treated as one round in feistel_n only",
+   "decl": "arxid.permute.feistel_n",
+   "before": "permute.feistel_n_loop { start := 0#usize, \u00abend\u00bb := rounds } key half l r",
+   "after": "permute.feistel_n_loop { start := 0#usize, \u00abend\u00bb := (if rounds = 0#usize then 1#usize else rounds) } key half l r"
+  }
+ ]
 }

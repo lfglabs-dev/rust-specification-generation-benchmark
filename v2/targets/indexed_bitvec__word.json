@@ -1,0 +1,72 @@
+{
+ "id": "indexed_bitvec/word",
+ "package": "IndexedBitvecWord",
+ "module_prefix": "Benchmark.V2.IndexedBitvec.Word",
+ "rust_dir": "rust/indexed_bitvec/word",
+ "api": [
+  "indexed_bitvec_core.ceil_div",
+  "indexed_bitvec_core.ceil_div_u64",
+  "indexed_bitvec_core.word.Word.Insts.CoreConvertFromU64.from",
+  "indexed_bitvec_core.U64.Insts.CoreConvertFromWord.from",
+  "indexed_bitvec_core.word.Word.len",
+  "indexed_bitvec_core.word.Word.get",
+  "indexed_bitvec_core.word.Word.set_copy",
+  "indexed_bitvec_core.word.Word.set",
+  "indexed_bitvec_core.word.Word.complement",
+  "indexed_bitvec_core.word.Word.count_ones",
+  "indexed_bitvec_core.word.Word.rank_ones",
+  "indexed_bitvec_core.word.Word.rank_zeros",
+  "indexed_bitvec_core.word.Word.select_ones",
+  "indexed_bitvec_core.word.Word.select_zeros",
+  "indexed_bitvec_core.word.select_ones_u16"
+ ],
+ "mutation_roots": [
+  "indexed_bitvec_core.ceil_div",
+  "indexed_bitvec_core.ceil_div_u64",
+  "indexed_bitvec_core.word.Word.len",
+  "indexed_bitvec_core.word.Word.get",
+  "indexed_bitvec_core.word.Word.set_copy",
+  "indexed_bitvec_core.word.Word.set",
+  "indexed_bitvec_core.word.Word.complement",
+  "indexed_bitvec_core.word.Word.count_ones",
+  "indexed_bitvec_core.word.Word.rank_ones",
+  "indexed_bitvec_core.word.Word.rank_zeros",
+  "indexed_bitvec_core.word.Word.select_ones",
+  "indexed_bitvec_core.word.Word.select_zeros",
+  "indexed_bitvec_core.word.select_ones_u16"
+ ],
+ "forbidden_constants": [
+  "indexed_bitvec_core.ceil_div_slow",
+  "indexed_bitvec_core.ceil_div_u64_slow",
+  "indexed_bitvec_core.word.Word.index_check",
+  "indexed_bitvec_core.word.Word.desired_bits_as_ones",
+  "indexed_bitvec_core.word.Word.select",
+  "indexed_bitvec_core.word.select_ones_u16_loop",
+  "indexed_bitvec_core.word.select_ones_u16_loop.body"
+ ],
+ "allowed_imports": [
+  "IndexedBitvecWord.Extraction"
+ ],
+ "opens": [
+  "indexed_bitvec_core"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.IndexedBitvec.Word.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.IndexedBitvec.Word.Oracle.ceil_div_matches_slow",
+  "Benchmark.Cases.IndexedBitvec.Word.Oracle.ceil_div_u64_matches_slow",
+  "Benchmark.Cases.IndexedBitvec.Word.Oracle.select_ones_inverts_rank",
+  "Benchmark.Cases.IndexedBitvec.Word.Oracle.set_updates_only_target_bit"
+ ],
+ "intent": "Specify the single-word bit operations of `indexed_bitvec_core`: the `word::Word` methods `from`/`into` (`u64` conversions), `len`, `get`, `set_copy`, `set`, `complement`, `count_ones`, `rank_ones`, `rank_zeros`, `select_ones`, `select_zeros`, the helper `word::select_ones_u16`, and the crate helpers `ceil_div` (usize) and `ceil_div_u64`. (`word.Word` is the `u64` newtype `struct Word(u64)`, represented by its payload.)",
+ "manual_mutants": [
+  {"decl": "indexed_bitvec_core.word.Word.index_check", "before": "if idx >= i", "after": "if idx > i", "note": "index 64 accepted: get/set panic on 63 - 64, rank_ones(64) returns Some"},
+  {"decl": "indexed_bitvec_core.ceil_div", "before": "then ceil_div_slow n d", "after": "then nb / d", "note": "overflow fallback dropped: wrong result when n + d - 1 wraps"},
+  {"decl": "indexed_bitvec_core.ceil_div_u64_slow", "before": "let i2 ← if i1 > 0#u64", "after": "let i2 ← if i1 > 1#u64", "note": "slow path (only reached near u64::MAX) misses the round-up when n % d = 1"},
+  {"decl": "indexed_bitvec_core.word.Word.select_ones", "before": "if nth >= i", "after": "if nth > i", "note": "nth = count_ones returns Some(64) instead of None"},
+  {"decl": "indexed_bitvec_core.word.Word.select_ones", "before": "if val1 > nth", "after": "if val1 >= nth", "note": "boundary between the first two 16-bit blocks"},
+  {"decl": "indexed_bitvec_core.word.Word.set", "before": "| core.option.Option.None => ok (core.option.Option.None, self)", "after": "| core.option.Option.None => ok (core.option.Option.None, 0#u64)", "note": "out-of-range set clobbers the word instead of leaving it unchanged"},
+  {"decl": "indexed_bitvec_core.word.select_ones_u16_loop.body", "before": "then ok (done 16#u32)", "after": "then ok (done 15#u32)", "note": "not-found sentinel of select_ones_u16 wrong"}
+ ]
+}

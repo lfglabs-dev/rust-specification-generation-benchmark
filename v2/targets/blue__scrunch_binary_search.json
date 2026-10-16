@@ -1,0 +1,67 @@
+{
+ "id": "blue/scrunch_binary_search",
+ "package": "BlueScrunchBinarySearch",
+ "module_prefix": "Benchmark.V2.Blue.ScrunchBinarySearch",
+ "rust_dir": "rust/blue/scrunch_binary_search",
+ "api": [
+  "scrunch.binary_search.binary_search_by",
+  "scrunch.binary_search.partition_by"
+ ],
+ "mutation_roots": [
+  "scrunch.binary_search.binary_search_by",
+  "scrunch.binary_search.partition_by"
+ ],
+ "forbidden_constants": [
+  "scrunch.binary_search.binary_search_by_loop",
+  "scrunch.binary_search.binary_search_by_loop.body",
+  "scrunch.binary_search.partition_by.closure.Insts.CoreOpsFunctionFnMutTupleUsizeOrdering.call_mut",
+  "scrunch.binary_search.partition_by.closure.Insts.CoreOpsFunctionFnOnceTupleUsizeOrdering.call_once",
+  "scrunch.binary_search.partition_by.closure.Insts.CoreOpsFunctionFnOnceTupleUsizeOrdering",
+  "scrunch.binary_search.partition_by.closure.Insts.CoreOpsFunctionFnMutTupleUsizeOrdering"
+ ],
+ "allowed_imports": [
+  "BlueScrunchBinarySearch.Extraction"
+ ],
+ "opens": [
+  "scrunch"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Blue.ScrunchBinarySearch.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Blue.ScrunchBinarySearch.Oracle.binary_search_finds_index"
+ ],
+ "intent": "Specify the public API of `scrunch::binary_search`: `binary_search_by<F: FnMut(usize) -> Ordering>(first, last, search) -> usize` and `partition_by<F: FnMut(usize) -> bool>(first, last, search) -> usize`. Both are generic over the closure: in Lean they take an explicit closure-instance record (`core.ops.function.FnMut F Std.Usize core.cmp.Ordering`, resp. `core.ops.function.FnMut F Std.Usize Bool`, with fields `FnOnceInst := { call_once := … }` and `call_mut : F → Std.Usize → RustM (Out × F)`), then `first last : Std.Usize` and the closure state `search : F`. Instantiate them with closure types of your own (any Lean type `F` and `call_mut` you define in your file).",
+ "manual_mutants": [
+  {
+   "note": "midpoint computed as (left + right) / 2: overflows for ranges near usize::MAX",
+   "decl": "scrunch.binary_search.binary_search_by_loop.body",
+   "before": "let i ← right - left",
+   "after": "let i ← (do let s ← left + right; s - left - left)"
+  },
+  {
+   "note": "Greater moves right to mid - 1 (classic inclusive-bound bug): result can skip the answer",
+   "decl": "scrunch.binary_search.binary_search_by_loop.body",
+   "before": "then ok (cont (search1, left, mid))",
+   "after": "then (do let m ← (if mid = 0#usize then ok mid else mid - 1#usize); ok (cont (search1, left, m)))"
+  },
+  {
+   "note": "bisects at a third instead of the middle: same answers on sorted input but more than log2 probes",
+   "decl": "scrunch.binary_search.binary_search_by_loop.body",
+   "before": "let i1 ← i / 2#usize",
+   "after": "let i1 ← i / 3#usize"
+  },
+  {
+   "note": "partition_by treats [first, last] as inclusive and passes last - 1: can never return last",
+   "decl": "scrunch.binary_search.partition_by",
+   "before": "coreopsfunctionFnMutFTupleUsizeBoolInst) first last search",
+   "after": "coreopsfunctionFnMutFTupleUsizeBoolInst) first (if first < last then ⟨last.bv - 1⟩ else last) search"
+  },
+  {
+   "note": "empty/inverted range returns last instead of first",
+   "decl": "scrunch.binary_search.binary_search_by_loop.body",
+   "before": "else ok (done left)",
+   "after": "else ok (done (if right < left then right else left))"
+  }
+ ]
+}

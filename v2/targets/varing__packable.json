@@ -1,0 +1,163 @@
+{
+ "id": "varing/packable",
+ "package": "VaringPackable",
+ "module_prefix": "Benchmark.V2.Varing.Packable",
+ "rust_dir": "rust/varing/packable",
+ "api": [
+  "varing.U64.Insts.VaringPackablePackableU64U128.pack",
+  "varing.U64.Insts.VaringPackablePackableU64U128.unpack",
+  "varing.I64.Insts.VaringPackablePackableI64U128.pack",
+  "varing.I64.Insts.VaringPackablePackableI64U128.unpack",
+  "varing.U32.Insts.VaringPackablePackableI32U64.pack",
+  "varing.U32.Insts.VaringPackablePackableI32U64.unpack",
+  "varing.I32.Insts.VaringPackablePackableU32U64.pack",
+  "varing.I32.Insts.VaringPackablePackableU32U64.unpack",
+  "varing.U32.Insts.VaringPackablePackableU64U128.pack",
+  "varing.U32.Insts.VaringPackablePackableU64U128.unpack",
+  "varing.U64.Insts.VaringPackablePackableU32U128.pack",
+  "varing.U64.Insts.VaringPackablePackableU32U128.unpack",
+  "varing.I16.Insts.VaringPackablePackableI64U128.pack",
+  "varing.I16.Insts.VaringPackablePackableI64U128.unpack",
+  "varing.I64.Insts.VaringPackablePackableI16U128.pack",
+  "varing.I64.Insts.VaringPackablePackableI16U128.unpack",
+  "varing.U16.Insts.VaringPackablePackableI32U64.pack",
+  "varing.U16.Insts.VaringPackablePackableI32U64.unpack",
+  "varing.I32.Insts.VaringPackablePackableU16U64.pack",
+  "varing.I32.Insts.VaringPackablePackableU16U64.unpack",
+  "varing.I8.Insts.VaringPackablePackableU64U128.pack",
+  "varing.I8.Insts.VaringPackablePackableU64U128.unpack",
+  "varing.U64.Insts.VaringPackablePackableI8U128.pack",
+  "varing.U64.Insts.VaringPackablePackableI8U128.unpack"
+ ],
+ "mutation_roots": [
+  "varing.U64.Insts.VaringPackablePackableU64U128.pack",
+  "varing.U64.Insts.VaringPackablePackableU64U128.unpack",
+  "varing.I64.Insts.VaringPackablePackableI64U128.pack",
+  "varing.I64.Insts.VaringPackablePackableI64U128.unpack",
+  "varing.U32.Insts.VaringPackablePackableI32U64.pack",
+  "varing.U32.Insts.VaringPackablePackableI32U64.unpack",
+  "varing.I32.Insts.VaringPackablePackableU32U64.pack",
+  "varing.I32.Insts.VaringPackablePackableU32U64.unpack",
+  "varing.U32.Insts.VaringPackablePackableU64U128.pack",
+  "varing.U32.Insts.VaringPackablePackableU64U128.unpack",
+  "varing.U64.Insts.VaringPackablePackableU32U128.pack",
+  "varing.U64.Insts.VaringPackablePackableU32U128.unpack",
+  "varing.I16.Insts.VaringPackablePackableI64U128.pack",
+  "varing.I16.Insts.VaringPackablePackableI64U128.unpack",
+  "varing.I64.Insts.VaringPackablePackableI16U128.pack",
+  "varing.I64.Insts.VaringPackablePackableI16U128.unpack",
+  "varing.U16.Insts.VaringPackablePackableI32U64.pack",
+  "varing.U16.Insts.VaringPackablePackableI32U64.unpack",
+  "varing.I32.Insts.VaringPackablePackableU16U64.pack",
+  "varing.I32.Insts.VaringPackablePackableU16U64.unpack",
+  "varing.I8.Insts.VaringPackablePackableU64U128.pack",
+  "varing.I8.Insts.VaringPackablePackableU64U128.unpack",
+  "varing.U64.Insts.VaringPackablePackableI8U128.pack",
+  "varing.U64.Insts.VaringPackablePackableI8U128.unpack"
+ ],
+ "forbidden_constants": [
+  "varing.packable.builtin.pack_i16_i64",
+  "varing.packable.builtin.pack_i32_u16",
+  "varing.packable.builtin.pack_i32_u32",
+  "varing.packable.builtin.pack_i64",
+  "varing.packable.builtin.pack_i64_i16",
+  "varing.packable.builtin.pack_i8_u64",
+  "varing.packable.builtin.pack_u16_i32",
+  "varing.packable.builtin.pack_u16_u32",
+  "varing.packable.builtin.pack_u16_u64",
+  "varing.packable.builtin.pack_u32",
+  "varing.packable.builtin.pack_u32_i32",
+  "varing.packable.builtin.pack_u32_u64",
+  "varing.packable.builtin.pack_u64",
+  "varing.packable.builtin.pack_u64_i8",
+  "varing.packable.builtin.pack_u64_u32",
+  "varing.packable.builtin.pack_u8_u64",
+  "varing.packable.builtin.unpack_i16_i64",
+  "varing.packable.builtin.unpack_i32_u16",
+  "varing.packable.builtin.unpack_i32_u32",
+  "varing.packable.builtin.unpack_i64",
+  "varing.packable.builtin.unpack_i64_i16",
+  "varing.packable.builtin.unpack_i8_u64",
+  "varing.packable.builtin.unpack_u16_i32",
+  "varing.packable.builtin.unpack_u16_u32",
+  "varing.packable.builtin.unpack_u16_u64",
+  "varing.packable.builtin.unpack_u32",
+  "varing.packable.builtin.unpack_u32_i32",
+  "varing.packable.builtin.unpack_u32_u64",
+  "varing.packable.builtin.unpack_u64",
+  "varing.packable.builtin.unpack_u64_i8",
+  "varing.packable.builtin.unpack_u64_u32",
+  "varing.packable.builtin.unpack_u8_u64",
+  "varing.utils.zigzag_decode_i16",
+  "varing.utils.zigzag_decode_i32",
+  "varing.utils.zigzag_decode_i64",
+  "varing.utils.zigzag_decode_i8",
+  "varing.utils.zigzag_encode_i16",
+  "varing.utils.zigzag_encode_i32",
+  "varing.utils.zigzag_encode_i64",
+  "varing.utils.zigzag_encode_i8"
+ ],
+ "allowed_imports": [
+  "VaringPackable.Extraction"
+ ],
+ "opens": [
+  "varing"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Varing.Packable.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Varing.Packable.Oracle.mix_roundtrip_i16_i64",
+  "Benchmark.Cases.Varing.Packable.Oracle.mix_roundtrip_i8_u64",
+  "Benchmark.Cases.Varing.Packable.Oracle.mix_roundtrip_u32_u64",
+  "Benchmark.Cases.Varing.Packable.Oracle.roundtrip_u64"
+ ],
+ "intent": "Specify the public `varing::packable::Packable` impls for builtin integers: `pack` and `unpack` of `u64: Packable<u64, u128>`, `i64: Packable<i64, u128>`, `u32: Packable<i32, u64>`, `i32: Packable<u32, u64>`, `u32: Packable<u64, u128>`, `u64: Packable<u32, u128>`, `i16: Packable<i64, u128>`, `i64: Packable<i16, u128>`, `u16: Packable<i32, u64>`, `i32: Packable<u16, u64>`, `i8: Packable<u64, u128>` and `u64: Packable<i8, u128>`.",
+ "manual_mutants": [
+  {
+   "decl": "varing.packable.builtin.unpack_u32_u64",
+   "before": "let i2 ← lift (UScalar.cast .U64 large)",
+   "after": "let i2 ← (if large.val < 2^64 then ok (UScalar.cast .U64 large) else fail .panic)",
+   "note": "u64::try_from(large).unwrap(): unpack panics when bits >= 96 are set instead of ignoring them"
+  },
+  {
+   "decl": "varing.packable.builtin.unpack_u16_u32",
+   "before": "let i2 ← lift (UScalar.cast .U32 large)",
+   "after": "let i2 ← (if large.val < 2^32 then ok (UScalar.cast .U32 large) else fail .panic)",
+   "note": "u32::try_from(large).unwrap(): unpack panics when bits >= 48 are set"
+  },
+  {
+   "decl": "varing.packable.builtin.pack_u16_u64",
+   "before": "let i ← large <<< core.num.U16.BITS",
+   "after": "let i ← large <<< core.num.U8.BITS",
+   "note": "copy-paste: shifts the wide field by 8 instead of 16 bits"
+  },
+  {
+   "decl": "varing.utils.zigzag_decode_i8",
+   "before": "let i ← value >>> 1#i32",
+   "after": "let i ← (do let s ← (UScalar.hcast .I8 value) >>> 1#i32; ok (IScalar.hcast .U8 s))",
+   "note": "arithmetic instead of logical shift in i8 ZigZag decode"
+  },
+  {
+   "note": "i32/u32 impl puts the i32 in the low half (consistent round trip, but not the layout of u32: Packable<i32>)",
+   "edits": [
+    {
+     "decl": "varing.packable.builtin.pack_i32_u32",
+     "before": "packable.builtin.pack_u32_i32 b a",
+     "after": "(do let z ← utils.zigzag_encode_i32 a; packable.builtin.pack_u32 z b)"
+    },
+    {
+     "decl": "varing.packable.builtin.unpack_i32_u32",
+     "before": "let (a, b) ← packable.builtin.unpack_u32_i32 packed",
+     "after": "let (a, b) ← (do let (lo, hi) ← packable.builtin.unpack_u32 packed; let x ← utils.zigzag_decode_i32 lo; ok (hi, x))"
+    }
+   ]
+  },
+  {
+   "decl": "varing.utils.zigzag_encode_i64",
+   "before": "let i ← value <<< 1#i32",
+   "after": "let i ← value * 2#i64",
+   "note": "checked multiplication in ZigZag encode: panics for |v| >= 2^62"
+  }
+ ]
+}

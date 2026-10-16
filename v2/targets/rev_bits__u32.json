@@ -1,0 +1,72 @@
+{
+ "id": "rev_bits/u32",
+ "package": "RevBitsU32",
+ "module_prefix": "Benchmark.V2.RevBits.U32",
+ "rust_dir": "rust/rev_bits/u32",
+ "api": [
+  "rev_bits.u32.range.identity",
+  "rev_bits.u32.range.increment",
+  "rev_bits.u32.range.decrement",
+  "rev_bits.u32.ref_impl.to_array",
+  "rev_bits.u32.ref_impl.to_u32"
+ ],
+ "mutation_roots": [
+  "rev_bits.u32.range.identity",
+  "rev_bits.u32.range.increment",
+  "rev_bits.u32.range.decrement",
+  "rev_bits.u32.ref_impl.to_array",
+  "rev_bits.u32.ref_impl.to_u32"
+ ],
+ "forbidden_constants": [
+  "rev_bits.u32.ref_impl.to_array_loop",
+  "rev_bits.u32.ref_impl.to_array_loop.body",
+  "rev_bits.u32.ref_impl.to_u32_loop",
+  "rev_bits.u32.ref_impl.to_u32_loop.body"
+ ],
+ "allowed_imports": [
+  "RevBitsU32.Extraction"
+ ],
+ "opens": [
+  "rev_bits"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.RevBits.U32.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.RevBits.U32.Oracle.decrement_is_correct",
+  "Benchmark.Cases.RevBits.U32.Oracle.to_array_to_u32"
+ ],
+ "intent": "Specify the bit-index range helpers `identity`, `increment` and `decrement` of `rev_bits::u32::range` (with `BITS = 32`) and the bit/array conversions `to_array` and `to_u32` of `rev_bits::u32::ref_impl`.",
+ "manual_mutants": [
+  {
+   "decl": "rev_bits.u32.range.identity",
+   "before": "if x < u32.BITS",
+   "after": "if x <= u32.BITS",
+   "note": "identity(32) returns 32, outside the bit-index range"
+  },
+  {
+   "decl": "rev_bits.u32.range.increment",
+   "before": "if x < i",
+   "after": "if x <= i",
+   "note": "increment(31) returns 32, outside the bit-index range"
+  },
+  {
+   "decl": "rev_bits.u32.range.decrement",
+   "before": "if x = 0#u32",
+   "after": "if x = 1#u32",
+   "note": "zero is no longer special-cased: decrement(0) underflows (panics)"
+  },
+  {
+   "decl": "rev_bits.u32.ref_impl.to_u32_loop.body",
+   "before": "let out1 ← out <<< 1#i32",
+   "after": "let out1 ← out * 2#u32",
+   "note": "checked doubling: panics for slices longer than 32 whose shifted-out bits are set"
+  },
+  {
+   "decl": "rev_bits.u32.ref_impl.to_array",
+   "before": "u32.ref_impl.to_array_loop { start := 0#usize, «end» := i } input array",
+   "after": "u32.ref_impl.to_array_loop { start := 0#usize, «end» := 31#usize } input array",
+   "note": "off-by-one loop bound: bit 31 is never copied into the array"
+  }
+ ]
+}

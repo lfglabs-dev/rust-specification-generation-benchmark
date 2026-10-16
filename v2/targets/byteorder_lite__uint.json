@@ -1,0 +1,76 @@
+{
+ "id": "byteorder_lite/uint",
+ "package": "ByteorderLiteUint",
+ "module_prefix": "Benchmark.V2.ByteorderLite.Uint",
+ "rust_dir": "rust/byteorder_lite/uint",
+ "api": [
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_uint",
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_uint128",
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.write_uint",
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.write_uint128",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_uint",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_uint128",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.write_uint",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.write_uint128"
+ ],
+ "mutation_roots": [
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_uint",
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_uint128",
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.write_uint",
+  "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.write_uint128",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_uint",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_uint128",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.write_uint",
+  "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.write_uint128"
+ ],
+ "forbidden_constants": [
+  "byteorder_lite.pack_size",
+  "byteorder_lite.pack_size128"
+ ],
+ "allowed_imports": [
+  "ByteorderLiteUint.Extraction"
+ ],
+ "opens": [
+  "byteorder_lite"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.ByteorderLite.Uint.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.ByteorderLite.Uint.Oracle.uint128_9_little_endian_roundtrip",
+  "Benchmark.Cases.ByteorderLite.Uint.Oracle.uint_3_big_endian_roundtrip"
+ ],
+ "intent": "Specify the public variable-width integer API of `byteorder_lite::ByteOrder` for both `BigEndian` and `LittleEndian`: `read_uint`, `read_uint128`, `write_uint` and `write_uint128`.",
+ "manual_mutants": [
+  {
+   "decl": "byteorder_lite.pack_size",
+   "before": "let i \u2190 lift (n ||| 1#u64)",
+   "after": "let i \u2190 lift n",
+   "note": "pack_size(0) = 0, so writing 0 with nbytes = 0 no longer panics"
+  },
+  {
+   "decl": "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.write_uint",
+   "before": "massert (i <= nbytes)",
+   "after": "ok ()",
+   "note": "representability check dropped: too-large values are silently truncated"
+  },
+  {
+   "decl": "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.write_uint",
+   "before": "let a \u2190 core.num.U64.to_le_bytes n",
+   "after": "let a \u2190 core.num.U64.to_le_bytes (n &&& 281474976710655#u64)",
+   "note": "top two bytes lost (only for nbytes >= 7 and n >= 2^48)"
+  },
+  {
+   "decl": "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.read_uint128",
+   "before": "core.num.U128.from_be_bytes out1",
+   "after": "(core.num.U128.from_be_bytes out1) >>= fun r => ok (r &&& 18446744073709551615#u128)",
+   "note": "only the low 64 bits survive (wrong for nbytes > 8)"
+  },
+  {
+   "decl": "byteorder_lite.LittleEndian.Insts.Byteorder_liteByteOrder.read_uint",
+   "before": "massert (1#usize <= nbytes)",
+   "after": "massert (0#usize <= nbytes)",
+   "note": "nbytes = 0 returns 0 instead of panicking"
+  }
+ ]
+}

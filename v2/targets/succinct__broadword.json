@@ -1,0 +1,64 @@
+{
+ "id": "succinct/broadword",
+ "package": "SuccinctBroadword",
+ "module_prefix": "Benchmark.V2.Succinct.Broadword",
+ "rust_dir": "rust/succinct/broadword",
+ "api": [
+  "succinct.broadword.count_ones",
+  "succinct.broadword.u_nz8",
+  "succinct.broadword.u_le8"
+ ],
+ "mutation_roots": [
+  "succinct.broadword.count_ones",
+  "succinct.broadword.u_nz8",
+  "succinct.broadword.u_le8"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "SuccinctBroadword.Extraction"
+ ],
+ "opens": [
+  "succinct"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Succinct.Broadword.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Succinct.Broadword.Oracle.count_ones_matches_std",
+  "Benchmark.Cases.Succinct.Broadword.Oracle.u_le8_bytewise",
+  "Benchmark.Cases.Succinct.Broadword.Oracle.u_nz8_bytewise"
+ ],
+ "intent": "Specify the public broadword API of `succinct::broadword`: `count_ones`, `u_nz8` and `u_le8` (with the public constants `L8` and `H8`).",
+ "manual_mutants": [
+  {
+   "decl": "succinct.broadword.u_nz8",
+   "before": "let i2 ← lift (i1 ||| x)",
+   "after": "let i2 ← lift i1",
+   "note": "drops the `| x` term: a byte equal to 0x80 is reported as zero"
+  },
+  {
+   "decl": "succinct.broadword.u_le8",
+   "before": "let i8 ← lift (i5 ^^^ i7)",
+   "after": "let i8 ← lift i5",
+   "note": "drops the `^ (x & !y)` correction: wrong when x's byte has the high bit and y's does not"
+  },
+  {
+   "decl": "succinct.broadword.u_le8",
+   "before": "let i5 ← lift (i3 ||| i4)",
+   "after": "let i5 ← lift (i3 ^^^ i4)",
+   "note": "signed-style combination (as in le8): wrong when the bytes differ in their high bit"
+  },
+  {
+   "decl": "succinct.broadword.count_ones",
+   "before": "let i7 ← core.num.U64.wrapping_mul x3 broadword.L8",
+   "after": "let i7 ← x3 * broadword.L8",
+   "note": "checked multiplication by L8 overflows (panics) whenever a high byte is non-zero"
+  },
+  {
+   "decl": "succinct.broadword.count_ones",
+   "before": "let i ← lift (x &&& 12297829382473034410#u64)",
+   "after": "let i ← lift (x &&& 3074457345618258602#u64)",
+   "note": "first-step mask misses bit 63: wrong count only for words with the top bit set"
+  }
+ ]
+}

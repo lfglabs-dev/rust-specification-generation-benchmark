@@ -1,0 +1,165 @@
+{
+ "id": "lilliput/int_value",
+ "package": "LilliputIntValue",
+ "module_prefix": "Benchmark.V2.Lilliput.IntValue",
+ "rust_dir": "rust/lilliput/int_value",
+ "api": [
+  "lilliput_core.I8.Insts.Lilliput_coreNumZigzagToZigZagU8.to_zig_zag",
+  "lilliput_core.I8.Insts.Lilliput_coreNumZigzagFromZigZagU8.from_zig_zag",
+  "lilliput_core.I16.Insts.Lilliput_coreNumZigzagToZigZagU16.to_zig_zag",
+  "lilliput_core.I16.Insts.Lilliput_coreNumZigzagFromZigZagU16.from_zig_zag",
+  "lilliput_core.I32.Insts.Lilliput_coreNumZigzagToZigZagU32.to_zig_zag",
+  "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
+  "lilliput_core.I64.Insts.Lilliput_coreNumZigzagToZigZagU64.to_zig_zag",
+  "lilliput_core.I64.Insts.Lilliput_coreNumZigzagFromZigZagU64.from_zig_zag",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.Lilliput_coreNumZigzagToZigZagUnsignedIntValue.to_zig_zag",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.Lilliput_coreNumZigzagFromZigZagUnsignedIntValue.from_zig_zag",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpPartialEqSignedIntValue.eq",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpOrd.cmp",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpPartialOrdSignedIntValue.partial_cmp",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreDefaultDefault.default",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI8.from",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI16.from",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI32.from",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI64.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreCmpPartialEqUnsignedIntValue.eq",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreCmpOrd.cmp",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreCmpPartialOrdUnsignedIntValue.partial_cmp",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreDefaultDefault.default",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU8.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU16.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU32.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU64.from",
+  "lilliput_core.value.int.IntValue.is_signed",
+  "lilliput_core.value.int.IntValue.Insts.CoreDefaultDefault.default",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI8.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI16.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI32.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI64.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU8.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU16.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU32.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU64.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromUsize.from"
+ ],
+ "mutation_roots": [
+  "lilliput_core.I8.Insts.Lilliput_coreNumZigzagToZigZagU8.to_zig_zag",
+  "lilliput_core.I8.Insts.Lilliput_coreNumZigzagFromZigZagU8.from_zig_zag",
+  "lilliput_core.I16.Insts.Lilliput_coreNumZigzagToZigZagU16.to_zig_zag",
+  "lilliput_core.I16.Insts.Lilliput_coreNumZigzagFromZigZagU16.from_zig_zag",
+  "lilliput_core.I32.Insts.Lilliput_coreNumZigzagToZigZagU32.to_zig_zag",
+  "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
+  "lilliput_core.I64.Insts.Lilliput_coreNumZigzagToZigZagU64.to_zig_zag",
+  "lilliput_core.I64.Insts.Lilliput_coreNumZigzagFromZigZagU64.from_zig_zag",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.Lilliput_coreNumZigzagToZigZagUnsignedIntValue.to_zig_zag",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.Lilliput_coreNumZigzagFromZigZagUnsignedIntValue.from_zig_zag",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpPartialEqSignedIntValue.eq",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpOrd.cmp",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpPartialOrdSignedIntValue.partial_cmp",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreDefaultDefault.default",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI8.from",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI16.from",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI32.from",
+  "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreConvertFromI64.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreCmpPartialEqUnsignedIntValue.eq",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreCmpOrd.cmp",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreCmpPartialOrdUnsignedIntValue.partial_cmp",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreDefaultDefault.default",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU8.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU16.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU32.from",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreConvertFromU64.from",
+  "lilliput_core.value.int.IntValue.is_signed",
+  "lilliput_core.value.int.IntValue.Insts.CoreDefaultDefault.default",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI8.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI16.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI32.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromI64.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU8.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU16.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU32.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromU64.from",
+  "lilliput_core.value.int.IntValue.Insts.CoreConvertFromUsize.from"
+ ],
+ "forbidden_constants": [
+  "lilliput_core.value.int.signed.SignedIntValue.canonicalized",
+  "lilliput_core.value.int.unsigned.UnsignedIntValue.canonicalized"
+ ],
+ "allowed_imports": [
+  "LilliputIntValue.Extraction"
+ ],
+ "opens": [
+  "lilliput_core"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Lilliput.IntValue.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Lilliput.IntValue.Oracle.signed_int_value_cmp_across_widths",
+  "Benchmark.Cases.Lilliput.IntValue.Oracle.unsigned_int_value_cmp_across_widths",
+  "Benchmark.Cases.Lilliput.IntValue.Oracle.unsigned_int_value_eq_across_widths"
+ ],
+ "intent": "Specify the public integer-value API of `lilliput_core`: the zig-zag coding traits `ToZigZag`/`FromZigZag` for `i8`, `i16`, `i32`, `i64` and for `SignedIntValue` (to `UnsignedIntValue`), the `PartialEq`/`Ord`/`PartialOrd`/`Default`/`From` implementations of `SignedIntValue` and `UnsignedIntValue`, and `IntValue::is_signed`, `IntValue::default` and the `From<i8|i16|i32|i64|u8|u16|u32|u64|usize>` conversions into `IntValue`.",
+ "manual_mutants": [
+  {
+   "decl": "lilliput_core.I16.Insts.Lilliput_coreNumZigzagToZigZagU16.to_zig_zag",
+   "before": "let i1 ← i - 1#usize",
+   "after": "let i1 ← i - 2#usize",
+   "note": "sign mask shift off by one: wrong only for large-magnitude negative i16"
+  },
+  {
+   "edits": [
+    {
+     "decl": "lilliput_core.I8.Insts.Lilliput_coreNumZigzagToZigZagU8.to_zig_zag",
+     "before": "let i2 ← self >>> i1",
+     "after": "let i2u ← lift (IScalar.hcast .U8 self)"
+    },
+    {
+     "decl": "lilliput_core.I8.Insts.Lilliput_coreNumZigzagToZigZagU8.to_zig_zag",
+     "before": "let i3 ← lift (IScalar.hcast .U8 i2)",
+     "after": "let i3 ← i2u >>> i1"
+    }
+   ],
+   "note": "logical instead of arithmetic shift for the sign mask: wrong for negative i8"
+  },
+  {
+   "edits": [
+    {
+     "decl": "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
+     "before": "let i ← zig_zag >>> 1#i32",
+     "after": "let i ← lift (UScalar.hcast .I32 zig_zag)"
+    },
+    {
+     "decl": "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
+     "before": "let i1 ← lift (UScalar.hcast .I32 i)",
+     "after": "let i1 ← i >>> 1#i32"
+    }
+   ],
+   "note": "decode shifts after the signed cast (arithmetic shift): wrong for codes >= 2^31"
+  },
+  {
+   "decl": "lilliput_core.value.int.signed.SignedIntValue.canonicalized",
+   "before": "| value.int.signed.SignedIntValue.I64 value1 => ok value1",
+   "after": "| value.int.signed.SignedIntValue.I64 value1 => ok (IScalar.cast .I64 (IScalar.cast .I32 value1))",
+   "note": "ordering truncates 64-bit payloads"
+  },
+  {
+   "decl": "lilliput_core.value.int.unsigned.UnsignedIntValue.canonicalized",
+   "before": "| value.int.unsigned.UnsignedIntValue.U64 value1 => ok value1",
+   "after": "| value.int.unsigned.UnsignedIntValue.U64 value1 => ok (UScalar.cast .U64 (UScalar.cast .U32 value1))",
+   "note": "ordering truncates 64-bit payloads"
+  },
+  {
+   "decl": "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreCmpPartialEqSignedIntValue.eq",
+   "before": "ok (lhs = rhs)",
+   "after": "ok (IScalar.cast .I32 lhs = IScalar.cast .I32 rhs)",
+   "note": "equality only compares the low 32 bits"
+  },
+  {
+   "decl": "lilliput_core.I64.Insts.Lilliput_coreNumZigzagFromZigZagU64.from_zig_zag",
+   "before": "let i4 ← -. i3",
+   "after": "let i4 ← lift (IScalar.hcast .I64 (0#i64 : Std.I64))",
+   "note": "sign of odd codes dropped: odd codes decode as non-negative"
+  }
+ ]
+}

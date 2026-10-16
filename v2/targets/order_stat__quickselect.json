@@ -1,0 +1,72 @@
+{
+ "id": "order_stat/quickselect",
+ "package": "OrderStatQuickselect",
+ "module_prefix": "Benchmark.V2.OrderStat.Quickselect",
+ "rust_dir": "rust/order_stat/quickselect",
+ "api": [
+  "order_stat.quickselect.select"
+ ],
+ "mutation_roots": [
+  "order_stat.quickselect.select"
+ ],
+ "forbidden_constants": [
+  "order_stat.quickselect.partition",
+  "order_stat.quickselect.partition_loop",
+  "order_stat.quickselect.partition_loop.body",
+  "order_stat.quickselect.select_loop0",
+  "order_stat.quickselect.select_loop0.body",
+  "order_stat.quickselect.select_loop0_loop0",
+  "order_stat.quickselect.select_loop0_loop0.body"
+ ],
+ "allowed_imports": [
+  "OrderStatQuickselect.Extraction"
+ ],
+ "opens": [
+  "order_stat"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.OrderStat.Quickselect.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.OrderStat.Quickselect.Oracle.select_kth_is_kth_smallest"
+ ],
+ "intent": "Specify the public selection function `order_stat::quickselect::select(x: &mut [T], k: usize)` instantiated at `T = i32`. In Lean it is `quickselect.select core.I32.Insts.CoreCmpOrd x k` with `x : Slice Std.I32`, `k : Std.Usize`; the `&mut` slice is threaded functionally, i.e. the call returns the final contents of `x`.",
+ "manual_mutants": [
+  {
+   "note": "right-hand recursion uses k - pivot instead of k - pivot - 1 (off by one)",
+   "decl": "order_stat.quickselect.select",
+   "before": "let i3 ← i2 - 1#usize",
+   "after": "let i3 ← ok i2"
+  },
+  {
+   "note": "when k lands exactly on the pivot the unpartitioned slice is returned",
+   "decl": "order_stat.quickselect.select",
+   "before": "else ok x1",
+   "after": "else ok x"
+  },
+  {
+   "note": "small-slice sort never compares against the last element",
+   "decl": "order_stat.quickselect.select_loop0.body",
+   "before": "let i2 ← core.slice.Slice.len x",
+   "after": "let i2 ← (do let n ← core.slice.Slice.len x; n - 1#usize)"
+  },
+  {
+   "note": "partition forgets to move the pivot into its final position",
+   "decl": "order_stat.quickselect.partition",
+   "before": "let x2 ← core.slice.Slice.swap x1 store i1",
+   "after": "let x2 ← ok x1"
+  },
+  {
+   "note": "small-slice (len < 5) sort compares in the wrong direction (sorts descending)",
+   "decl": "order_stat.quickselect.select_loop0_loop0.body",
+   "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t t1",
+   "after": "let b ← corecmpOrdInst.PartialOrdInst.lt t1 t"
+  },
+  {
+   "note": "partition moves elements greater than the pivot to the left",
+   "decl": "order_stat.quickselect.partition_loop.body",
+   "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t elem",
+   "after": "let b ← corecmpOrdInst.PartialOrdInst.gt t elem"
+  }
+ ]
+}

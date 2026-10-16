@@ -1,0 +1,35 @@
+{
+ "id": "static_filez/slice",
+ "package": "StaticFilezSlice",
+ "module_prefix": "Benchmark.V2.StaticFilez.Slice",
+ "rust_dir": "rust/static_filez/slice",
+ "api": [
+  "static_filez.slice.pack_in_u64",
+  "static_filez.slice.unpack_from_u64"
+ ],
+ "mutation_roots": [
+  "static_filez.slice.pack_in_u64",
+  "static_filez.slice.unpack_from_u64"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "StaticFilezSlice.Extraction"
+ ],
+ "opens": [
+  "static_filez"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.StaticFilez.Slice.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.StaticFilez.Slice.Oracle.slice_encoding_roundtrip"
+ ],
+ "intent": "Specify the public slice-descriptor API of `static_filez::slice`: `pack_in_u64` and `unpack_from_u64`.",
+ "manual_mutants": [
+  {"decl": "static_filez.slice.pack_in_u64", "before": "let i2 ← i1 <<< 32#i32", "after": "let i2 ← i1 * 4294967296#u64", "note": "checked multiplication instead of shift: panics for offsets >= 2^32 instead of truncating"},
+  {"decl": "static_filez.slice.pack_in_u64", "before": "let i ← lift (UScalar.cast .U64 length)", "after": "let i ← lift (UScalar.cast .U64 (length &&& 2147483647#usize))", "note": "length masked to 31 bits: lengths >= 2^31 corrupted"},
+  {"decl": "static_filez.slice.unpack_from_u64", "before": "ok (i2, i4)", "after": "ok (i4, i2)", "note": "returns (length, offset)"},
+  {"decl": "static_filez.slice.unpack_from_u64", "before": "let i3 ← lift (input &&& 4294967295#u64)", "after": "let i3 ← lift (input &&& 2147483647#u64)", "note": "31-bit length mask"},
+  {"decl": "static_filez.slice.unpack_from_u64", "before": "let i1 ← i >>> 32#i32", "after": "let i1 ← i >>> 31#i32", "note": "off-by-one shift: offset doubled"}
+ ]
+}

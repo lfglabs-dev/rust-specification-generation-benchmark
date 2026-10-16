@@ -88,6 +88,16 @@ instance (priority := high) {α β} [Arbitrary α] [Arbitrary β] : Arbitrary (�
 instance (priority := high) : Arbitrary Bool where
   arbitrary := do pure ((← Gen.chooseNatLt 0 2 (by omega)).val == 1)
 
+/-! ## `Repr` / `DecidableEq` for Aeneas containers (inputs and outputs) -/
+
+instance {α} [Repr α] : Repr (Slice α) := ⟨fun s p => Repr.addAppParen ("slice " ++ repr s.val) p⟩
+instance {α} [Repr α] : Repr (alloc.vec.Vec α) := ⟨fun s p => Repr.addAppParen ("vec " ++ repr s.val) p⟩
+instance {α} [Repr α] (n : Usize) : Repr (Std.Array α n) := ⟨fun s p => Repr.addAppParen ("array " ++ repr s.val) p⟩
+instance {α} [DecidableEq α] : DecidableEq (alloc.vec.Vec α) :=
+  inferInstanceAs (DecidableEq { _l : List α // _ })
+instance {α} [DecidableEq α] (n : Usize) : DecidableEq (Std.Array α n) :=
+  inferInstanceAs (DecidableEq { _l : List α // _ })
+
 /-! ## Decidability of Aeneas specification forms -/
 
 instance decSpec {α} (x : RustM α) (p : Post α) [h : ∀ a, Decidable (p a)] :

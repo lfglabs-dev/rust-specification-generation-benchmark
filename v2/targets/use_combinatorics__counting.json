@@ -1,0 +1,43 @@
+{
+ "id": "use_combinatorics/counting",
+ "package": "UseCombinatoricsCounting",
+ "module_prefix": "Benchmark.V2.UseCombinatorics.Counting",
+ "rust_dir": "rust/use_combinatorics/counting",
+ "api": [
+  "use_combinatorics.counting.factorial",
+  "use_combinatorics.counting.permutations"
+ ],
+ "mutation_roots": [
+  "use_combinatorics.counting.factorial",
+  "use_combinatorics.counting.permutations"
+ ],
+ "forbidden_constants": [
+  "use_combinatorics.counting.factorial_loop",
+  "use_combinatorics.counting.factorial_loop.body",
+  "use_combinatorics.counting.permutations_loop",
+  "use_combinatorics.counting.permutations_loop.body"
+ ],
+ "allowed_imports": [
+  "UseCombinatoricsCounting.Extraction"
+ ],
+ "opens": [
+  "use_combinatorics"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.UseCombinatorics.Counting.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.UseCombinatorics.Counting.Oracle.factorial_matches_checked_reference",
+  "Benchmark.Cases.UseCombinatorics.Counting.Oracle.factorial_overflow_boundary_is_exact",
+  "Benchmark.Cases.UseCombinatorics.Counting.Oracle.permutations_match_checked_reference"
+ ],
+ "intent": "Specify the public counting API of `use_combinatorics::counting`: `factorial` and `permutations` (both return `Result<u128, CombinatoricsError>`).",
+ "manual_mutants": [
+  {"decl": "use_combinatorics.counting.permutations", "before": "if k > n", "after": "if k >= n", "note": "k = n wrongly rejected as KExceedsN"},
+  {"decl": "use_combinatorics.counting.permutations", "before": "if k = 0#u64", "after": "if k = 0#u64 ∧ n = 0#u64", "note": "k = 0 shortcut dropped: only differs at n = u64::MAX where n - 0 + 1 overflows (panic)"},
+  {"decl": "use_combinatorics.counting.permutations", "before": "then ok (core.result.Result.Err (error.CombinatoricsError.KExceedsN n k))", "after": "then ok (core.result.Result.Err (error.CombinatoricsError.KExceedsN k n))", "note": "KExceedsN payload fields swapped"},
+  {"decl": "use_combinatorics.counting.factorial_loop.body", "before": "(error.CombinatoricsError.FactorialOverflow n)))", "after": "(error.CombinatoricsError.FactorialOverflow factor)))", "note": "overflow error reports the failing factor instead of n"},
+  {"decl": "use_combinatorics.counting.permutations_loop.body", "before": "(error.CombinatoricsError.PermutationOverflow n k)))", "after": "(error.CombinatoricsError.PermutationOverflow k n)))", "note": "PermutationOverflow payload swapped"},
+  {"decl": "use_combinatorics.counting.permutations_loop.body", "before": "(error.CombinatoricsError.PermutationOverflow n k)))", "after": "(error.CombinatoricsError.KExceedsN n k)))", "note": "overflow reported with the wrong error variant"}
+ ]
+}

@@ -181,8 +181,26 @@ def prepare(t: Target, n_mutants: int = 60, jobs: int = 6, seed: int = 0, log=pr
         m.status = "relevant" if m.killed_by_gold else "unspecified"
         return m
 
+    sibs = manual_mutants(t, funs, key="sibling_mutants")
+
+    def one_sibling(m: Mutant) -> Mutant:
+        ok, msg = builder.build(m)
+        if not ok:
+            raise RuntimeError(f"sibling {m.note!r} does not compile:\n{msg}")
+        mlp = builder.lean_path_for(m)
+        o = run_driver(driver([t.gold_module], [(g, GOLD_N, KILL_SEED) for g in golds],
+                              [(d, DIFF_N, KILL_SEED) for d in diffs]), mlp, timeout=600)
+        r = parse_results(o)
+        broken = [g.split(".")[-1] for g in golds if not (r.get(g, {}).get("ok") and not r[g]["failures"])]
+        if broken:
+            raise RuntimeError(f"sibling {m.note!r} violates gold properties {broken}: it is not a valid implementation")
+        mo = parse_outputs(o)
+        m.differing_inputs = sum(a != b for d in diffs for a, b in zip(base_out[d], mo.get(d, [])))
+        m.op, m.status = "sibling", "sibling"
+        return m
+
     with ThreadPoolExecutor(max_workers=jobs) as pool:
-        muts = list(pool.map(one, muts))
+        muts = list(pool.map(one, muts)) + list(pool.map(one_sibling, sibs))
     summary = {}
     for m in muts:
         summary[m.status] = summary.get(m.status, 0) + 1
@@ -204,27 +222,34 @@ def check_gold(t: Target) -> str:
     return "\n".join(lines)
 
 
-def manual_mutants(t: Target, funs: str) -> list[Mutant]:
-    """Hand-written plausible bugs: `{"decl", "before", "after", "note"}` single-line edits.
+def manual_mutants(t: Target, funs: str, key: str = "manual_mutants") -> list[Mutant]:
+    """Hand-written plausible bugs.
 
-    `before` must occur exactly once inside the body of `decl` (whitespace-insensitive
-    at the ends); `after` replaces that line.
+    Each entry is either a single edit `{"decl", "before", "after", "note"}` or
+    `{"edits": [{"decl", "before", "after"}, ...], "note"}` for coordinated edits.
+    `before` must match exactly one (trimmed) line inside the body of `decl`;
+    `after` replaces that line (indentation is preserved).
     """
     import hashlib
     from .mutate import decl_ranges
     lines = funs.splitlines()
     ranges = {n: (a, b) for n, a, b in decl_ranges(funs)}
     out = []
-    for spec in t.raw.get("manual_mutants", []):
-        a, b = ranges[spec["decl"]]
-        hits = [i for i in range(a, b) if lines[i].strip() == spec["before"].strip()]
-        if len(hits) != 1:
-            raise ValueError(f"manual mutant {spec}: `before` matches {len(hits)} lines of {spec['decl']}")
-        i = hits[0]
-        indent = lines[i][: len(lines[i]) - len(lines[i].lstrip())]
-        after = indent + spec["after"].strip()
-        mid = "man-" + hashlib.sha1(f"{i}:{after}".encode()).hexdigest()[:8]
-        out.append(Mutant(mid, spec["decl"], i + 1, "manual", lines[i], after))
+    for spec in t.raw.get(key, []):
+        edits = []
+        for e in spec.get("edits", [spec]):
+            a, b = ranges[e["decl"]]
+            hits = [i for i in range(a, b) if lines[i].strip() == e["before"].strip()]
+            if len(hits) != 1:
+                raise ValueError(f"manual mutant {e}: `before` matches {len(hits)} lines of {e['decl']}")
+            i = hits[0]
+            indent = lines[i][: len(lines[i]) - len(lines[i].lstrip())]
+            edits.append((i + 1, lines[i], indent + e["after"].strip()))
+        key_s = ";".join(f"{l}:{a}" for l, _, a in edits)
+        mid = ("sib-" if key == "sibling_mutants" else "man-") + hashlib.sha1(key_s.encode()).hexdigest()[:8]
+        first = edits[0]
+        out.append(Mutant(mid, spec.get("decl", spec.get("edits", [{}])[0].get("decl", "")), first[0], "manual",
+                          first[1], first[2], extra=[list(e) for e in edits[1:]], note=spec.get("note", "")))
     return out
 
 
@@ -251,6 +276,7 @@ class Grade:
     properties: list[str] = field(default_factory=list)
     untestable: dict = field(default_factory=dict)
     false_properties: dict = field(default_factory=dict)
+    overspecified: dict = field(default_factory=dict)
     per_mutant: dict = field(default_factory=dict)
     class_score: float = 0.0
     classes: int = 0
@@ -363,9 +389,22 @@ def grade(t: Target, text: str, jobs: int = 6, keep: bool = False) -> Grade:
         if not testable:
             g.status, g.detail = "no_properties", "no executable property (see untestable)"
             return g
-        muts = [m for m in load_mutants(t) if m.status == "relevant"]
-        g.relevant = len(muts)
+        all_muts = load_mutants(t)
         work = CACHE / t.slug / "mutants"
+        # over-specification: a property must also hold on every sibling implementation
+        # (variants that differ only in behaviour the contract does not promise)
+        for sib in [m for m in all_muts if m.status == "sibling"]:
+            r = test_properties(t, testable, cand_root, TRUTH_N, TRUTH_SEED, mutant_root=work / sib.mid / "olean",
+                                timeout=900)
+            for p in list(testable):
+                if not r[p].get("ok") or r[p]["failures"]:
+                    g.overspecified.setdefault(p.split(".")[-1], []).append(sib.note or sib.mid)
+                    testable.remove(p)
+        if not testable:
+            g.status, g.detail = "no_properties", "every property over-specifies (fails on a valid sibling implementation)"
+            return g
+        muts = [m for m in all_muts if m.status == "relevant"]
+        g.relevant = len(muts)
 
         def kill(m: Mutant) -> tuple[str, list[str]]:
             r = test_properties(t, testable, cand_root, KILL_N, KILL_SEED, mutant_root=work / m.mid / "olean",

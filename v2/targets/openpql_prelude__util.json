@@ -1,0 +1,65 @@
+{
+ "id": "openpql_prelude/util",
+ "package": "OpenpqlPreludeUtil",
+ "module_prefix": "Benchmark.V2.OpenpqlPrelude.Util",
+ "rust_dir": "rust/openpql_prelude/util",
+ "api": [
+  "openpql_prelude.iterator.binomial.coefficient.binom",
+  "openpql_prelude.waugh_indexer.util.suffix_product",
+  "openpql_prelude.waugh_indexer.util.dot_product",
+  "openpql_prelude.waugh_indexer.util.const_sort",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.new",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.size",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.encode",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode"
+ ],
+ "mutation_roots": [
+  "openpql_prelude.iterator.binomial.coefficient.binom",
+  "openpql_prelude.waugh_indexer.util.suffix_product",
+  "openpql_prelude.waugh_indexer.util.dot_product",
+  "openpql_prelude.waugh_indexer.util.const_sort",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.new",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.size",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.encode",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode"
+ ],
+ "forbidden_constants": [
+  "openpql_prelude.iterator.binomial.coefficient.binom_loop",
+  "openpql_prelude.iterator.binomial.coefficient.binom_loop.body",
+  "openpql_prelude.waugh_indexer.util.suffix_product_loop",
+  "openpql_prelude.waugh_indexer.util.suffix_product_loop.body",
+  "openpql_prelude.waugh_indexer.util.dot_product_loop",
+  "openpql_prelude.waugh_indexer.util.dot_product_loop.body",
+  "openpql_prelude.waugh_indexer.util.const_sort_loop0",
+  "openpql_prelude.waugh_indexer.util.const_sort_loop0.body",
+  "openpql_prelude.waugh_indexer.util.const_sort_loop0_loop0",
+  "openpql_prelude.waugh_indexer.util.const_sort_loop0_loop0.body",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode_loop",
+  "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode_loop.body"
+ ],
+ "allowed_imports": [
+  "OpenpqlPreludeUtil.Extraction"
+ ],
+ "opens": [
+  "openpql_prelude"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.OpenpqlPrelude.Util.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.OpenpqlPrelude.Util.Oracle.binom_pascals_identity",
+  "Benchmark.Cases.OpenpqlPrelude.Util.Oracle.const_sort_matches_sort_unstable",
+  "Benchmark.Cases.OpenpqlPrelude.Util.Oracle.mixed_radix_roundtrip",
+  "Benchmark.Cases.OpenpqlPrelude.Util.Oracle.suffix_product_matches_reference"
+ ],
+ "intent": "Specify the public combinatorial index arithmetic of `openpql_prelude`: `iterator::binomial::coefficient::binom`, `waugh_indexer::util::{suffix_product, dot_product, const_sort}` and `waugh_indexer::mixed_radix::MixedRadix::{new, size, encode, decode}` (the `MixedRadix` struct is built with `new`; its `offsets` field is private in Rust).",
+ "manual_mutants": [
+  {"decl": "openpql_prelude.iterator.binomial.coefficient.binom", "before": "massert (n <= i1)", "after": "massert (n < i1)", "note": "off-by-one in the debug assertion: binom(52, r) panics"},
+  {"decl": "openpql_prelude.iterator.binomial.coefficient.binom", "before": "if r > n", "after": "if r >= n", "note": "C(n, n) wrongly 0"},
+  {"decl": "openpql_prelude.waugh_indexer.util.suffix_product_loop.body", "before": "if i > 0#usize", "after": "if i > 1#usize", "note": "first entry never replaced (and the full product never computed)"},
+  {"decl": "openpql_prelude.waugh_indexer.util.dot_product", "before": "waugh_indexer.util.dot_product_loop a b 0#u64 0#usize", "after": "waugh_indexer.util.dot_product_loop a b 0#u64 1#usize", "note": "first term of the dot product skipped"},
+  {"decl": "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode_loop.body", "before": "let i ← Array.index_usize self.offsets round", "after": "let i ← Array.index_usize self.block_sizes round", "note": "decode divides by the block sizes instead of the offsets"},
+  {"decl": "openpql_prelude.waugh_indexer.util.const_sort", "before": "waugh_indexer.util.const_sort_loop0 arr 1#usize", "after": "waugh_indexer.util.const_sort_loop0 arr 2#usize", "note": "insertion sort starts at index 2: element 1 never inserted"},
+  {"decl": "openpql_prelude.waugh_indexer.util.const_sort_loop0_loop0.body", "before": "if j > 0#usize", "after": "if j > 1#usize", "note": "inner insertion never reaches index 0"}
+ ]
+}

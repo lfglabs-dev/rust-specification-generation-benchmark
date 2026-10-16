@@ -1,0 +1,119 @@
+{
+ "id": "ruint/uint_add",
+ "package": "RuintUintAdd",
+ "module_prefix": "Benchmark.V2.Ruint.UintAdd",
+ "rust_dir": "rust/ruint/uint_add",
+ "api": [
+  "ruint.add.Uint.overflowing_add",
+  "ruint.add.Uint.overflowing_sub",
+  "ruint.add.Uint.overflowing_neg",
+  "ruint.add.Uint.wrapping_add",
+  "ruint.add.Uint.wrapping_sub",
+  "ruint.add.Uint.wrapping_neg",
+  "ruint.add.Uint.checked_add",
+  "ruint.add.Uint.checked_sub",
+  "ruint.add.Uint.checked_neg",
+  "ruint.add.Uint.strict_add",
+  "ruint.add.Uint.strict_sub",
+  "ruint.add.Uint.strict_neg",
+  "ruint.add.Uint.saturating_add",
+  "ruint.add.Uint.saturating_sub",
+  "ruint.Uint.Insts.CoreOpsArithAddUintUint.add",
+  "ruint.Uint.Insts.CoreOpsArithSubUintUint.sub",
+  "ruint.Uint.Insts.CoreOpsArithNegUint.neg",
+  "ruint.Uint.from_limbs",
+  "ruint.Uint.ZERO",
+  "ruint.Uint.MAX",
+  "ruint.mask",
+  "ruint.nlimbs"
+ ],
+ "mutation_roots": [
+  "ruint.add.Uint.overflowing_add",
+  "ruint.add.Uint.overflowing_sub",
+  "ruint.add.Uint.overflowing_neg",
+  "ruint.add.Uint.wrapping_add",
+  "ruint.add.Uint.wrapping_sub",
+  "ruint.add.Uint.wrapping_neg",
+  "ruint.add.Uint.checked_add",
+  "ruint.add.Uint.checked_sub",
+  "ruint.add.Uint.checked_neg",
+  "ruint.add.Uint.strict_add",
+  "ruint.add.Uint.strict_sub",
+  "ruint.add.Uint.strict_neg",
+  "ruint.add.Uint.saturating_add",
+  "ruint.add.Uint.saturating_sub",
+  "ruint.Uint.Insts.CoreOpsArithAddUintUint.add",
+  "ruint.Uint.Insts.CoreOpsArithSubUintUint.sub",
+  "ruint.Uint.Insts.CoreOpsArithNegUint.neg",
+  "ruint.Uint.from_limbs",
+  "ruint.Uint.ZERO",
+  "ruint.Uint.MAX",
+  "ruint.mask",
+  "ruint.nlimbs"
+ ],
+ "forbidden_constants": [
+  "ruint.Uint.from_limbs_unmasked",
+  "ruint.Uint.masked",
+  "ruint.Uint.apply_mask",
+  "ruint.Uint.SHOULD_MASK",
+  "ruint.add.Uint.overflowing_add_loop",
+  "ruint.add.Uint.overflowing_sub_loop"
+ ],
+ "allowed_imports": [
+  "RuintUintAdd.Extraction"
+ ],
+ "opens": [
+  "ruint"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Ruint.UintAdd.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Ruint.UintAdd.Oracle.inverse"
+ ],
+ "intent": "Specify the public addition / subtraction / negation API of `ruint::Uint<BITS, LIMBS>` (module `ruint::add`): `overflowing_add`, `overflowing_sub`, `overflowing_neg`, `wrapping_add`, `wrapping_sub`, `wrapping_neg`, `checked_add`, `checked_sub`, `checked_neg`, `strict_add`, `strict_sub`, `strict_neg`, `saturating_add`, `saturating_sub`, the by-value `Add`, `Sub` and `Neg` operator impls, together with `Uint::from_limbs`, the constants `Uint::ZERO` and `Uint::MAX`, and the free functions `ruint::mask` and `ruint::nlimbs`.",
+ "manual_mutants": [
+  {
+   "decl": "ruint.add.Uint.overflowing_add",
+   "before": "ok (u, carry || (i1 > i2))",
+   "after": "ok (u, carry)",
+   "note": "overflow flag ignores bits carried into the masked-off part of the top limb (only wrong for widths that are not multiples of 64)"
+  },
+  {
+   "decl": "ruint.add.Uint.overflowing_sub",
+   "before": "ok (u, borrow || (i1 > i2))",
+   "after": "ok (u, borrow || (i1 >= i2))",
+   "note": "off-by-one in the top-limb overflow test: a top limb equal to MASK is reported as an overflow"
+  },
+  {
+   "decl": "ruint.mask",
+   "before": "then ok 0#u64",
+   "after": "then ok core.num.U64.MAX",
+   "note": "mask(0) returns u64::MAX instead of 0 (zero-width types unaffected because they never mask)"
+  },
+  {
+   "decl": "ruint.Uint.from_limbs",
+   "before": "massert (i1 <= i2)",
+   "after": "massert (i1 < i2)",
+   "note": "from_limbs rejects a top limb equal to MASK (e.g. the maximum value)"
+  },
+  {
+   "decl": "ruint.Uint.MAX",
+   "before": "Uint.from_limbs_unmasked BITS a",
+   "after": "Uint.from_limbs BITS a",
+   "note": "MAX built with the checked constructor: panics for widths that are not multiples of 64 (and so does saturating_add on overflow)"
+  },
+  {
+   "decl": "ruint.algorithms.add.carrying_add",
+   "before": "ok (result1, carry_1 || carry_2)",
+   "after": "ok (result1, carry_1)",
+   "note": "carry lost when the limb sum is u64::MAX and a carry comes in (only visible with rippling carries)"
+  },
+  {
+   "decl": "ruint.algorithms.add.borrowing_sub",
+   "before": "ok (result1, borrow_1 || borrow_2)",
+   "after": "ok (result1, borrow_1)",
+   "note": "borrow lost when two limbs are equal and a borrow comes in (only visible with rippling borrows)"
+  }
+ ]
+}

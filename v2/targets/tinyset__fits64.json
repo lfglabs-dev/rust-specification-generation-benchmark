@@ -1,0 +1,108 @@
+{
+ "id": "tinyset/fits64",
+ "package": "TinysetFits64",
+ "module_prefix": "Benchmark.V2.Tinyset.Fits64",
+ "rust_dir": "rust/tinyset/fits64",
+ "api": [
+  "tinyset.U64.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U64.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.U32.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U32.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.U16.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U16.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.U8.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U8.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.Usize.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.Usize.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I8.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I8.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I16.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I16.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I32.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I32.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I64.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I64.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.Isize.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.Isize.Insts.TinysetSet64Fits64.from_u64"
+ ],
+ "mutation_roots": [
+  "tinyset.U64.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U64.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.U32.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U32.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.U16.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U16.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.U8.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.U8.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.Usize.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.Usize.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I8.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I8.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I16.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I16.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I32.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I32.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.I64.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.I64.Insts.TinysetSet64Fits64.from_u64",
+  "tinyset.Isize.Insts.TinysetSet64Fits64.to_u64",
+  "tinyset.Isize.Insts.TinysetSet64Fits64.from_u64"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "TinysetFits64.Extraction"
+ ],
+ "opens": [
+  "tinyset"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Tinyset.Fits64.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Tinyset.Fits64.Oracle.fits_i64_roundtrip"
+ ],
+ "intent": "Specify the `tinyset::set64::Fits64` implementations (`to_u64` and `from_u64`) for `u64`, `u32`, `u16`, `u8`, `usize`, `i8`, `i16`, `i32`, `i64` and `isize`.",
+ "manual_mutants": [
+  {
+   "decl": "tinyset.I32.Insts.TinysetSet64Fits64.to_u64",
+   "before": "let i4 ← lift (IScalar.cast_fromBool .I64 (self >= 0#i32))",
+   "after": "let i4 ← lift (IScalar.cast_fromBool .I64 (self > 0#i32))",
+   "note": "zero treated as negative"
+  },
+  {
+   "decl": "tinyset.I16.Insts.TinysetSet64Fits64.from_u64",
+   "before": "let i1 ← lift (~~~ i)",
+   "after": "let i1 ← lift (~~~ x)",
+   "note": "negative value computed from the unshifted word"
+  },
+  {
+   "decl": "tinyset.U32.Insts.TinysetSet64Fits64.from_u64",
+   "before": "ok (UScalar.cast .U32 x)",
+   "after": "ok (UScalar.cast .U32 (UScalar.cast .U16 x))",
+   "note": "decoding truncates through u16"
+  },
+  {
+   "decl": "tinyset.U16.Insts.TinysetSet64Fits64.to_u64",
+   "before": "ok (UScalar.cast .U64 self)",
+   "after": "ok (UScalar.cast .U64 (UScalar.cast .U8 self))",
+   "note": "encoding truncates through u8"
+  },
+  {
+   "decl": "tinyset.I64.Insts.TinysetSet64Fits64.from_u64",
+   "before": "let pos_val ← lift (UScalar.hcast .I64 i)",
+   "after": "let pos_val ← lift (UScalar.hcast .I64 (UScalar.cast .U32 i))",
+   "note": "large non-negative i64 decoded through 32 bits"
+  },
+  {
+   "decl": "tinyset.I16.Insts.TinysetSet64Fits64.to_u64",
+   "before": "let neg_rep ← lift (i2 ||| 1#u64)",
+   "after": "let neg_rep ← lift (i2)",
+   "note": "tag bit for negatives forgotten"
+  },
+  {
+   "decl": "tinyset.Isize.Insts.TinysetSet64Fits64.to_u64",
+   "before": "let i4 ← lift (IScalar.cast_fromBool .I64 (self >= 0#isize))",
+   "after": "let i4 ← lift (IScalar.cast_fromBool .I64 (self >= -1#isize))",
+   "note": "-1 encoded as non-negative"
+  }
+ ]
+}
