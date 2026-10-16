@@ -255,7 +255,7 @@ def _env(lean_path: str) -> dict:
     return env
 
 
-LEAN_SLOTS = int(__import__("os").environ.get("RSGB_LEAN_SLOTS", "6"))
+LEAN_SLOTS = int(__import__("os").environ.get("RSGB_LEAN_SLOTS", "8"))
 
 
 def run_lean_file(exec_root: Path, lean_path: str, path: Path, timeout: int = 900) -> str:
