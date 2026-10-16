@@ -108,6 +108,23 @@ def decl_names(text: str, prefix: str) -> list[str]:
 
 # ---------------------------------------------------------------- drivers
 
+def kill_driver(imports: list[str], props: list[str], n: int, seed: int) -> str:
+    return "\n".join(["import Benchmark.Exec.Driver", *[f"import {m}" for m in imports],
+                      f"#rsgb_kill {n} {seed} " + " ".join(props)]) + "\n"
+
+
+def run_kill(imports: list[str], props: list[str], lean_path: str, n: int = KILL_N, seed: int = KILL_SEED,
+             timeout: int = 600) -> str | None:
+    """Name (short) of the first property falsified under `lean_path`, or None."""
+    out = run_driver(kill_driver(imports, props, n, seed), lean_path, timeout)
+    for line in out.splitlines():
+        i = line.find("RSGB_KILL ")
+        if i >= 0:
+            k = json.loads(line[i + len("RSGB_KILL "):])["killed_by"]
+            return k.split(".")[-1] if k else None
+    return None
+
+
 def driver(imports: list[str], tests: list[tuple[str, int, int]], outputs: list[tuple[str, int, int]] = ()) -> str:
     lines = ["import Benchmark.Exec.Driver", *[f"import {m}" for m in imports]]
     lines += [f"#rsgb_test {n} {k} {s}" for n, k, s in tests]
@@ -323,9 +340,12 @@ def compile_candidate(t: Target, text: str, build_root: Path) -> tuple[bool, str
         if p.is_symlink() or p.exists():
             p.unlink()
     lp = f"{out_root}:{exec_lean_path()}"
-    proc = subprocess.run(["lean", f"--root={src_root}", "-o", str(olean), "-i", str(olean.with_suffix('.ilean')),
-                           str(src_root / rel)], cwd=EXEC_ROOT, env=_env(lp), capture_output=True, text=True,
-                          timeout=900)
+    from .mutate import LEAN_SLOTS
+    from .slots import slot
+    with slot("lean", LEAN_SLOTS):
+        proc = subprocess.run(["lean", f"--root={src_root}", "-o", str(olean), "-i", str(olean.with_suffix('.ilean')),
+                               str(src_root / rel)], cwd=EXEC_ROOT, env=_env(lp), capture_output=True, text=True,
+                              timeout=900)
     out = proc.stdout + proc.stderr
     ok = proc.returncode == 0 and not re.search(r"\berror\b", out) and olean.is_file()
     return ok, out, out_root
@@ -406,10 +426,11 @@ def grade(t: Target, text: str, jobs: int = 6, keep: bool = False) -> Grade:
         muts = [m for m in all_muts if m.status == "relevant"]
         g.relevant = len(muts)
 
+        lp = f"{cand_root}:{exec_lean_path()}"
+
         def kill(m: Mutant) -> tuple[str, list[str]]:
-            r = test_properties(t, testable, cand_root, KILL_N, KILL_SEED, mutant_root=work / m.mid / "olean",
-                                timeout=600)
-            return m.mid, [p.split(".")[-1] for p in testable if r[p].get("ok") and r[p]["failures"]]
+            k = run_kill([t.candidate_module], testable, f"{work / m.mid / 'olean'}:{lp}")
+            return m.mid, [k] if k else []
 
         with ThreadPoolExecutor(max_workers=jobs) as pool:
             for mid, killers in pool.map(kill, muts):
@@ -461,10 +482,8 @@ def baseline(t: Target, jobs: int = 6) -> Grade:
     work = CACHE / t.slug / "mutants"
 
     def kill(m: Mutant) -> tuple[str, list[str]]:
-        o = run_driver(driver(imports, [(p, KILL_N, KILL_SEED) for p in testable]),
-                       f"{work / m.mid / 'olean'}:{lp}", 600)
-        r = parse_results(o)
-        return m.mid, [p.split(".")[-1] for p in testable if r.get(p, {}).get("ok") and r[p]["failures"]]
+        k = run_kill(imports, testable, f"{work / m.mid / 'olean'}:{lp}")
+        return m.mid, [k] if k else []
 
     with ThreadPoolExecutor(max_workers=jobs) as pool:
         for mid, killers in pool.map(kill, muts):

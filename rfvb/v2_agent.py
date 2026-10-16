@@ -14,6 +14,7 @@ gold specification. Tools:
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import tempfile
@@ -105,6 +106,46 @@ def _strip_cfg_test(text: str) -> str:
     return "".join(out)
 
 
+def strip_rust_bodies(rust_dir: Path) -> None:
+    """Black-box mode: keep items, signatures and doc comments; replace function bodies by `{ /* hidden */ }`."""
+    sig = re.compile(r"\bfn\s+\w+[^;{]*\{")
+    for p in rust_dir.rglob("*.rs"):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        out, i = [], 0
+        while True:
+            m = sig.search(text, i)
+            if not m:
+                out.append(text[i:])
+                break
+            out.append(text[i:m.end()])
+            depth, j = 1, m.end()
+            while j < len(text) and depth:
+                if text[j] == "{":
+                    depth += 1
+                elif text[j] == "}":
+                    depth -= 1
+                j += 1
+            out.append(" /* body hidden */ }")
+            i = j
+        p.write_text("".join(out), encoding="utf-8")
+
+
+def blackbox_extraction(pkg_dir: Path) -> None:
+    """Black-box mode: keep only docstrings and `def` headers of the extracted functions."""
+    funs = pkg_dir / "Extraction" / "Funs.lean"
+    from .workspace import _decl_blocks
+    text = funs.read_text(encoding="utf-8")
+    parts = ["-- Black-box task: function bodies are hidden. Signatures and Rust doc references only.\n"]
+    for name, block in _decl_blocks(text):
+        head = block.split(":=", 1)[0].rstrip()
+        parts.append(head + " := <hidden>\n")
+    funs.write_text("\n".join(parts), encoding="utf-8")
+    for extra in ("FunsExternal.lean",):
+        f = pkg_dir / "Extraction" / extra
+        if f.exists():
+            f.write_text("-- hidden in black-box mode\n", encoding="utf-8")
+
+
 def api_listing(t: Target) -> str:
     funs = (ROOT / "extracted" / t.package / "Extraction" / "Funs.lean").read_text(encoding="utf-8")
     from .workspace import _decl_blocks
@@ -138,19 +179,27 @@ end {t.cand_ns}
 """
 
 
-def briefing(t: Target) -> str:
+BLACKBOX_NOTE = """
+**Black-box task.** The implementation's function bodies are hidden (in the Rust
+sources and in the extracted Lean). Work out the intended behaviour from the API,
+the documentation and experiments: use `eval_expr` to run the real implementation
+on inputs of your choice and `test_spec` to check conjectured properties.
+"""
+
+
+def briefing(t: Target, mode: str = "whitebox") -> str:
     forb = ", ".join(f"`{c}`" for c in t.raw.get("forbidden_constants", [])) or "(none)"
     return f"""# Task `{t.id}` — write a formal specification
 
 {t.intent}
-
+{BLACKBOX_NOTE if mode == "blackbox" else ""}
 ## Public API (Lean signatures of the extracted functions)
 ```lean
 {api_listing(t)}
 ```
 
-Implementation: `extracted/{t.package}/` (verbatim `hax`/Aeneas extraction of the Rust crate).
-Rust sources (documentation, without the crate's tests): `{t.rust_dir}/`.
+Implementation: `extracted/{t.package}/` ({"signatures only" if mode == "blackbox" else "verbatim `hax`/Aeneas extraction of the Rust crate"}).
+Rust sources ({"documentation and signatures only" if mode == "blackbox" else "documentation, without the crate's tests"}): `{t.rust_dir}/`.
 Editable file: `{t.candidate_file}` (namespace `{t.cand_ns}`).
 
 ## What to write
@@ -206,7 +255,7 @@ return `RustM`; do pure arithmetic on `.val`.
 """
 
 
-def build_v2_workspace(t: Target, dst: Path) -> Path:
+def build_v2_workspace(t: Target, dst: Path, mode: str = "whitebox") -> Path:
     if dst.exists():
         shutil.rmtree(dst)
     dst.mkdir(parents=True)
@@ -220,7 +269,10 @@ def build_v2_workspace(t: Target, dst: Path) -> Path:
     cand.write_text(template(t), encoding="utf-8")
     shutil.copytree(ROOT / t.rust_dir, dst / t.rust_dir)
     strip_tests(dst / t.rust_dir)
-    (dst / "TASK.md").write_text(briefing(t), encoding="utf-8")
+    if mode == "blackbox":
+        strip_rust_bodies(dst / t.rust_dir)
+        blackbox_extraction(dst / "extracted" / t.package)
+    (dst / "TASK.md").write_text(briefing(t, mode), encoding="utf-8")
     pk = dst / ".lake" / "packages"
     pk.parent.mkdir(parents=True, exist_ok=True)
     pk.symlink_to(ROOT / ".lake" / "packages")
@@ -267,21 +319,24 @@ class V2Runner(Runner):
         props = decl_names(text, "prop_")
         if not props:
             return "REJECTED: no `def prop_<name> … : Prop` found in the file."
+        from .slots import slot
         build = Path(tempfile.mkdtemp(prefix=f"v2agent-{self.target.slug}-", dir=CACHE.parent))
         try:
-            ok, out, root = compile_candidate(self.target, text, build)
-            if not ok:
-                out = out.replace(str(build / "src") + "/", "")
-                return "LEAN ERROR (the file does not elaborate):\n" + out.strip()[-5000:]
-            res = test_properties(self.target, [f"{self.target.cand_ns}.{p}" for p in props], root, n, seed, timeout=600)
+            with slot("agent-lean", int(os.environ.get("RSGB_AGENT_SLOTS", "4"))):
+                ok, out, root = compile_candidate(self.target, text, build)
+                if not ok:
+                    out = out.replace(str(build / "src") + "/", "")
+                    return "LEAN ERROR (the file does not elaborate):\n" + out.strip()[-5000:]
+                res = test_properties(self.target, [f"{self.target.cand_ns}.{p}" for p in props], root, n, seed,
+                                      timeout=600)
             lines = []
             for p in props:
                 r = res[f"{self.target.cand_ns}.{p}"]
                 if not r.get("ok"):
-                    err = r.get("error", "")
-                    lines.append(f"- {p}: UNTESTABLE ({err[:600]})")
+                    lines.append(f"- {p}: UNTESTABLE ({r.get('error', '')[:600]})")
                 elif r["failures"]:
-                    lines.append(f"- {p}: FALSE on {len(r['failures'])}+ input(s), e.g. {r['failures'][:2]} (tested {r['tested']})")
+                    lines.append(f"- {p}: FALSE on {len(r['failures'])}+ input(s), e.g. {r['failures'][:2]} "
+                                 f"(tested {r['tested']})")
                 else:
                     lines.append(f"- {p}: held on all {r['tested']} generated inputs")
             if out.strip():

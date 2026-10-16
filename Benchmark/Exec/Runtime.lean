@@ -164,9 +164,8 @@ def check {β} [Arbitrary β] [Repr β] (P : β → Prop) [DecidablePred P]
     | Except.ok (x, _) =>
       tested := tested + 1
       if !(decide (P x)) then
-        if fails.length < maxReport then
-          fails := fails ++ [toString (repr x)]
-        else
+        fails := fails ++ [toString (repr x)]
+        if fails.length ≥ maxReport then
           return { tested, failures := fails, genErrors }
   return { tested, failures := fails, genErrors }
 

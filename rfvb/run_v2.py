@@ -25,25 +25,28 @@ from .v2 import Target, grade, select
 from .v2_agent import V2Runner, build_v2_workspace
 
 
-def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: int) -> dict:
+def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: int, mode: str = "whitebox") -> dict:
     art = run_dir / t.slug
     if art.exists():
         shutil.rmtree(art)
     art.mkdir(parents=True)
     ws = run_dir / "_workspaces" / t.slug
     started = time.time()
-    build_v2_workspace(t, ws)
+    build_v2_workspace(t, ws, mode)
     runner = V2Runner(t, ws, cfg, BUDGETS[budget], art)
     res = runner.run()
     final = (ws / t.candidate_file).read_text(encoding="utf-8")
     (art / "final.lean").write_text(final, encoding="utf-8")
-    g = grade(t, final, jobs=grade_jobs)
+    from .slots import slot
+    with slot("grade", int(os.environ.get("RSGB_GRADE_SLOTS", "2"))):
+        g = grade(t, final, jobs=grade_jobs)
     (art / "grade.json").write_text(json.dumps(g.to_json(), indent=1), encoding="utf-8")
     shutil.rmtree(ws, ignore_errors=True)
     return {
         "target": t.id,
         "model": cfg.model,
         "budget": budget,
+        "mode": mode,
         "submitted": res.status == "solved",
         "status": g.status,
         "class_score": round(g.class_score, 4),
@@ -73,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--temperature", type=float, default=None)
     ap.add_argument("--max-tokens", type=int, default=16384)
     ap.add_argument("--stream", action="store_true")
+    ap.add_argument("--mode", default="whitebox", choices=["whitebox", "blackbox"])
     args = ap.parse_args(argv)
     targets = select(args.targets)
     run = args.run or f"v2-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{args.model.replace('/', '_')}"
@@ -89,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
 
     def work(t: Target) -> None:
         try:
-            row = run_one(t, run_dir, cfg, args.budget, args.grade_jobs)
+            row = run_one(t, run_dir, cfg, args.budget, args.grade_jobs, args.mode)
         except Exception as exc:
             import traceback
             row = {"target": t.id, "model": args.model, "status": "harness_error", "class_score": 0.0,

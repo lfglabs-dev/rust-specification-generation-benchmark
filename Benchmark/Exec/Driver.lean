@@ -83,26 +83,48 @@ unsafe def evalOutcome (e : Expr) : TermElabM Outcome := do
   let act ← Lean.Meta.evalExpr (IO Outcome) (mkApp (Expr.const ``IO []) (Expr.const ``Outcome [])) e
   act
 
+/-- Run the property constant `c` on `n` inputs (seeded); stop after `maxReport` failures. -/
+def runProp (c : Name) (n seed maxReport : Nat) : TermElabM Outcome := do
+  let (tupleTy, P, _) ← propOf c
+  let instFn ← withLocalDeclD `t tupleTy fun t => do
+    let body ← whnfCore (mkApp P t).headBeta
+    match ← synthDecidable body with
+    | some inst => mkLambdaFVars #[t] inst
+    | none => throwError "no Decidable instance for the property (use Bool helpers or bounded quantifiers)"
+  let e ← mkAppOptM ``RSGB.Exec.check
+    #[tupleTy, none, none, P, instFn, mkNatLit n, mkNatLit seed, mkNatLit maxReport, mkNatLit 100]
+  unsafe evalOutcome e
+
 elab "#rsgb_test " id:ident n:num seed:num : command => do
   let c ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo id
   let nm := c.toString
   liftTermElabM do
     try
-      let (tupleTy, P, _) ← propOf c
-      let instFn ← withLocalDeclD `t tupleTy fun t => do
-        let body ← whnfCore (mkApp P t).headBeta
-        match ← synthDecidable body with
-        | some inst => mkLambdaFVars #[t] inst
-        | none => throwError "no Decidable instance for the property (use Bool helpers or bounded quantifiers)"
-      let e ← mkAppOptM ``RSGB.Exec.check
-        #[tupleTy, none, none, P, instFn, mkNatLit n.getNat, mkNatLit seed.getNat, mkNatLit 3, mkNatLit 100]
-      let o ← unsafe evalOutcome e
+      let o ← runProp c n.getNat seed.getNat 3
       let j := Json.mkObj [("name", Json.str nm), ("tested", toJson o.tested),
         ("failures", toJson o.failures), ("gen_errors", toJson o.genErrors)]
       logInfo ("RSGB_RESULT " ++ j.compress)
     catch ex =>
       let j := Json.mkObj [("name", Json.str nm), ("error", Json.str (← ex.toMessageData.toString))]
       logInfo ("RSGB_ERROR " ++ j.compress)
+
+/-- `#rsgb_kill n seed p₁ p₂ …`: run the properties in order and stop at the first
+input on which one of them is false. Prints `RSGB_KILL {"killed_by": name | null}`. -/
+elab "#rsgb_kill " n:num seed:num ids:ident* : command => do
+  let cs ← ids.mapM fun id => liftCoreM <| realizeGlobalConstNoOverloadWithInfo id
+  liftTermElabM do
+    let mut killer : Option String := none
+    let mut errors : Array String := #[]
+    for c in cs do
+      try
+        let o ← runProp c n.getNat seed.getNat 1
+        if !o.failures.isEmpty then
+          killer := some c.toString
+          break
+      catch _ => errors := errors.push c.toString
+    let j := Json.mkObj [("killed_by", match killer with | some k => Json.str k | none => Json.null),
+      ("errors", toJson errors)]
+    logInfo ("RSGB_KILL " ++ j.compress)
 
 /-- Hash of the `Repr` of each output. -/
 def outputs {β γ} [Plausible.Arbitrary β] [Repr γ] (f : β → γ) (n seed : Nat) (size : Nat := 100) :

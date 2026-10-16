@@ -109,3 +109,22 @@ python3 -m rfvb.v2 baseline <id> --jobs 2       # how much the upstream tests ca
 Aim for ≥ 25 relevant mutants spanning several gold-kill signatures, all manual
 mutants relevant, and an upstream baseline clearly below 100% class score when
 the contract has aspects the crate's tests miss.
+
+## Sibling implementations (`sibling_mutants`) — over-specification check
+
+Agents can read the implementation, so a dominant but worthless strategy is to
+*transcribe* it into a model that pins every incidental detail. A great
+specification states what the API promises and nothing more. To reward that,
+list 1–4 **sibling implementations** where the contract leaves freedom: edits
+(same format as `manual_mutants`, multi-edit allowed) that produce a *different
+but equally valid* implementation — e.g. a different hash/mixing constant that
+the docs do not promise, a different but valid choice among several correct
+answers (which index among equal elements, which pivot, tie-breaking, the order
+of an unordered result, the value of an unspecified field, a different but
+valid error variant only if the docs leave it open).
+
+`prepare` checks that every sibling satisfies **all** gold properties (otherwise
+it fails: either the sibling is not valid or the gold spec over-specifies). At
+grading, a candidate property that is false on any sibling is dropped as
+over-specified. Do not add siblings when the contract is fully determined
+(byte layouts, exact arithmetic, documented test vectors).
