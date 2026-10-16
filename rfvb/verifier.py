@@ -167,7 +167,7 @@ def check_module(task: Task, submitted_module: str) -> str:
         f"{opens_block(task)}\n\n"
         f"namespace {task.namespace}\n\n"
         f"/-- Canonical type of specification `{task.id}`. -/\n"
-        f"def rsgb_canonical_type : Sort 1 :=\n  {tp}\n\n"
+        f"def rsgb_canonical_type :=\n  {tp}\n\n"
         f"end {task.namespace}\n\n"
         f"noncomputable def {CHECK_NS}.rsgb_check : {task.namespace}.rsgb_canonical_type :=\n"
         f"  @{task.spec_name}\n\n"

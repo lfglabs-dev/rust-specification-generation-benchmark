@@ -1,0 +1,39 @@
+{
+ "id": "arxid/permute",
+ "package": "ArxidPermute",
+ "module_prefix": "Benchmark.V2.Arxid.Permute",
+ "rust_dir": "rust/arxid/permute",
+ "api": [
+  "arxid.permute.obfuscate",
+  "arxid.permute.deobfuscate",
+  "arxid.permute.feistel_n",
+  "arxid.permute.feistel_n_inv"
+ ],
+ "mutation_roots": [
+  "arxid.permute.obfuscate",
+  "arxid.permute.deobfuscate",
+  "arxid.permute.feistel_n",
+  "arxid.permute.feistel_n_inv"
+ ],
+ "forbidden_constants": [
+  "arxid.permute.round_fn",
+  "arxid.permute.subkey",
+  "arxid.permute.feistel_n_loop",
+  "arxid.permute.feistel_n_inv_loop"
+ ],
+ "allowed_imports": [
+  "ArxidPermute.Extraction"
+ ],
+ "opens": [
+  "arxid"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Arxid.Permute.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Arxid.Permute.Oracle.round_trip_over_the_whole_domain",
+  "Benchmark.Cases.Arxid.Permute.Oracle.output_never_leaves_the_domain",
+  "Benchmark.Cases.Arxid.Permute.Oracle.out_of_domain_input_is_reduced_not_rejected"
+ ],
+ "intent": "Specify the public permutation API of `arxid::permute`: `obfuscate`, `deobfuscate`, `feistel_n` and `feistel_n_inv`."
+}
