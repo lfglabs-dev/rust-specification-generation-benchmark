@@ -67,6 +67,19 @@ for _w, _ty in (("U8", "Std.U8"), ("U16", "Std.U16"), ("U32", "Std.U32"), ("U64"
         f"  | none => RustM.fail .panic")
 
 
+# jiff_core::bounds::*::checkc: inclusive range checks (jiff's documented ranges).
+for _k, _ty, _lo, _hi in (("Hour", "Std.I8", 0, 23), ("Minute", "Std.I8", 0, 59), ("Second", "Std.I8", 0, 59),
+                          ("SubsecNanosecond", "Std.I32", 0, 999999999), ("Millisecond", "Std.I16", 0, 999),
+                          ("Microsecond", "Std.I16", 0, 999), ("Nanosecond", "Std.I16", 0, 999),
+                          ("CivilDaySecond", "Std.I32", 0, 86399),
+                          ("CivilDayNanosecond", "Std.I64", 0, 86399999999999),
+                          ("Year", "Std.I16", -9999, 9999), ("Month", "Std.I8", 1, 12)):
+    AXIOM_IMPLS.setdefault("JiffCivil", {})[f"bounds.{_k}.checkc"] = (
+        f"def bounds.{_k}.checkc (v : Std.I64) : RustM (core.result.Result {_ty} bounds.BoundsError) :=\n"
+        f"  if ({_lo} : Int) ≤ v.val ∧ v.val ≤ ({_hi} : Int) then RustM.ok (core.result.Result.Ok ⟨BitVec.ofInt _ v.val⟩)\n"
+        f"  else RustM.ok (core.result.Result.Err {{ kind := bounds.BoundsErrorKind.{_k} () }})")
+
+
 def implement_axioms(text: str, pkg: str) -> str:
     """Replace `axiom NAME : TYPE` blocks by grader implementations (or a panicking default)."""
     impls = AXIOM_IMPLS.get(pkg, {})
