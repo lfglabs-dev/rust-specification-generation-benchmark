@@ -347,7 +347,7 @@ def compile_candidate(t: Target, text: str, build_root: Path) -> tuple[bool, str
     from .mutate import LEAN_SLOTS
     from .slots import slot
     with slot("lean", LEAN_SLOTS):
-        proc = subprocess.run(["lean", f"--root={src_root}", "-o", str(olean), "-i", str(olean.with_suffix('.ilean')),
+        proc = subprocess.run(["timeout", "-k", "10", "900", "lean", f"--root={src_root}", "-o", str(olean), "-i", str(olean.with_suffix('.ilean')),
                                str(src_root / rel)], cwd=EXEC_ROOT, env=_env(lp), capture_output=True, text=True,
                               timeout=900)
     out = proc.stdout + proc.stderr

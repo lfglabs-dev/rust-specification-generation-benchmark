@@ -231,7 +231,7 @@ class MutantBuilder:
         try:
             with slot("lean", LEAN_SLOTS):
                 proc = subprocess.run(
-                    ["lean", f"--root={d / 'src'}", "-o", str(out_olean), "-i", str(out_olean.with_suffix(".ilean")),
+                    ["timeout", "-k", "10", str(timeout), "lean", f"--root={d / 'src'}", "-o", str(out_olean), "-i", str(out_olean.with_suffix(".ilean")),
                      str(src)],
                     cwd=self.exec_root, env=_env(self.lean_path), capture_output=True, text=True, timeout=timeout,
                 )
@@ -262,10 +262,12 @@ def run_lean_file(exec_root: Path, lean_path: str, path: Path, timeout: int = 90
     from .slots import slot
     with slot("lean", LEAN_SLOTS):
         try:
-            proc = subprocess.run(["lean", str(path)], cwd=exec_root, env=_env(lean_path),
+            proc = subprocess.run(["timeout", "-k", "10", str(timeout), "lean", str(path)], cwd=exec_root, env=_env(lean_path),
                                   capture_output=True, text=True, timeout=timeout)
         except subprocess.TimeoutExpired:
             return "RSGB_TIMEOUT"
+    if proc.returncode in (124, 137):
+        return "RSGB_TIMEOUT"
     return proc.stdout + proc.stderr
 
 
