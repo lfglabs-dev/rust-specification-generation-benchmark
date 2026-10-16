@@ -5,5 +5,4 @@ import Benchmark.Exec.Runtime
 
 open CoreModels Aeneas Aeneas.Std Plausible RSGB.Exec
 
-deriving instance DecidableEq for dashu_base.bit.BitTest
-deriving instance Repr for dashu_base.bit.BitTest
+

@@ -64,7 +64,7 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
     }
 
 
-def regrade(path: Path, grade_jobs: int) -> int:
+def regrade(path: Path, grade_jobs: int, only: set[str] | None = None) -> int:
     from .v2 import load_targets
     targets = load_targets()
     rows = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -73,7 +73,7 @@ def regrade(path: Path, grade_jobs: int) -> int:
     for r in rows:
         t = targets.get(r["target"])
         final = run_dir / t.slug / "final.lean" if t else None
-        if t is None or not final.is_file():
+        if t is None or not final.is_file() or (only and r["target"] not in only):
             out.append(r)
             continue
         g = grade(t, final.read_text(encoding="utf-8"), jobs=grade_jobs)
@@ -106,7 +106,8 @@ def main(argv: list[str] | None = None) -> int:
                     "(after mutants were re-prepared) and rewrite its rows; no model calls")
     args = ap.parse_args(argv)
     if args.regrade:
-        return regrade(Path(args.regrade), args.grade_jobs)
+        only = None if args.targets == "all" else set(args.targets.split(","))
+        return regrade(Path(args.regrade), args.grade_jobs, only)
     targets = select(args.targets)
     run = args.run or f"v2-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{args.model.replace('/', '_')}"
     run_dir = ROOT / "results" / run

@@ -34,6 +34,63 @@ MARK = "-- (rsgb-exec) noncomputable section removed"
 NO_INLINE = "set_option compiler.small 0"
 
 
+# Grader-side implementations of external functions that the extraction declares
+# as axioms (keyed by Lean package, then axiom name). Any other axiom gets a body
+# that panics, so the module compiles; targets never exercise those.
+GOLDILOCKS_P = 18446744069414584321
+AXIOM_IMPLS: dict[str, dict[str, str]] = {
+    "MemchrTwoway": {
+        "arch.all.is_equal":
+            "def arch.all.is_equal (x y : Slice Std.U8) : RustM Bool := RustM.ok (decide (x.val = y.val))",
+    },
+    "GoldilocksField": {
+        "utils.branch_hint": "def utils.branch_hint : RustM Unit := RustM.ok ()",
+        "field.algo.generic.inv_ebgcd": (
+            "def rsgbPowMod (b e m : Nat) : Nat :=\n"
+            "  ((List.range 64).foldl (fun (acc : Nat × Nat) i =>\n"
+            "    let (r, x) := acc\n"
+            "    ((if (e >>> i) % 2 = 1 then r * x % m else r), x * x % m)) (1 % m, b % m)).1\n"
+            "def field.algo.generic.inv_ebgcd (a : Std.U64) : RustM Std.U64 :=\n"
+            f"  if a.val ≥ {GOLDILOCKS_P} then RustM.fail .panic\n"
+            "  else if a.val = 0 then RustM.ok ⟨0#64⟩\n"
+            f"  else RustM.ok ⟨BitVec.ofNat 64 (rsgbPowMod a.val ({GOLDILOCKS_P} - 2) {GOLDILOCKS_P})⟩"),
+    },
+}
+for _w, _ty in (("U8", "Std.U8"), ("U16", "Std.U16"), ("U32", "Std.U32"), ("U64", "Std.U64"),
+                ("U128", "Std.U128"), ("Usize", "Std.Usize")):
+    # Rust's `next_power_of_two` (debug build: panics when the result overflows)
+    AXIOM_IMPLS.setdefault("DashuBase", {})[f"{_w}.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two"] = (
+        f"def {_w}.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two (x : {_ty}) : RustM {_ty} :=\n"
+        f"  let n := (List.range (UScalarTy.{_w}.numBits + 1)).find? (fun k => x.val ≤ 2 ^ k)\n"
+        f"  match n with\n"
+        f"  | some k => if k < UScalarTy.{_w}.numBits then RustM.ok ⟨BitVec.ofNat _ (2 ^ k)⟩ else RustM.fail .panic\n"
+        f"  | none => RustM.fail .panic")
+
+
+def implement_axioms(text: str, pkg: str) -> str:
+    """Replace `axiom NAME : TYPE` blocks by grader implementations (or a panicking default)."""
+    impls = AXIOM_IMPLS.get(pkg, {})
+    lines = text.split("\n")
+    out, i = [], 0
+    while i < len(lines):
+        m = re.match(r"^axiom\s+(\S+)", lines[i])
+        if not m:
+            out.append(lines[i])
+            i += 1
+            continue
+        j = i + 1
+        while j < len(lines) and lines[j].strip() and not lines[j].startswith(("/--", "axiom", "def", "end ")):
+            j += 1
+        block = "\n".join(lines[i:j])
+        name = m.group(1)
+        if name in impls:
+            out.append(impls[name])
+        else:
+            out.append("def" + block[len("axiom"):] + " := default")
+        i = j
+    return "\n".join(out)
+
+
 def add_noinline(text: str) -> str:
     """Mark every top-level `def` `@[noinline]` (merging into an existing attribute list)."""
     lines = text.split("\n")
@@ -63,6 +120,13 @@ def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
         pk.symlink_to(source_root / ".lake" / "packages")
     for f in (exec_root / "extracted").rglob("*.lean"):
         text = f.read_text(encoding="utf-8")
+        if "/Assumptions/" in str(f) and re.search(r"^axiom\s", text, re.M):
+            pkg = f.relative_to(exec_root / "extracted").parts[0]
+            text = implement_axioms(text, pkg)
+            f.write_text(text, encoding="utf-8")
+        if "set_option maxRecDepth 2048" in text:
+            text = text.replace("set_option maxRecDepth 2048", "set_option maxRecDepth 100000")
+            f.write_text(text, encoding="utf-8")
         if "\nnoncomputable section\n" in text:
             text = text.replace("\nnoncomputable section\n", f"\n{MARK}\n{NO_INLINE}\n")
             # Callers (gold specs, candidates, drivers) are compiled once against the original
@@ -106,7 +170,7 @@ def type_names(types_lean: Path) -> list[str]:
     return [ns + n for n in re.findall(r"^(?:inductive|structure)\s+([^\s(:]+)", text, re.M)]
 
 
-def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds: int = 4) -> dict:
+def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds: int = 12) -> dict:
     """Generate (and validate by building) `ExecInstances` modules deriving `DecidableEq`, `Repr`
     and `Plausible.Arbitrary` for every crate type, into `exec_shims/<Pkg>/Extraction/`."""
     report = {}
@@ -120,7 +184,11 @@ def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds:
         pkg = pkg_dir.name
         lines = [f"deriving instance {cls} for {n}" for n in names for cls in ("DecidableEq", "Repr", "Plausible.Arbitrary")]
         dropped: list[str] = []
-        for _ in range(rounds):
+        ok = False
+        for _ in range(rounds + 1):
+            if _ == rounds:  # give up: no derived instances for this crate
+                dropped += lines
+                lines = []
             body = "\n".join(lines)
             text = (f"import {pkg}.Extraction.Types\nimport Benchmark.Exec.Runtime\n\n"
                     f"/-! Grader-side instances for the crate types (executable copy only). -/\n\n"

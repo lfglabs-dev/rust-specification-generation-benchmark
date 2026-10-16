@@ -5,15 +5,9 @@ import Benchmark.Exec.Runtime
 
 open CoreModels Aeneas Aeneas.Std Plausible RSGB.Exec
 
-deriving instance DecidableEq for jiff_core.bounds.BoundsError
 deriving instance DecidableEq for jiff_core.bounds.SpecialBoundsError
 deriving instance Repr for jiff_core.bounds.SpecialBoundsError
 deriving instance Plausible.Arbitrary for jiff_core.bounds.SpecialBoundsError
-deriving instance DecidableEq for jiff_core.bounds.RangeErrorKind
-deriving instance Repr for jiff_core.bounds.RangeErrorKind
-deriving instance DecidableEq for jiff_core.bounds.RangeError
-deriving instance Repr for jiff_core.bounds.RangeError
-deriving instance Plausible.Arbitrary for jiff_core.bounds.RangeError
 deriving instance DecidableEq for jiff_core.civil.date.Date
 deriving instance Repr for jiff_core.civil.date.Date
 deriving instance Plausible.Arbitrary for jiff_core.civil.date.Date
