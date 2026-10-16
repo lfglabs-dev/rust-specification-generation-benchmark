@@ -128,3 +128,8 @@ it fails: either the sibling is not valid or the gold spec over-specifies). At
 grading, a candidate property that is false on any sibling is dropped as
 over-specified. Do not add siblings when the contract is fully determined
 (byte layouts, exact arithmetic, documented test vectors).
+
+## Do not grade on facts only the (stripped) tests reveal
+Exact internal representations or constants that are pinned *only* by the crate's
+tests (which agents never see) are not part of a recoverable contract. Keep such
+checks out of `gold_*` (prefix them `info_` if you want them in the file).

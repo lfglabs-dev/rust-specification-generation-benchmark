@@ -81,7 +81,7 @@ def gold_non_pow2_not_bitshift (d : Std.U64) : Prop :=
 
 /-- Crate test vectors: 11 → `Fast { magic: 13415813871788764812, shift: 3 }`,
 7 → `General { .. }`. -/
-def gold_test_vectors (b : Bool) : Prop :=
+def info_test_vectors (b : Bool) : Prop :=
   b = b →
     DividerU64.divide_by 11#u64 ⦃ v => enc v = (0, 13415813871788764812, 3) ⦄ ∧
     DividerU64.divide_by 7#u64 ⦃ v => (enc v).1 = 2 ⦄

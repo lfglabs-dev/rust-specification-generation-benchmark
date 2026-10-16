@@ -1,9 +1,6 @@
 import Benchmark.Exec.Runtime
 import RuintUintAdd.Extraction
 
-/-! Grader-side instances for target `ruint/uint_add`: decidable equality /
-`Repr` for `Uint` (gold spec and diff probes). -/
-
-open CoreModels Aeneas Aeneas.Std
-
-deriving instance DecidableEq, Repr for ruint.Uint
+/-! Grader-side instances for target `ruint/uint_add`. `DecidableEq` / `Repr` /
+`Arbitrary` for `Uint` now come from the executable copy's
+`RuintUintAdd.Extraction.ExecInstances`; this module only gathers the imports. -/
