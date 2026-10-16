@@ -142,7 +142,7 @@ def outputs {β γ} [Plausible.Arbitrary β] [Repr γ] (f : β → γ) (n seed :
   for i in [0:n] do
     let g : Plausible.Gen β := Plausible.Arbitrary.arbitrary
     let r : Except Plausible.GenError (β × ULift StdGen) :=
-      ReaderT.run (StateT.run g (ULift.up (mkStdGen (seed * 1000003 + i)))) ⟨size⟩
+      ReaderT.run (StateT.run g (ULift.up (mkStdGen (RSGB.Exec.mixSeed (seed * 1000003 + i))))) ⟨size⟩
     match r with
     | Except.error _ => out := out.push 0
     | Except.ok (x, _) => out := out.push (hash (toString (repr (f x))))

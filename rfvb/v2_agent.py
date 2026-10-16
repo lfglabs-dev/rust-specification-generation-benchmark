@@ -234,11 +234,14 @@ the real implementation before you `submit` (one submission ends the run).
 - Inputs are sampled at random: Rust scalars (`Std.U8 … Std.U128`, `Std.Usize`,
   `Std.I8 … Std.I128`, `Std.Isize`; biased towards 0, 1, MAX, MIN, powers of two ± 1,
   log-uniform magnitudes), `Bool`, `List`, `Slice`, `alloc.vec.Vec`, `Std.Array`
-  of those (short lengths), and tuples{t.raw.get('extra_types_note', '')}.
+  of those (short lengths), tuples, and the crate's own structs and enums (fields
+  sampled recursively){t.raw.get('extra_types_note', '')}. Equality is decidable on all
+  of these, including `RustM`, `Option`, `core.result.Result` and crate types.
 - The body of a property must be decidable by evaluation: `e ⦃ r => P r ⦄`,
   `e = ok v`, `e = fail .panic`, `=`, `≠`, `<`, `≤`, `∧`, `∨`, `¬`, `→`, `if`,
   bounded quantifiers (`∀ i < n, …`, `∀ x ∈ l, …`), and computable helper functions
-  (prefer `Bool`-valued helpers or `Prop` helpers built from the above). Unbounded
+  (prefer `Bool`-valued helpers or `Prop` helpers built from the above; put any
+  `match` in a `Bool`-valued helper and state `helper … = true`). Unbounded
   quantifiers inside a property are not executable.
 - To restrict an input to a small range, use a smaller type and convert:
   `RSGB.mkU .U32 w.val` builds a `Std.U32` from a natural number (mod 2^32),

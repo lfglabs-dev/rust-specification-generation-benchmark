@@ -100,7 +100,7 @@
   {
    "decl": "crypto_bigint.uint.encoding.Uint.from_le_slice_loop0_loop0.body",
    "before": "let i2 ← i1 + j",
-   "after": "let i2 ← i1 + (7#usize - j)",
+   "after": "let i2 ← (do let k ← 7#usize - j; i1 + k)",
    "note": "bytes within each limb read in big-endian order by from_le_slice"
   },
   {

@@ -86,7 +86,8 @@ instance (priority := high) {α β} [Arbitrary α] [Arbitrary β] : Arbitrary (�
   arbitrary := do pure (← Arbitrary.arbitrary, ← Arbitrary.arbitrary)
 
 instance (priority := high) : Arbitrary Bool where
-  arbitrary := do pure ((← Gen.chooseNatLt 0 2 (by omega)).val == 1)
+  -- a middle bit of a wide draw (the low bit of the first draw is badly distributed)
+  arbitrary := do pure ((← Gen.chooseNatLt 0 1024 (by omega)).val / 512 == 1)
 
 /-! ## `Repr` / `DecidableEq` for Aeneas containers (inputs and outputs) -/
 
@@ -98,7 +99,21 @@ instance {α} [DecidableEq α] : DecidableEq (alloc.vec.Vec α) :=
 instance {α} [DecidableEq α] (n : Usize) : DecidableEq (Std.Array α n) :=
   inferInstanceAs (DecidableEq { _l : List α // _ })
 
+instance : DecidableEq CoreModels.core.cmp.Ordering := fun a b =>
+  match a, b with
+  | .Less, .Less | .Equal, .Equal | .Greater, .Greater => isTrue rfl
+  | .Less, .Equal | .Less, .Greater | .Equal, .Less | .Equal, .Greater | .Greater, .Less | .Greater, .Equal =>
+    isFalse (by intro h; cases h)
+instance : Repr CoreModels.core.cmp.Ordering := ⟨fun o _ => match o with
+  | .Less => "Ordering.Less" | .Equal => "Ordering.Equal" | .Greater => "Ordering.Greater"⟩
+deriving instance DecidableEq for CoreModels.core.result.Result
+deriving instance Repr for CoreModels.core.result.Result
+
 /-! ## Decidability of Aeneas specification forms -/
+
+instance decIteProp (c : Prop) [Decidable c] (p q : Prop) [Decidable p] [Decidable q] :
+    Decidable (if c then p else q) :=
+  if h : c then decidable_of_iff p (by simp [h]) else decidable_of_iff q (by simp [h])
 
 instance decSpec {α} (x : RustM α) (p : Post α) [h : ∀ a, Decidable (p a)] :
     Decidable (WP.spec x p) :=
@@ -149,6 +164,14 @@ structure Outcome where
   genErrors : Nat
   deriving Repr
 
+/-- splitmix64 finalizer: decorrelates the RNG seeds of consecutive test cases. -/
+def mixSeed (x : Nat) : Nat :=
+  let m := 2^64
+  let z := (x + 0x9E3779B97F4A7C15) % m
+  let z := ((z ^^^ (z >>> 30)) * 0xBF58476D1CE4E5B9) % m
+  let z := ((z ^^^ (z >>> 27)) * 0x94D049BB133111EB) % m
+  z ^^^ (z >>> 31)
+
 /-- Evaluate the decidable property `P` on `n` generated inputs (seeded). -/
 def check {β} [Arbitrary β] [Repr β] (P : β → Prop) [DecidablePred P]
     (n : Nat) (seed : Nat := 0) (maxReport : Nat := 3) (size : Nat := 100) : IO Outcome := do
@@ -158,7 +181,7 @@ def check {β} [Arbitrary β] [Repr β] (P : β → Prop) [DecidablePred P]
   for i in [0:n] do
     let g : Gen β := Arbitrary.arbitrary
     let r : Except GenError (β × ULift StdGen) :=
-      ReaderT.run (StateT.run g (ULift.up (mkStdGen (seed * 1000003 + i)))) ⟨size⟩
+      ReaderT.run (StateT.run g (ULift.up (mkStdGen (mixSeed (seed * 1000003 + i))))) ⟨size⟩
     match r with
     | Except.error _ => genErrors := genErrors + 1
     | Except.ok (x, _) =>

@@ -64,14 +64,34 @@
   {
    "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
    "before": "ok (result, { self with a := s })",
-   "after": "ok (result, { a := s, b := s })",
-   "note": "right exhausted: state corrupted after first leftover element"
+   "after": "ok (result, { a := s, b := self.a })",
+   "note": "right exhausted: state corrupted (b reset to the remaining a, re-emitting the head)"
   },
   {
    "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
    "before": "let b ← core.slice.Slice.is_empty self.a",
    "after": "let b ← core.slice.Slice.is_empty self.b",
    "note": "checks the wrong side for exhaustion: drops the rest of a once b is exhausted"
+  },
+  {
+   "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+   "before": "let o ← corecmpOrdInst.cmp first_a first_b",
+   "after": "let o ← corecmpOrdInst.cmp first_b first_a",
+   "note": "comparison arguments swapped: larger head emitted first"
+  },
+  {
+   "decl": "sdset.duo.union.Union.new",
+   "before": "ok { a := s, b := s1 }",
+   "after": "ok { a := s, b := s }",
+   "note": "copy-paste: second operand ignored"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "sdset.duo.union.Union.new",
+   "before": "ok { a := s, b := s1 }",
+   "after": "ok { a := s1, b := s }",
+   "note": "Union stores its operands in the other order (union is symmetric; fields are private)"
   }
  ]
 }

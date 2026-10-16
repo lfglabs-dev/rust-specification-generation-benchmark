@@ -1,5 +1,4 @@
 import Benchmark.V2.Prelude
-import Benchmark.V2.Etherparse.Transport.Instances
 import EtherparseTransport.Extraction
 
 /-! Hidden gold specification for target `etherparse/transport`. -/

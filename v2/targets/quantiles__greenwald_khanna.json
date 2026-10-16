@@ -30,16 +30,24 @@
  "intent": "Specify the public functions `quantiles::greenwald_khanna::find_insert_pos(vs: &[T], v: &T) -> usize` and `find_insert_pos_linear(vs: &[T], v: &T) -> usize`, instantiated at `T = i32`. In Lean they are `greenwald_khanna.find_insert_pos core.I32.Insts.CoreCmpOrd vs v` and `greenwald_khanna.find_insert_pos_linear core.I32.Insts.CoreCmpOrd vs v` with `vs : Slice Std.I32`, `v : Std.I32`.",
  "manual_mutants": [
   {
-   "note": "elements equal to the pivot send the search to the left half (wrong only when v equals the middle element)",
-   "decl": "quantiles.greenwald_khanna.find_insert_pos",
-   "before": "corecmpOrdInst.PartialOrdInst v pivot",
-   "after": "{ corecmpOrdInst.PartialOrdInst with lt := corecmpOrdInst.PartialOrdInst.le } v pivot"
+   "note": "elements equal to the pivot send the search to the left half (v <= pivot instead of v < pivot)",
+   "edits": [
+    {
+     "decl": "quantiles.greenwald_khanna.find_insert_pos",
+     "before": "core.Shared1A.Insts.CoreCmpPartialOrdShared0B.lt",
+     "after": "(fun inst a b => do let r ← core.Shared1A.Insts.CoreCmpPartialOrdShared0B.gt inst a b; ok (!r))"
+    }
+   ]
   },
   {
    "note": "linear scan returns the lower bound (first element >= v) instead of the upper bound",
-   "decl": "quantiles.greenwald_khanna.find_insert_pos_linear_loop.body",
-   "before": "corecmpOrdInst.PartialOrdInst v vi",
-   "after": "{ corecmpOrdInst.PartialOrdInst with lt := corecmpOrdInst.PartialOrdInst.le } v vi"
+   "edits": [
+    {
+     "decl": "quantiles.greenwald_khanna.find_insert_pos_linear_loop.body",
+     "before": "core.Shared1A.Insts.CoreCmpPartialOrdShared0B.lt",
+     "after": "(fun inst a b => do let r ← core.Shared1A.Insts.CoreCmpPartialOrdShared0B.gt inst a b; ok (!r))"
+    }
+   ]
   },
   {
    "note": "right half starts after the pivot, but the offset is not adjusted (off by one for large slices)",
@@ -54,10 +62,24 @@
    "after": "| core.option.Option.None => let i ← (do let n ← core.slice.Slice.len vs; if n = 0#usize then ok n else n - 1#usize)"
   },
   {
-   "note": "threshold for switching to the linear scan raised but the binary step compares with the element before the middle",
+   "note": "left half sliced as [0, middle - 1): drops the element just before the pivot",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos",
+   "before": "T) vs { start := 0#usize, «end» := middle }",
+   "after": "T) vs { start := 0#usize, «end» := ⟨middle.bv - 1⟩ }"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "compares v with the element just before the middle (still correct on sorted input, different on unsorted)",
    "decl": "quantiles.greenwald_khanna.find_insert_pos",
    "before": "let pivot ← Slice.index_usize vs middle",
    "after": "let pivot ← (do let m ← middle - 1#usize; Slice.index_usize vs m)"
+  },
+  {
+   "note": "switches to the linear scan only for slices of length <= 3",
+   "decl": "quantiles.greenwald_khanna.find_insert_pos",
+   "before": "if i <= 10#usize",
+   "after": "if i <= 3#usize"
   }
  ]
 }

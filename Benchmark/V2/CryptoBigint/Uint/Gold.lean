@@ -88,24 +88,18 @@ def bitSpec {L : Std.Usize} (a b : U L) (l : Std.U64) : Bool := decide (
   uint.bit_xor.Uint.wrapping_xor a b = ok (ofNat L (val a ^^^ val b)) ∧
   uint.bit_and.Uint.bitand_limb a l = ok (ofNat L (val a &&& rep L l.val)))
 
-/-- `sub_mod`: exact result on all inputs (subtract, add `p` back on underflow,
-wrapping), and `(a - b) mod p` under the documented precondition. -/
+/-- `sub_mod`: `(a - b) mod p` under the documented precondition (`a, b < p`;
+the result outside it is unspecified). -/
 def subModSpec {L : Std.Usize} (a b p : U L) : Bool := decide (
-  uint.sub_mod.Uint.sub_mod a b p =
-    ok (ofNat L (val a + 2^(bits L) - val b + (if val a < val b then val p else 0))) ∧
-  (val a < val p → val b < val p →
-    uint.sub_mod.Uint.sub_mod a b p ⦃ r => val r = (val a + val p - val b) % val p ⦄))
+  val a < val p → val b < val p →
+    uint.sub_mod.Uint.sub_mod a b p ⦃ r => val r = (val a + val p - val b) % val p ∧ r = ofNat L (val r) ⦄)
 
-/-- `sub_mod_special` with `p = 2^(64 L) - c`: exact result on all inputs, and
-`(a - b) mod p` under the documented precondition; with no limbs it panics
-(it builds `c` as a one-limb value). -/
+/-- `sub_mod_special` with `p = 2^(64 L) - c`: `(a - b) mod p` under the
+documented precondition (`a, b < p`, `c ≠ 0`, at least one limb). -/
 def subModSpecialSpec {L : Std.Usize} (a b : U L) (c : Std.U64) : Bool := decide (
-  uint.sub_mod.Uint.sub_mod_special a b c =
-    (if L.val = 0 then fail .panic else
-      ok (ofNat L (val a + 2 * 2^(bits L) - val b - (if val a < val b then c.val else 0)))) ∧
-  (0 < L.val → 0 < c.val → val a < 2^(bits L) - c.val → val b < 2^(bits L) - c.val →
+  0 < L.val → 0 < c.val → val a < 2^(bits L) - c.val → val b < 2^(bits L) - c.val →
     uint.sub_mod.Uint.sub_mod_special a b c ⦃ r =>
-      val r = (val a + (2^(bits L) - c.val) - val b) % (2^(bits L) - c.val) ⦄))
+      val r = (val a + (2^(bits L) - c.val) - val b) % (2^(bits L) - c.val) ⦄)
 
 /-- Constructors and decoding. -/
 def ctorSpec {L : Std.Usize} (la : Std.Array Std.U64 L) : Bool := decide (
@@ -130,7 +124,14 @@ def boundarySpec {L : Std.Usize} (la : Std.Array Std.U64 L) (k : Nat) (c : Std.U
   let b := ofNat L (2^(bits L) - val a + k % 4 - 2)
   let d := ofNat L (val a + k % 4 - 2)
   addSpec a b (mkU .U64 (k / 4 % 3)) && addSpec b a c && subSpec a d (mkU .U64 (2^63 * (k / 4 % 2))) &&
-  subSpec d a c && subModSpec a d b && subModSpecialSpec a d c
+  subSpec d a c &&
+  -- `a` as the modulus, operands at the edges of `[0, a)`
+  subModSpec (ofNat L (val a - 1)) (ofNat L (k % 4)) a && subModSpec (ofNat L (k % 4)) (ofNat L (val a - 1)) a &&
+  subModSpec (ofNat L (val a - 1)) (ofNat L (val a - 1 - k % 4)) a &&
+  -- special modulus `2^(64 L) - c` with operands at the edges of `[0, p)`
+  subModSpecialSpec (ofNat L (2^(bits L) - c.val - 1)) (ofNat L (k % 4)) c &&
+  subModSpecialSpec (ofNat L (k % 4)) (ofNat L (2^(bits L) - c.val - 1)) c &&
+  subModSpecialSpec (ofNat L (k % 4)) (ofNat L (2^(bits L) - c.val - 1 - k / 4 % 4)) c
 
 end CryptoBigintUintGoldModel
 
@@ -148,7 +149,7 @@ def gold_limb_boundary (x : Std.U64) (k : Std.U8) (c : Std.U64) : Prop :=
   limbSpec x (mkU .U64 (2^64 - 1 - x.val + k.val % 3)) c ∧
   limbSpec x (mkU .U64 (x.val + k.val % 3 - 1)) (mkU .U64 (2^63 * (k.val / 3 % 2) + k.val / 6 % 3))
 
-/-- `LIMBS = 0`: values are empty, carries / borrows pass through, `sub_mod_special` panics. -/
+/-- `LIMBS = 0`: values are empty, carries / borrows pass through. -/
 def gold_zero_limbs (la lb : Std.Array Std.U64 0#usize) (c : Std.U64) : Prop :=
   allSpec la lb la c ∧
   uint.add.Uint.carrying_add (⟨la⟩ : U 0#usize) ⟨lb⟩ c = ok (⟨la⟩, c) ∧
@@ -169,8 +170,9 @@ def gold_ripple (j : Std.U8) (t c : Std.U64) : Prop :=
   let b := ofNat 4#usize (1 + 2^(64 * j) * t.val)
   let z := ofNat 4#usize (2^(64 * j))
   addSpec a b c ∧ addSpec a (ofNat 4#usize 0) (mkU .U64 1) ∧ subSpec b a c ∧ subSpec z b c ∧
-  subSpec z (ofNat 4#usize 0) (mkU .U64 (2^63)) ∧ subModSpec z b (ofNat 4#usize (t.val + 1)) ∧
-  subModSpecialSpec z b c
+  subSpec z (ofNat 4#usize 0) (mkU .U64 (2^63)) ∧
+  subModSpec (ofNat 4#usize 0) a z ∧ subModSpec a (ofNat 4#usize 0) (ofNat 4#usize (2^(64 * j))) ∧
+  subModSpecialSpec (ofNat 4#usize 0) a (mkU .U64 (c.val % 2^63 + 1))
 
 /-- `from_le_slice` / `from_be_slice` decode exactly the `8 * LIMBS`-byte slices
 (little- / big-endian) and panic on any other length. -/

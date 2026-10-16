@@ -139,8 +139,7 @@
   "etherparse"
  ],
  "upstream_imports": [
-  "Benchmark.Cases.Etherparse.Link.Specs",
-  "Benchmark.V2.Etherparse.Link.Instances"
+  "Benchmark.Cases.Etherparse.Link.Specs"
  ],
  "upstream_props": [
   "Benchmark.Cases.Etherparse.Link.Oracle.ethernet2_from_bytes_roundtrip",
@@ -196,6 +195,14 @@
    "before": "| 770#uscalar =>",
    "after": "| 771#uscalar =>",
    "note": "FRAD ARP id off by one"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "etherparse.link.linux_sll_header.LinuxSllHeader.from_bytes",
+   "before": "let cf ← core.result.Result.Insts.CoreOpsTry_traitTry.branch r",
+   "after": "let cf ← (core.num.U16.from_be_bytes (Array.make 2#usize [ bytes.val.getD 2 0#u8, bytes.val.getD 3 0#u8 ]) >>= fun arp0 => if arp0.val ∈ [824, 778, 803, 770, 1] then core.result.Result.Insts.CoreOpsTry_traitTry.branch r else core.result.Result.Insts.CoreOpsTry_traitTry.branch (core.result.Result.Err (err.linux_sll.header_error.HeaderError.UnsupportedArpHardwareId arp0) : core.result.Result link.linux_sll_packet_type.LinuxSllPacketType err.linux_sll.header_error.HeaderError))",
+   "note": "reports an unsupported ARP hardware id before an unsupported packet type (error precedence is not documented)"
   }
  ]
 }

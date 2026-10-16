@@ -1,5 +1,4 @@
 import Benchmark.V2.Prelude
-import Benchmark.V2.DltParse.StorageHeader.Instances
 import DltParseStorageHeader.Extraction
 
 /-! Hidden gold specification for target `dlt_parse/storage_header`. -/

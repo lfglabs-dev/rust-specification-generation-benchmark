@@ -18,10 +18,8 @@ open CoreModels Aeneas Aeneas.Std.WP
 open Aeneas.Std hiding namespace core alloc
 open RustM nt_time RSGB
 
-deriving instance DecidableEq for nt_time.error.FileTimeRangeErrorKind
-deriving instance Repr for nt_time.error.FileTimeRangeErrorKind
-deriving instance DecidableEq for core.result.Result
-deriving instance Repr for core.result.Result
+-- DecidableEq / Repr for the crate types and `core.result.Result` come from the
+-- executable copy's `ExecInstances` and `Benchmark.Exec.Runtime`.
 
 namespace Benchmark.V2.NtTime.FileTime.Gold
 

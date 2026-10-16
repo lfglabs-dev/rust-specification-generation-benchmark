@@ -146,6 +146,13 @@ def selZerosRankObs (x : Std.U64) (n : Nat) : RustM (Nat × Option Nat × Option
     let g ← getObs x p
     ok (c, some p, r, g)
 
+/-- Inverse check for `select_ones`/`select_zeros` observations: `None` iff `n ≥ avail`,
+otherwise the rank at the result is `n` and the bit there is `bitv`. -/
+def selInvOk (avail n : Nat) (bitv : Bool) (t : Nat × Option Nat × Option Nat × Option Bool) : Bool :=
+  match t with
+  | (_, none, _, _) => decide (avail ≤ n)
+  | (_, some _, r, g) => decide (n < avail) && r == some n && g == some bitv
+
 end RSGBGold.IndexedBitvecWord
 
 namespace Benchmark.V2.IndexedBitvec.Word.Gold
@@ -243,14 +250,16 @@ def gold_select_zeros_big (x : Std.U64) (n : Std.U32) : Prop :=
 /-- `select_ones` inverts `rank_ones` (documented invariant), `None` iff `n ≥ count_ones`. -/
 def gold_select_rank_inverse (x : Std.U64) (n : Std.U8) : Prop :=
   let n' := n.val % 66
-  (selRankObs x n') ⦃ (c, s, r, g) =>
-        (s.isNone ↔ c ≤ n') ∧ (s.isSome → r = some n' ∧ g = some true) ⦄
+  (do
+    let t ← selRankObs x n'
+    ok (selInvOk t.1 n' true t)) = ok true
 
 /-- `select_zeros` inverts `rank_zeros` (documented invariant). -/
 def gold_select_zeros_rank_inverse (x : Std.U64) (n : Std.U8) : Prop :=
   let n' := n.val % 66
-  (selZerosRankObs x n') ⦃ (c, s, r, g) =>
-        (s.isNone ↔ 64 - c ≤ n') ∧ (s.isSome → r = some n' ∧ g = some false) ⦄
+  (do
+    let t ← selZerosRankObs x n'
+    ok (selInvOk (64 - t.1) n' false t)) = ok true
 
 /-! ## select_ones_u16 -/
 

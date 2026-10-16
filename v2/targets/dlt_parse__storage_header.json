@@ -27,8 +27,7 @@
   "dlt_parse"
  ],
  "upstream_imports": [
-  "Benchmark.Cases.DltParse.StorageHeader.Specs",
-  "Benchmark.V2.DltParse.StorageHeader.Instances"
+  "Benchmark.Cases.DltParse.StorageHeader.Specs"
  ],
  "upstream_props": [
   "Benchmark.Cases.DltParse.StorageHeader.Oracle.from_bytes_roundtrip_and_pattern_error"

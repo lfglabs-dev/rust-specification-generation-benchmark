@@ -36,8 +36,8 @@
   {
    "note": "midpoint computed as (left + right) / 2: overflows for ranges near usize::MAX",
    "decl": "scrunch.binary_search.binary_search_by_loop.body",
-   "before": "let i ← right - left",
-   "after": "let i ← (do let s ← left + right; s - left - left)"
+   "before": "let mid ← left + i1",
+   "after": "let mid ← (do let s ← left + right; s / 2#usize)"
   },
   {
    "note": "Greater moves right to mid - 1 (classic inclusive-bound bug): result can skip the answer",
@@ -62,6 +62,20 @@
    "decl": "scrunch.binary_search.binary_search_by_loop.body",
    "before": "else ok (done left)",
    "after": "else ok (done (if right < left then right else left))"
+  },
+  {
+   "note": "partition_by maps a true predicate to Equal instead of Less (stops at the first true probe)",
+   "decl": "scrunch.binary_search.partition_by.closure.Insts.CoreOpsFunctionFnMutTupleUsizeOrdering.call_mut",
+   "before": "then ok (core.cmp.Ordering.Less, t)",
+   "after": "then ok (core.cmp.Ordering.Equal, t)"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "on Equal keep bisecting to the left: returns the first Equal index instead of any Equal index",
+   "decl": "scrunch.binary_search.binary_search_by_loop.body",
+   "before": "else ok (done mid)",
+   "after": "else ok (cont (search1, left, mid))"
   }
  ]
 }

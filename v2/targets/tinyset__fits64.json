@@ -101,8 +101,22 @@
   {
    "decl": "tinyset.Isize.Insts.TinysetSet64Fits64.to_u64",
    "before": "let i4 ← lift (IScalar.cast_fromBool .I64 (self >= 0#isize))",
-   "after": "let i4 ← lift (IScalar.cast_fromBool .I64 (self >= -1#isize))",
+   "after": "let i4 ← lift (IScalar.cast_fromBool .I64 (decide (self >= 0#isize) || decide (~~~ self = 0#isize)))",
    "note": "-1 encoded as non-negative"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "tinyset.U32.Insts.TinysetSet64Fits64.from_u64",
+   "before": "ok (UScalar.cast .U32 x)",
+   "after": "ok (if x.val < 2^32 then UScalar.cast .U32 x else 0#u32)",
+   "note": "out-of-domain words (never produced by to_u64) decode to 0 instead of truncating"
+  },
+  {
+   "decl": "tinyset.I8.Insts.TinysetSet64Fits64.from_u64",
+   "before": "let i ← x >>> 1#i32",
+   "after": "let i ← (x &&& 511#u64) >>> 1#i32",
+   "note": "decoder only looks at the low 9 bits (enough for every i8 encoding)"
   }
  ]
 }

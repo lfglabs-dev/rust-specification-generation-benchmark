@@ -1,4 +1,5 @@
 import Benchmark.V2.Prelude
+import Benchmark.Exec.Runtime
 import UintU64.Extraction
 
 /-! Hidden gold specification for target `uint/u64`.
@@ -104,10 +105,16 @@ def gold_bitwise (x y : uint.U64) : Prop := bitwiseSpec x y ∧ bitwiseSpec x x
 def gold_query (x : uint.U64) : Prop := querySpec x
 
 /-- `bits` on single powers of two and their neighbours. -/
-def gold_bits_pow (k : Std.U8) (d : Bool) : Prop :=
-  querySpec (ofNat (2^(k.val % 64) - (if d then 1 else 0))) ∧ querySpec (ofNat (2^(k.val % 64) + 1))
+def gold_bits_pow (k : Std.U8) : Prop :=
+  querySpec (ofNat (2^(k.val % 64))) ∧ querySpec (ofNat (2^(k.val % 64) - 1)) ∧
+  querySpec (ofNat (2^(k.val % 64) + 1))
 
-def gold_index (x : uint.U64) (i : Std.U8) : Prop := indexSpec x i.val
+def gold_index (x : uint.U64) (i : Std.U8) : Prop := indexSpec x i.val ∧ indexSpec x (i.val % 72)
+
+/-- `bit` / `byte` right at the width boundary. -/
+def gold_index_edges (x : uint.U64) : Prop :=
+  ∀ i ∈ [0, 6, 7, 8, 9, 15, 16, 62, 63, 64, 65, 127, 128, 129, 130], indexSpec x i
+
 def gold_index_any (x : uint.U64) (i : Std.Usize) : Prop := indexSpec x i.val
 
 def gold_laws (x y z : uint.U64) : Prop := lawSpec x y z
@@ -146,7 +153,8 @@ def diff_bitwise (x y : uint.U64) :=
 def diff_query (x : uint.U64) :=
   (uint.U64.low_u32 x, uint.U64.low_u64 x, uint.U64.as_u64 x, uint.U64.is_zero x, uint.U64.bits x)
 def diff_index (x : uint.U64) (i : Std.U8) :=
-  (uint.U64.bit x (mkU .Usize i.val), uint.U64.byte x (mkU .Usize (i.val % 32)))
+  (uint.U64.bit x (mkU .Usize i.val), uint.U64.byte x (mkU .Usize (i.val % 32)),
+   uint.U64.bit x (mkU .Usize (60 + i.val % 8)), uint.U64.byte x (mkU .Usize (i.val % 12)))
 def diff_from (n : Std.U64) (m : Std.U32) (a : Std.I64) (b : Std.I32) :=
   (uint.U64.zero, uint.U64.one, uint.U64.Insts.CoreDefaultDefault.default,
    uint.U64.Insts.CoreConvertFromU64.from n, uint.U64.Insts.CoreConvertFromU32.from m,

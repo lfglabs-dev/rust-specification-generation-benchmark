@@ -33,11 +33,58 @@
  ],
  "intent": "Specify the public counting API of `use_combinatorics::counting`: `factorial` and `permutations` (both return `Result<u128, CombinatoricsError>`).",
  "manual_mutants": [
-  {"decl": "use_combinatorics.counting.permutations", "before": "if k > n", "after": "if k >= n", "note": "k = n wrongly rejected as KExceedsN"},
-  {"decl": "use_combinatorics.counting.permutations", "before": "if k = 0#u64", "after": "if k = 0#u64 ∧ n = 0#u64", "note": "k = 0 shortcut dropped: only differs at n = u64::MAX where n - 0 + 1 overflows (panic)"},
-  {"decl": "use_combinatorics.counting.permutations", "before": "then ok (core.result.Result.Err (error.CombinatoricsError.KExceedsN n k))", "after": "then ok (core.result.Result.Err (error.CombinatoricsError.KExceedsN k n))", "note": "KExceedsN payload fields swapped"},
-  {"decl": "use_combinatorics.counting.factorial_loop.body", "before": "(error.CombinatoricsError.FactorialOverflow n)))", "after": "(error.CombinatoricsError.FactorialOverflow factor)))", "note": "overflow error reports the failing factor instead of n"},
-  {"decl": "use_combinatorics.counting.permutations_loop.body", "before": "(error.CombinatoricsError.PermutationOverflow n k)))", "after": "(error.CombinatoricsError.PermutationOverflow k n)))", "note": "PermutationOverflow payload swapped"},
-  {"decl": "use_combinatorics.counting.permutations_loop.body", "before": "(error.CombinatoricsError.PermutationOverflow n k)))", "after": "(error.CombinatoricsError.KExceedsN n k)))", "note": "overflow reported with the wrong error variant"}
+  {
+   "decl": "use_combinatorics.counting.permutations",
+   "before": "if k > n",
+   "after": "if k >= n",
+   "note": "k = n wrongly rejected as KExceedsN"
+  },
+  {
+   "decl": "use_combinatorics.counting.permutations",
+   "before": "if k = 0#u64",
+   "after": "if k = 0#u64 ∧ n = 0#u64",
+   "note": "k = 0 shortcut dropped: only differs at n = u64::MAX where n - 0 + 1 overflows (panic)"
+  },
+  {
+   "decl": "use_combinatorics.counting.permutations",
+   "before": "then ok (core.result.Result.Err (error.CombinatoricsError.KExceedsN n k))",
+   "after": "then ok (core.result.Result.Err (error.CombinatoricsError.KExceedsN k n))",
+   "note": "KExceedsN payload fields swapped"
+  },
+  {
+   "decl": "use_combinatorics.counting.factorial_loop.body",
+   "before": "(error.CombinatoricsError.FactorialOverflow n)))",
+   "after": "(error.CombinatoricsError.FactorialOverflow factor)))",
+   "note": "overflow error reports the failing factor instead of n"
+  },
+  {
+   "decl": "use_combinatorics.counting.permutations_loop.body",
+   "before": "(error.CombinatoricsError.PermutationOverflow n k)))",
+   "after": "(error.CombinatoricsError.PermutationOverflow k n)))",
+   "note": "PermutationOverflow payload swapped"
+  },
+  {
+   "decl": "use_combinatorics.counting.permutations_loop.body",
+   "before": "(error.CombinatoricsError.PermutationOverflow n k)))",
+   "after": "(error.CombinatoricsError.KExceedsN n k)))",
+   "note": "overflow reported with the wrong error variant"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "fixed loop: stops after the factor n without incrementing, so permutations(u64::MAX, 1|2) returns Ok instead of panicking",
+   "edits": [
+    {
+     "decl": "use_combinatorics.counting.permutations_loop.body",
+     "before": "let factor1 ← factor + 1#u64",
+     "after": "let factor1 ← core.num.U64.wrapping_add factor 1#u64"
+    },
+    {
+     "decl": "use_combinatorics.counting.permutations_loop.body",
+     "before": "ok (cont (value, factor1))",
+     "after": "if factor = n then ok (done (core.result.Result.Ok value)) else ok (cont (value, factor1))"
+    }
+   ]
+  }
  ]
 }

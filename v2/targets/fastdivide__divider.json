@@ -73,6 +73,26 @@
    "before": "let t ← core.num.U64.wrapping_add i1 q",
    "after": "let t ← (do let s ← n + q; s >>> 1#i32)",
    "note": "naive (n + q) / 2 instead of ((n - q) >> 1) + q: overflows (panics) for large dividends on the General path"
+  },
+  {
+   "decl": "fastdivide.DividerU64.divide_by",
+   "before": "massert (divisor > 0#u64)",
+   "after": "massert (divisor > 0#u64 ∧ divisor < 18446744073709551615#u64)",
+   "note": "rejects (panics on) the divisor u64::MAX, mirroring the exclusive proptest range 1..u64::MAX"
+  },
+  {
+   "decl": "fastdivide.DividerU64.fast_path",
+   "before": "if e >= i5",
+   "after": "if e >= 0#u64",
+   "note": "fast path never taken: quotients stay correct but divide_by(11) is no longer Fast { magic: 13415813871788764812, shift: 3 }"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "fastdivide.DividerU64.fast_path",
+   "before": "if e >= i5",
+   "after": "if e >= i5 ∨ divisor ≥ 4294967296#u64",
+   "note": "valid alternative: the 64-bit-magic Fast representation is only used for divisors below 2^32 (General otherwise); which non-power-of-two divisors use Fast is not promised beyond the crate's test vectors"
   }
  ]
 }

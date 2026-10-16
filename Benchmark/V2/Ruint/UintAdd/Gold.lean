@@ -158,8 +158,7 @@ def gold_ripple (j : Std.U8) (t : Std.U64) : Prop :=
   addSpec a2 b2 ∧ subSpec b2 a2 ∧ addSpec a2' b2' ∧ subSpec b2' a2' ∧ negSpec b3 ∧ negSpec a2'
 
 /-- `ZERO` and `MAX` at every tested width. -/
-def gold_constants (b : Bool) : Prop :=
-  let _ := b
+def gold_constants (_x : Std.U8) : Prop :=
   Uint.ZERO 1#usize 1#usize = ok (ofNat 1#usize 1#usize 0) ∧
   Uint.MAX 1#usize 1#usize = ok (ofNat 1#usize 1#usize 1) ∧
   Uint.ZERO 63#usize 1#usize = ok (ofNat 63#usize 1#usize 0) ∧
@@ -222,8 +221,8 @@ def diff_from_limbs (la : Std.Array Std.U64 2#usize) :=
 def diff_from_limbs1 (la : Std.Array Std.U64 1#usize) :=
   (Uint.from_limbs 1#usize la, Uint.from_limbs 63#usize la, Uint.from_limbs 64#usize la)
 def diff_mask (bits : Std.U16) := (mask (mkU .Usize (bits.val % 600)), nlimbs (mkU .Usize (bits.val % 600)))
-def diff_consts (b : Bool) :=
-  (b, Uint.ZERO 65#usize 2#usize, Uint.MAX 65#usize 2#usize, Uint.ZERO 128#usize 2#usize,
+def diff_consts (_x : Std.U8) :=
+  (Uint.ZERO 65#usize 2#usize, Uint.MAX 65#usize 2#usize, Uint.ZERO 128#usize 2#usize,
    Uint.MAX 128#usize 2#usize, Uint.ZERO 1#usize 1#usize, Uint.MAX 1#usize 1#usize,
    Uint.MAX 63#usize 1#usize, Uint.MAX 64#usize 1#usize, Uint.MAX 129#usize 3#usize)
 

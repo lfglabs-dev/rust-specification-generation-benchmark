@@ -12,12 +12,14 @@ Contract notes (true to the implementation):
 * `suffix_product` replaces entry `i` by the product of the entries after `i`, but its
   accumulator also multiplies in the *first* entry, so it panics as soon as any suffix
   product (including the product of the whole slice) overflows `u64` — even when every
-  stored output fits. Consequently `MixedRadix::new` panics iff the product of all block
-  sizes overflows (e.g. `[65536; 4]`), although only the products of the trailing block
-  sizes are stored.
+  stored output fits (latent bug; a sibling that skips the last multiplication is
+  registered, and the gold spec accepts a panic or the correct output in that case).
+  Consequently `MixedRadix::new` panics iff the product of all block sizes overflows
+  (e.g. `[65536; 4]`); with the sibling, `new` succeeds and `size` panics instead.
 * `dot_product` panics iff the exact dot product is `≥ 2^64`.
 * `decode` panics (division by zero) iff some block size other than the first is 0;
-  it does not reduce the leading digit modulo `block_sizes[0]`.
+  it does not reduce the leading digit modulo `block_sizes[0]` (for indices `≥ size`
+  the leading digit is treated as unspecified; a reducing sibling is registered).
 -/
 
 open CoreModels Aeneas Aeneas.Std.WP
@@ -55,8 +57,16 @@ def sufProds (l : List Nat) : List Nat :=
 def sufOverflow (l : List Nat) : Bool :=
   (List.range l.length).any (fun i => decide (2^64 ≤ (l.drop i).prod))
 
-def suffixExp (l : List Nat) : RustM (List Nat) :=
-  if sufOverflow l then fail .panic else ok (sufProds l)
+/-- Some *stored* suffix product `l[i..]`, `i ≥ 1`, overflows. -/
+def sufOverflowStored (l : List Nat) : Bool := sufOverflow l.tail
+
+/-- Acceptable outcomes of `suffix_product`: the suffix products; a panic when a stored
+product overflows; when only the product of the whole slice overflows (it is computed
+by the implementation's accumulator but never stored) a panic or the correct output. -/
+def suffixOk (l : List Nat) : RustM (List Nat) → Bool
+  | .ok r => !sufOverflowStored l && r == sufProds l
+  | .fail .panic => sufOverflow l
+  | _ => false
 
 def dotExp (a b : List Nat) : RustM Nat :=
   let s := (List.zipWith (· * ·) a b).sum
@@ -73,13 +83,17 @@ def newExp (bs : List Nat) : RustM (List Nat × Nat) :=
 /-- `encode`: `Σ dᵢ · ∏_{j>i} bⱼ`, panicking on `u64` overflow. -/
 def encodeExp (bs d : List Nat) : RustM Nat := dotExp d (sufProds bs)
 
-/-- `decode`: digit 0 is `idx / ∏_{j>0} bⱼ`, digit `i > 0` is `(idx / ∏_{j>i} bⱼ) mod bᵢ`;
-division by zero panics. -/
-def decodeExp (bs : List Nat) (idx : Nat) : RustM (List Nat) :=
-  let offs := sufProds bs
-  if offs.any (· == 0) then fail .panic
-  else ok ((List.range bs.length).map fun i =>
-    if i = 0 then idx / offs.getD 0 1 else (idx / offs.getD i 1) % bs.getD i 1)
+/-- Acceptable outcomes of `decode`: digit `i ≥ 1` is `(idx / ∏_{j>i} bⱼ) mod bᵢ`; digit 0
+is `idx / ∏_{j>0} bⱼ` when `idx < ∏ bᵢ` (for out-of-range indices the leading digit is
+left unspecified); panics (division by zero) exactly when some trailing block size is 0. -/
+def decodeOk (bs : List Nat) (idx : Nat) : RustM (List Nat) → Bool
+  | .ok r =>
+    let offs := sufProds bs
+    !(offs.any (· == 0)) && r.length == bs.length &&
+    r.tail == ((List.range bs.length).map (fun i => (idx / offs.getD i 1) % bs.getD i 1)).tail &&
+    (decide (bs.prod ≤ idx) || r.head? == (offs.head?.map (fun o => idx / o)))
+  | .fail .panic => (sufProds bs).any (· == 0)
+  | _ => false
 
 def mrObs {n : Std.Usize} (bs : Std.Array Std.U64 n) : RustM (List Nat × Nat) := do
   let m ← waugh_indexer.mixed_radix.MixedRadix.new bs
@@ -160,18 +174,18 @@ def gold_binom_symm (n r : Std.U8) : Prop :=
 
 /-- Exact: suffix products, panicking iff some suffix product (incl. the whole slice) overflows. -/
 def gold_suffix_exact_u8 (s : Slice Std.U8) : Prop :=
-  suffixObs (widenS s) = suffixExp (s.val.map (·.val))
+  suffixOk (s.val.map (·.val)) (suffixObs (widenS s)) = true
 
 def gold_suffix_exact_u16 (s : Slice Std.U16) : Prop :=
-  suffixObs (widenS s) = suffixExp (s.val.map (·.val))
+  suffixOk (s.val.map (·.val)) (suffixObs (widenS s)) = true
 
 def gold_suffix_exact_u64 (s : Slice Std.U64) : Prop :=
-  suffixObs s = suffixExp (vals s.val)
+  suffixOk (vals s.val) (suffixObs s) = true
 
 /-- Short slices of small values (frequent zeros/ones, no overflow). -/
 def gold_suffix_exact_small (s : Slice Std.U8) : Prop :=
   let t : Slice Std.U64 := ⟨s.val.map (fun x => mkU .U64 (x.val % 5)), by simpa using s.property⟩
-  suffixObs t = ok (sufProds (s.val.map (·.val % 5)))
+  suffixOk (s.val.map (·.val % 5)) (suffixObs t) = true
 
 /-- Length preserved and last entry 1 whenever it succeeds. -/
 def gold_suffix_shape (s : Slice Std.U32) : Prop :=
@@ -245,13 +259,13 @@ def gold_mr_encode_u64 (bs : Std.Array Std.U8 4#usize) (d : Std.Array Std.U64 4#
 
 /-- `decode` model (incl. division-by-zero panic when a trailing block size is 0). -/
 def gold_mr_decode (bs : Std.Array Std.U8 4#usize) (idx : Std.U64) : Prop :=
-  decodeObs (widenA bs) idx = decodeExp (bs.val.map (·.val)) idx.val
+  decodeOk (bs.val.map (·.val)) idx.val (decodeObs (widenA bs) idx) = true
 
 def gold_mr_decode_u16 (bs : Std.Array Std.U16 4#usize) (idx : Std.U64) : Prop :=
-  decodeObs (widenA bs) idx = decodeExp (bs.val.map (·.val)) idx.val
+  decodeOk (bs.val.map (·.val)) idx.val (decodeObs (widenA bs) idx) = true
 
 def gold_mr_decode_3 (bs : Std.Array Std.U8 3#usize) (idx : Std.U16) : Prop :=
-  decodeObs (bumpA bs) (mkU .U64 idx.val) = decodeExp (bs.val.map (·.val + 1)) idx.val
+  decodeOk (bs.val.map (·.val + 1)) idx.val (decodeObs (bumpA bs) (mkU .U64 idx.val)) = true
 
 /-- Round trip `decode (encode d) = d` for valid digits (upstream property, all sizes ≥ 1). -/
 def gold_mr_roundtrip (bs d : Std.Array Std.U16 4#usize) : Prop :=

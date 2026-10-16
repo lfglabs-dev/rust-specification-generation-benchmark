@@ -48,25 +48,41 @@ end RSGBGold.OrderStat.Quickselect
 namespace Benchmark.V2.OrderStat.Quickselect.Gold
 open RSGBGold.OrderStat.Quickselect
 
-/-- Full contract for an in-range `k`: no panic, the result is a permutation of
-the input, position `k` holds the `k`-th smallest element of the input, and the
-slice is partitioned around it. -/
-def selectSpec (x : List Std.I32) (k : Std.Usize) : Prop :=
+/-- In-range `k`: no panic and the result is a permutation of the input. -/
+def permSpec (x : List Std.I32) (k : Std.Usize) : Prop :=
+  sel x k ⦃ r => r.length = x.length ∧ samePerm r x = true ⦄
+
+/-- In-range `k`: position `k` holds the `k`-th smallest element of the *input*. -/
+def kthSpec (x : List Std.I32) (k : Std.Usize) : Prop :=
+  sel x k ⦃ r => (isort (vals x))[k.val]? = (r[k.val]?).map (·.val) ⦄
+
+/-- In-range `k`: the result is partitioned around position `k`. -/
+def partSpec (x : List Std.I32) (k : Std.Usize) : Prop :=
   sel x k ⦃ r =>
-    r.length = x.length ∧ samePerm r x = true ∧
-    (isort (vals x))[k.val]? = (r[k.val]?).map (·.val) ∧
     (∀ i < r.length, i < k.val → (r[i]!).val ≤ (r[k.val]!).val) ∧
     (∀ i < r.length, k.val < i → (r[k.val]!).val ≤ (r[i]!).val) ⦄
 
+def gold_select_perm (x : List Std.I32) (k : Std.U8) : Prop :=
+  0 < x.length → permSpec x (kIn x k)
+
+def gold_select_perm_dups (x : List Std.I32) (k : Std.U8) : Prop :=
+  0 < x.length → permSpec (small x) (kIn x k)
+
 def gold_select_kth (x : List Std.I32) (k : Std.U8) : Prop :=
-  0 < x.length → selectSpec x (kIn x k)
+  0 < x.length → kthSpec x (kIn x k)
 
 def gold_select_kth_dups (x : List Std.I32) (k : Std.U8) : Prop :=
-  0 < x.length → selectSpec (small x) (kIn x k)
+  0 < x.length → kthSpec (small x) (kIn x k)
 
-/-- The `k`-th element against the upstream formulation on arbitrary `usize` `k`. -/
-def gold_select_kth_any (x : List Std.I32) (k : Std.Usize) : Prop :=
-  k.val < x.length → selectSpec x k
+def gold_select_partitioned (x : List Std.I32) (k : Std.U8) : Prop :=
+  0 < x.length → partSpec x (kIn x k)
+
+def gold_select_partitioned_dups (x : List Std.I32) (k : Std.U8) : Prop :=
+  0 < x.length → partSpec (small x) (kIn x k)
+
+/-- The full in-range contract on arbitrary `usize` `k` (upstream formulation). -/
+def gold_select_any_k (x : List Std.I32) (k : Std.Usize) : Prop :=
+  k.val < x.length → permSpec x k ∧ kthSpec x k ∧ partSpec x k
 
 /-- For an out-of-range `k` the call still returns (no panic) a permutation of the input. -/
 def gold_select_out_of_range (x : List Std.I32) (k : Std.U8) : Prop :=

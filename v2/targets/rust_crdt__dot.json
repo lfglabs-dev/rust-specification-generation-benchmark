@@ -84,6 +84,18 @@
    "before": "let i ← self.counter + 1#u64",
    "after": "let i ← self.counter + (if self.counter.val = 0 then 2#u64 else 1#u64)",
    "note": "wrong increment from zero"
+  },
+  {
+   "decl": "crdts.dot.Dot.Insts.CoreCmpPartialEqDot.eq",
+   "before": "if b",
+   "after": "if true",
+   "note": "Dot equality ignores the actor"
+  },
+  {
+   "decl": "crdts.dot.OrdDot.Insts.CoreConvertFromDot.from",
+   "before": "ok { actor := d.actor, counter := d.counter }",
+   "after": "ok { actor := d.actor, counter := (if d.counter.val = 2^64 - 1 then 0#u64 else d.counter) }",
+   "note": "conversion to OrdDot wraps the maximal counter to 0"
   }
  ]
 }

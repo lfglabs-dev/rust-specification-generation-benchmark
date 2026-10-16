@@ -8,11 +8,12 @@ Model: `factorial n = Ok n!` when `n!` fits in `u128`, else
 `k > n`, else `Ok(n·(n-1)·…·(n-k+1))` when that fits in `u128`, else
 `Err(PermutationOverflow{n,k})`.
 
-Implementation discrepancy (recorded, kept true to the implementation): the
-loop in `permutations` increments `factor` after multiplying by `factor = n`,
-so for `n = u64::MAX` and `k ∈ {1, 2}` (where the result still fits in `u128`)
-the `factor += 1` overflows and the function panics in debug builds instead of
-returning `Ok(n)` / `Ok(n·(n-1))` as documented. -/
+Implementation discrepancy (recorded): the loop in `permutations` increments
+`factor` after multiplying by `factor = n`, so for `n = u64::MAX` and `k ∈ {1, 2}`
+(where the result still fits in `u128`) the `factor += 1` overflows and the
+function panics in debug builds instead of returning `Ok(n)` / `Ok(n·(n-1))` as
+documented. The gold spec accepts either outcome there (a fixed sibling
+implementation is registered). -/
 
 open CoreModels Aeneas Aeneas.Std.WP
 open Aeneas.Std hiding namespace core alloc
@@ -53,10 +54,14 @@ def permModel (n k : Nat) : Nat × Nat × Nat :=
     if Nat.descFactorial n k < 2^128 then (0, Nat.descFactorial n k, 0) else (3, n, k)
   else (3, n, k)
 
-/-- The implementation panics (debug overflow of the loop counter) exactly for
-`n = u64::MAX`, `k ∈ {1, 2}`. -/
-def permExpected (n k : Nat) : RustM (Nat × Nat × Nat) :=
-  if n = U64MAX ∧ (k = 1 ∨ k = 2) then fail .panic else ok (permModel n k)
+/-- Acceptable outcomes of `permutations n k`: the model value; additionally, for
+`n = u64::MAX`, `k ∈ {1, 2}` the implementation panics (debug overflow of the loop
+counter `factor += 1` after the last factor) — a panic or the correct value are both
+accepted there. -/
+def permOk (n k : Nat) : RustM (Nat × Nat × Nat) → Bool
+  | .ok v => v == permModel n k
+  | .fail .panic => n == U64MAX && (k == 1 || k == 2)
+  | _ => false
 
 end RSGBGold.UseCombinatoricsCounting
 
@@ -89,21 +94,21 @@ def gold_factorial_recurrence (n : Std.U8) : Prop :=
 
 /-- Exact result (including the panic cases) for arbitrary `u64` arguments. -/
 def gold_perm_exact (n k : Std.U64) : Prop :=
-  obs (counting.permutations n k) = permExpected n.val k.val
+  permOk n.val k.val (obs (counting.permutations n k)) = true
 
 /-- Exact result, dense small domain. -/
 def gold_perm_exact_small (n k : Std.U8) : Prop :=
-  obs (counting.permutations (mkU .U64 n.val) (mkU .U64 k.val)) = permExpected n.val k.val
+  permOk n.val k.val (obs (counting.permutations (mkU .U64 n.val) (mkU .U64 k.val))) = true
 
 /-- Exact result for large `n` and small `k`. -/
 def gold_perm_exact_large_n (n : Std.U64) (k : Std.U8) : Prop :=
-  obs (counting.permutations n (mkU .U64 (k.val % 40))) = permExpected n.val (k.val % 40)
+  permOk n.val (k.val % 40) (obs (counting.permutations n (mkU .U64 (k.val % 40)))) = true
 
 /-- Exact result near `u64::MAX` (both arguments). -/
 def gold_perm_exact_near_max (d e : Std.U8) : Prop :=
   let n := U64MAX - d.val % 4
   let k := if e.val < 128 then e.val % 6 else n - e.val % 6
-  obs (counting.permutations (mkU .U64 n) (mkU .U64 k)) = permExpected n k
+  permOk n k (obs (counting.permutations (mkU .U64 n) (mkU .U64 k))) = true
 
 /-- `permutations n 0 = Ok 1` for every `n` (including `u64::MAX`). -/
 def gold_perm_zero (n : Std.U64) : Prop :=

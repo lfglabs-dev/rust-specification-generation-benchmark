@@ -80,10 +80,10 @@
    "note": "the most significant (last) byte is ignored when reading"
   },
   {
-   "decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u16",
-   "before": "core.num.U16.from_be_bytes a",
-   "after": "(core.num.U16.from_be_bytes a) >>= fun r => ok (if r = 65535#u16 then 0#u16 else r)",
-   "note": "wrong result only for the all-ones input"
+   "decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u16",
+   "before": "core.num.U16.from_le_bytes a",
+   "after": "(core.num.U16.from_le_bytes a) >>= fun r => ok (r &&& 32767#u16)",
+   "note": "most significant bit lost (sign-bit style bug; wrong only when the second byte is >= 0x80)"
   }
  ]
 }

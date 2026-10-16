@@ -26,10 +26,43 @@
  ],
  "intent": "Specify the public slice-descriptor API of `static_filez::slice`: `pack_in_u64` and `unpack_from_u64`.",
  "manual_mutants": [
-  {"decl": "static_filez.slice.pack_in_u64", "before": "let i2 ← i1 <<< 32#i32", "after": "let i2 ← i1 * 4294967296#u64", "note": "checked multiplication instead of shift: panics for offsets >= 2^32 instead of truncating"},
-  {"decl": "static_filez.slice.pack_in_u64", "before": "let i ← lift (UScalar.cast .U64 length)", "after": "let i ← lift (UScalar.cast .U64 (length &&& 2147483647#usize))", "note": "length masked to 31 bits: lengths >= 2^31 corrupted"},
-  {"decl": "static_filez.slice.unpack_from_u64", "before": "ok (i2, i4)", "after": "ok (i4, i2)", "note": "returns (length, offset)"},
-  {"decl": "static_filez.slice.unpack_from_u64", "before": "let i3 ← lift (input &&& 4294967295#u64)", "after": "let i3 ← lift (input &&& 2147483647#u64)", "note": "31-bit length mask"},
-  {"decl": "static_filez.slice.unpack_from_u64", "before": "let i1 ← i >>> 32#i32", "after": "let i1 ← i >>> 31#i32", "note": "off-by-one shift: offset doubled"}
+  {
+   "decl": "static_filez.slice.pack_in_u64",
+   "before": "let i2 ← i1 <<< 32#i32",
+   "after": "let i2 ← i1 * 4294967296#u64",
+   "note": "checked multiplication instead of shift: panics for offsets >= 2^32 instead of truncating"
+  },
+  {
+   "decl": "static_filez.slice.pack_in_u64",
+   "before": "let i ← lift (UScalar.cast .U64 length)",
+   "after": "let i ← lift (UScalar.cast .U64 (length &&& 2147483647#usize))",
+   "note": "length masked to 31 bits: lengths >= 2^31 corrupted"
+  },
+  {
+   "decl": "static_filez.slice.unpack_from_u64",
+   "before": "ok (i2, i4)",
+   "after": "ok (i4, i2)",
+   "note": "returns (length, offset)"
+  },
+  {
+   "decl": "static_filez.slice.unpack_from_u64",
+   "before": "let i3 ← lift (input &&& 4294967295#u64)",
+   "after": "let i3 ← lift (input &&& 2147483647#u64)",
+   "note": "31-bit length mask"
+  },
+  {
+   "decl": "static_filez.slice.unpack_from_u64",
+   "before": "let i1 ← i >>> 32#i32",
+   "after": "let i1 ← i >>> 31#i32",
+   "note": "off-by-one shift: offset doubled"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "length masked to its low 32 bits before packing (offset no longer corrupted by lengths >= 2^32)",
+   "decl": "static_filez.slice.pack_in_u64",
+   "before": "let i ← lift (UScalar.cast .U64 length)",
+   "after": "let i ← lift (UScalar.cast .U64 (UScalar.cast .U32 length))"
+  }
  ]
 }

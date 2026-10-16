@@ -16,6 +16,7 @@ implementations from `exec_shims/<Package>/...` (overlaid on the copy).
 from __future__ import annotations
 
 import argparse
+import re
 import functools
 import os
 import shutil
@@ -31,6 +32,21 @@ MARK = "-- (rsgb-exec) noncomputable section removed"
 # specs, candidates, drivers) compiled against the original extraction would
 # otherwise keep the original body of tiny wrappers and never see a mutant.
 NO_INLINE = "set_option compiler.small 0"
+
+
+def add_noinline(text: str) -> str:
+    """Mark every top-level `def` `@[noinline]` (merging into an existing attribute list)."""
+    lines = text.split("\n")
+    out = []
+    for i, line in enumerate(lines):
+        prev = out[-1] if out else ""
+        if line.startswith("@[") and "noinline" not in line and (
+                re.match(r"^@\[[^\]]*\]\s*(def\b.*)?$", line)):
+            line = "@[noinline, " + line[2:]
+        elif re.match(r"^def(\s|$)", line) and not prev.rstrip().endswith("]"):
+            line = "@[noinline] " + line
+        out.append(line)
+    return "\n".join(out)
 
 
 def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
@@ -49,6 +65,9 @@ def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
         text = f.read_text(encoding="utf-8")
         if "\nnoncomputable section\n" in text:
             text = text.replace("\nnoncomputable section\n", f"\n{MARK}\n{NO_INLINE}\n")
+            # Callers (gold specs, candidates, drivers) are compiled once against the original
+            # extraction; inlining an extracted body into them would hide mutants of it.
+            text = add_noinline(text)
             f.write_text(text, encoding="utf-8")
     shims = source_root / "exec_shims"
     if shims.is_dir():
@@ -80,9 +99,61 @@ def build(modules: list[str], exec_root: Path = EXEC_ROOT, timeout: int = 7200) 
     return proc.returncode == 0, proc.stdout[-6000:] + proc.stderr[-3000:]
 
 
+def type_names(types_lean: Path) -> list[str]:
+    text = types_lean.read_text(encoding="utf-8")
+    m = re.search(r"^namespace\s+(\S+)", text, re.M)
+    ns = (m.group(1) + ".") if m else ""
+    return [ns + n for n in re.findall(r"^(?:inductive|structure)\s+([^\s(:]+)", text, re.M)]
+
+
+def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds: int = 4) -> dict:
+    """Generate (and validate by building) `ExecInstances` modules deriving `DecidableEq`, `Repr`
+    and `Plausible.Arbitrary` for every crate type, into `exec_shims/<Pkg>/Extraction/`."""
+    report = {}
+    for pkg_dir in sorted((source_root / "extracted").iterdir()):
+        types = pkg_dir / "Extraction" / "Types.lean"
+        if not types.is_file():
+            continue
+        names = type_names(types)
+        if not names:
+            continue
+        pkg = pkg_dir.name
+        lines = [f"deriving instance {cls} for {n}" for n in names for cls in ("DecidableEq", "Repr", "Plausible.Arbitrary")]
+        dropped: list[str] = []
+        for _ in range(rounds):
+            body = "\n".join(lines)
+            text = (f"import {pkg}.Extraction.Types\nimport Benchmark.Exec.Runtime\n\n"
+                    f"/-! Grader-side instances for the crate types (executable copy only). -/\n\n"
+                    f"open CoreModels Aeneas Aeneas.Std Plausible RSGB.Exec\n\n{body}\n")
+            dst = exec_root / "extracted" / pkg / "Extraction" / "ExecInstances.lean"
+            dst.write_text(text, encoding="utf-8")
+            ok, out = build([f"{pkg}.Extraction.ExecInstances"], exec_root)
+            if ok:
+                break
+            bad = {int(n) for n in re.findall(r"ExecInstances\.lean:(\d+):\d+", out)}
+            if not bad:
+                lines = []
+                dropped.append("<all: unparsed failure>")
+                continue
+            first = 8  # line number of the first deriving line
+            keep = []
+            for i, l in enumerate(lines):
+                (dropped if (first + i) in bad else keep).append(l)
+            lines = keep
+        shim = source_root / "exec_shims" / pkg / "Extraction"
+        shim.mkdir(parents=True, exist_ok=True)
+        (shim / "ExecInstances.lean").write_text(dst.read_text(encoding="utf-8"), encoding="utf-8")
+        umbrella = (source_root / "extracted" / pkg / "Extraction.lean").read_text(encoding="utf-8")
+        if f"import {pkg}.Extraction.ExecInstances" not in umbrella:
+            umbrella = umbrella.rstrip("\n") + f"\nimport {pkg}.Extraction.ExecInstances\n"
+        (source_root / "exec_shims" / pkg / "Extraction.lean").write_text(umbrella, encoding="utf-8")
+        report[pkg] = {"types": len(names), "kept": len(lines), "dropped": dropped}
+    return report
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m rfvb.exec")
-    ap.add_argument("cmd", choices=["sync", "build", "path"])
+    ap.add_argument("cmd", choices=["sync", "build", "path", "instances"])
     ap.add_argument("modules", nargs="*")
     args = ap.parse_args(argv)
     if args.cmd == "sync":
@@ -90,6 +161,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"synced {EXEC_ROOT}")
     elif args.cmd == "path":
         print(lean_path())
+    elif args.cmd == "instances":
+        import json
+        print(json.dumps(gen_instances(), indent=1))
     else:
         ok, out = build(args.modules or ["Extracted", "Benchmark.Exec.Driver"])
         print(out)

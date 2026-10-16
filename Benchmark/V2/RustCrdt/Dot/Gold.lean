@@ -7,9 +7,6 @@ open CoreModels Aeneas Aeneas.Std.WP
 open Aeneas.Std hiding namespace core alloc
 open RustM crdts RSGB
 
-deriving instance DecidableEq, Repr for core.cmp.Ordering
-deriving instance DecidableEq, Repr for crdts.dot.Dot
-deriving instance DecidableEq, Repr for crdts.dot.OrdDot
 
 namespace Benchmark.V2.RustCrdt.Dot.Gold
 
@@ -19,8 +16,9 @@ def ordOf {α} [LT α] [DecidableRel (α := α) (· < ·)] [DecidableEq α] (a b
   if a < b then .Less else if a = b then .Equal else .Greater
 
 /-- Lexicographic combination. -/
-def lex (o1 o2 : core.cmp.Ordering) : core.cmp.Ordering :=
-  if o1 = .Equal then o2 else o1
+def lex : core.cmp.Ordering → core.cmp.Ordering → core.cmp.Ordering
+  | .Equal, o => o
+  | o, _ => o
 
 /-- Second dot: same actor / same counter as the first when the flags say so. -/
 def pick {α} (same : Bool) (x y : α) : α := if same then x else y

@@ -1,5 +1,4 @@
 import Benchmark.V2.Prelude
-import Benchmark.V2.Etherparse.Link.Instances
 import EtherparseLink.Extraction
 
 /-! Hidden gold specification for target `etherparse/link`. -/
@@ -39,6 +38,9 @@ def nonstandard : List Nat :=
 /-- ARP hardware ids supported by the SLL protocol-type field:
 NETLINK, IPGRE, IEEE80211_RADIOTAP, FRAD, ETHERNET. -/
 def supportedArp : List Nat := [824, 778, 803, 770, 1]
+
+def arpProbe : List Nat :=
+  [0, 1, 2, 769, 770, 771, 777, 778, 779, 802, 803, 804, 823, 824, 825, 65535]
 
 def protoModel (arp p : Std.U16) : core.result.Result PT HE :=
   if arp.val = 824 then .Ok (.NetlinkProtocolType p)
@@ -215,6 +217,14 @@ def gold_nonstandard_try_from (v : Std.U16) : Prop :=
 def gold_nonstandard_try_from_small (k : Std.U16) : Prop :=
   gold_nonstandard_try_from (mkU .U16 (k.val % 300))
 
+/-- Exhaustively on `0 … 299` (every id above is rejected, see the random cases). -/
+def gold_nonstandard_try_from_all (_x : Std.U8) : Prop :=
+  ∀ v < 300, gold_nonstandard_try_from (mkU .U16 v)
+
+/-- Exhaustively on `0 … 31`. -/
+def gold_packet_type_try_from_all (_x : Std.U8) : Prop :=
+  ∀ v < 32, gold_packet_type_try_from (mkU .U16 v)
+
 def gold_nonstandard_constants (_x : Std.U8) : Prop :=
   [link.linux_nonstandard_ether_type.LinuxNonstandardEtherType.N802_3,
    link.linux_nonstandard_ether_type.LinuxNonstandardEtherType.AX25,
@@ -248,6 +258,10 @@ def gold_nonstandard_constants (_x : Std.U8) : Prop :=
 def gold_protocol_try_from (arp p : Std.U16) : Prop :=
   link.linux_sll_protocol_type.LinuxSllProtocolType.Insts.CoreConvertTryFromPairArpHardwareIdU16HeaderError.try_from
     (arp, p) = ok (protoModel arp p)
+
+/-- For every supported ARP id and its neighbours. -/
+def gold_protocol_try_from_arps (p : Std.U16) (small : Bool) : Prop :=
+  ∀ a ∈ arpProbe, gold_protocol_try_from (mkU .U16 a) (if small then mkU .U16 (p.val % 300) else p)
 
 /-- The same with a supported ARP id and (often) a small protocol value. -/
 def gold_protocol_try_from_supported (a : Std.U8) (p : Std.U16) (small : Bool) : Prop :=
@@ -284,15 +298,21 @@ def gold_sll_to_bytes (pt arp sal : Std.U16) (addr : Std.Array Std.U8 8#usize) (
                    sender_address := addr, protocol_type := proto }
   link.linux_sll_header.LinuxSllHeader.to_bytes h ⦃ b => b.val = encodeSll h ⦄
 
+/-- When both the packet type and the ARP hardware id are invalid, the docs do
+not say which error is reported: either is accepted. -/
+def sllDecodes (b : Std.Array Std.U8 16#usize) : Prop :=
+  link.linux_sll_header.LinuxSllHeader.from_bytes b = ok (decodeSll b.val) ∨
+  ((beAt b.val 0).val > 7 ∧ isOk (protoModel (beAt b.val 2) (beAt b.val 14)) = false ∧
+    link.linux_sll_header.LinuxSllHeader.from_bytes b = ok (.Err (.UnsupportedArpHardwareId (beAt b.val 2))))
+
 /-- `from_bytes` agrees with the reference decoder (random bytes). -/
 def gold_sll_from_bytes (b : Std.Array Std.U8 16#usize) : Prop :=
-  link.linux_sll_header.LinuxSllHeader.from_bytes b = ok (decodeSll b.val)
+  sllDecodes b
 
 /-- … and on bytes whose packet type / ARP id are often valid. -/
 def gold_sll_from_bytes_mixed (pt : Std.U16) (ptOk : Bool) (a : Std.U16) (arpOk : Bool)
     (rest : Std.Array Std.U8 10#usize) (p : Std.U16) (small : Bool) : Prop :=
-  let b := sllBytes pt ptOk a arpOk rest p small
-  link.linux_sll_header.LinuxSllHeader.from_bytes b = ok (decodeSll b.val)
+  sllDecodes (sllBytes pt ptOk a arpOk rest p small)
 
 /-- Valid headers survive `to_bytes` / `from_bytes`. -/
 def gold_sll_roundtrip (pt a : Std.U8) (sal : Std.U16) (addr : Std.Array Std.U8 8#usize) (p : Std.U16)
@@ -374,6 +394,16 @@ def diff_packet_type_small (k : Std.U8) :=
   link.linux_sll_packet_type.LinuxSllPacketType.Insts.CoreConvertTryFromU16HeaderError.try_from (mkU .U16 (k.val % 16))
 def diff_nonstandard (k : Std.U16) :=
   link.linux_nonstandard_ether_type.LinuxNonstandardEtherType.Insts.CoreConvertTryFromU16Tuple.try_from (mkU .U16 (k.val % 300))
+def diff_nonstandard_all (_x : Std.U8) :=
+  (List.range 300).map fun v =>
+    link.linux_nonstandard_ether_type.LinuxNonstandardEtherType.Insts.CoreConvertTryFromU16Tuple.try_from (mkU .U16 v)
+def diff_packet_type_all (_x : Std.U8) :=
+  (List.range 32).map fun v =>
+    link.linux_sll_packet_type.LinuxSllPacketType.Insts.CoreConvertTryFromU16HeaderError.try_from (mkU .U16 v)
+def diff_protocol_arps (p : Std.U16) (small : Bool) :=
+  arpProbe.map fun a =>
+    link.linux_sll_protocol_type.LinuxSllProtocolType.Insts.CoreConvertTryFromPairArpHardwareIdU16HeaderError.try_from
+      (mkU .U16 a, if small then mkU .U16 (p.val % 300) else p)
 def diff_protocol (arp p : Std.U16) :=
   link.linux_sll_protocol_type.LinuxSllProtocolType.Insts.CoreConvertTryFromPairArpHardwareIdU16HeaderError.try_from (arp, p)
 def diff_protocol_supported (a : Std.U8) (p : Std.U16) (small : Bool) :=

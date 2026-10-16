@@ -7,10 +7,6 @@ open CoreModels Aeneas Aeneas.Std.WP
 open Aeneas.Std hiding namespace core alloc
 open RustM lilliput_core RSGB
 
-deriving instance DecidableEq, Repr for core.cmp.Ordering
-deriving instance DecidableEq, Repr for lilliput_core.value.int.signed.SignedIntValue
-deriving instance DecidableEq, Repr for lilliput_core.value.int.unsigned.UnsignedIntValue
-deriving instance DecidableEq, Repr for lilliput_core.value.int.IntValue
 
 namespace Benchmark.V2.Lilliput.IntValue.Gold
 
@@ -178,11 +174,15 @@ def gold_is_signed (w : Std.U8) (x : Std.I64) (y : Std.U64) : Prop :=
   IntValue.is_signed (.Signed (sval w x)) = ok true ∧
   IntValue.is_signed (.Unsigned (uval w y)) = ok false
 
-/-- Defaults are the 8-bit zero (an unsigned zero for `IntValue`). -/
+/-- The mathematical value of an `IntValue`. -/
+def ival : IntValue → Int
+  | .Signed v => sint v | .Unsigned v => (uint v : Int)
+
+/-- Defaults are zero (the storage width / signedness of the zero is not promised). -/
 def gold_defaults (_u : Std.U8) : Prop :=
-  SignedIntValue.Insts.CoreDefaultDefault.default = ok (.I8 0#i8) ∧
-  UnsignedIntValue.Insts.CoreDefaultDefault.default = ok (.U8 0#u8) ∧
-  IntValue.Insts.CoreDefaultDefault.default = ok (.Unsigned (.U8 0#u8))
+  SignedIntValue.Insts.CoreDefaultDefault.default ⦃ v => sint v = 0 ⦄ ∧
+  UnsignedIntValue.Insts.CoreDefaultDefault.default ⦃ v => uint v = 0 ⦄ ∧
+  IntValue.Insts.CoreDefaultDefault.default ⦃ v => ival v = 0 ⦄
 
 /-! Differential-testing probes. -/
 

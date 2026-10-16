@@ -7,7 +7,6 @@ open CoreModels Aeneas Aeneas.Std.WP
 open Aeneas.Std hiding namespace core alloc
 open RustM sdset RSGB
 
-deriving instance DecidableEq for sdset.duo.union.UnionIter
 
 /-! ## Data helpers (kept outside the `Benchmark` namespace so that the test
 driver does not unfold them). -/

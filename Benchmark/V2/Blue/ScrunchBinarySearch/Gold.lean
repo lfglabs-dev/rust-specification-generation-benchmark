@@ -69,12 +69,12 @@ def pb (first last : Nat) (f : Nat → Bool) : RustM Std.Usize :=
   binary_search.partition_by BProbe.inst (mkU .Usize first) (mkU .Usize last)
     { f, lo := first, hi := last, budget := budget first last }
 
-/-- Unguarded calls (for differential probes). -/
+/-- Unguarded calls (for differential probes); the call budget turns infinite loops into panics. -/
 def bsFree (first last : Std.Usize) (f : Nat → core.cmp.Ordering) : RustM Std.Usize :=
-  binary_search.binary_search_by OProbe.inst first last { f, lo := 0, hi := 2^64, budget := 2^64 }
+  binary_search.binary_search_by OProbe.inst first last { f, lo := 0, hi := 2^64, budget := 300 }
 
 def pbFree (first last : Std.Usize) (f : Nat → Bool) : RustM Std.Usize :=
-  binary_search.partition_by BProbe.inst first last { f, lo := 0, hi := 2^64, budget := 2^64 }
+  binary_search.partition_by BProbe.inst first last { f, lo := 0, hi := 2^64, budget := 300 }
 
 /-- Monotone comparator on `[first, first + n)`: `a` × Less, `b` × Equal, then Greater. -/
 def mono (first a b : Nat) (x : Nat) : core.cmp.Ordering :=

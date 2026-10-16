@@ -118,5 +118,13 @@
    "after": "then ok true",
    "note": "equality ignores the checksum field"
   }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_qrv",
+   "before": "lift (i2 &&&",
+   "after": "lift (i2 ||| 0#u8 &&&",
+   "note": "set_qrv does not re-mask the Qrv value (only differs for values > Qrv::MAX_U8, which a Qrv cannot hold)"
+  }
  ]
 }

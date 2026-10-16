@@ -158,8 +158,28 @@
   {
    "decl": "lilliput_core.I64.Insts.Lilliput_coreNumZigzagFromZigZagU64.from_zig_zag",
    "before": "let i4 ← -. i3",
-   "after": "let i4 ← lift (IScalar.hcast .I64 (0#i64 : Std.I64))",
+   "after": "let i4 ← ok (0#i64 : Std.I64)",
    "note": "sign of odd codes dropped: odd codes decode as non-negative"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "lilliput_core.value.int.signed.SignedIntValue.Insts.CoreDefaultDefault.default",
+   "before": "ok (value.int.signed.SignedIntValue.I8 0#i8)",
+   "after": "ok (value.int.signed.SignedIntValue.I64 0#i64)",
+   "note": "default signed zero stored at 64 bits"
+  },
+  {
+   "decl": "lilliput_core.value.int.unsigned.UnsignedIntValue.Insts.CoreDefaultDefault.default",
+   "before": "ok (value.int.unsigned.UnsignedIntValue.U8 0#u8)",
+   "after": "ok (value.int.unsigned.UnsignedIntValue.U32 0#u32)",
+   "note": "default unsigned zero stored at 32 bits"
+  },
+  {
+   "decl": "lilliput_core.value.int.IntValue.Insts.CoreDefaultDefault.default",
+   "before": "ok (value.int.IntValue.Unsigned uiv)",
+   "after": "ok (value.int.IntValue.Signed (value.int.signed.SignedIntValue.I8 0#i8))",
+   "note": "default IntValue is a signed zero"
   }
  ]
 }

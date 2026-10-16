@@ -67,6 +67,32 @@
    "decl": "order_stat.quickselect.partition_loop.body",
    "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t elem",
    "after": "let b ← corecmpOrdInst.PartialOrdInst.gt t elem"
+  },
+  {
+   "note": "partition overwrites x[store] with the pivot instead of swapping: still partitioned, but an element is lost and the pivot duplicated",
+   "decl": "order_stat.quickselect.partition",
+   "before": "let x2 ← core.slice.Slice.swap x1 store i1",
+   "after": "let x2 ← (do let p ← Slice.index_usize x1 i1; Slice.update x1 store p)"
+  },
+  {
+   "note": "small-slice sort copies the smaller element instead of swapping: output sorted but not a permutation of the input",
+   "decl": "order_stat.quickselect.select_loop0_loop0.body",
+   "before": "then let x1 ← core.slice.Slice.swap x i j",
+   "after": "then let x1 ← (do let t ← Slice.index_usize x j; Slice.update x i t)"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "small-slice threshold 8 instead of 5 (sorts more slices fully)",
+   "decl": "order_stat.quickselect.select",
+   "before": "if i < 5#usize",
+   "after": "if i < 8#usize"
+  },
+  {
+   "note": "partition sends elements equal to the pivot to the left side",
+   "decl": "order_stat.quickselect.partition_loop.body",
+   "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t elem",
+   "after": "let b ← corecmpOrdInst.PartialOrdInst.le t elem"
   }
  ]
 }

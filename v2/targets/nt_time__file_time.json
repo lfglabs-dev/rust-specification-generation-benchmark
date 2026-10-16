@@ -83,6 +83,12 @@
    "before": "i2 - 11644473600000000000#i128",
    "after": "i2 - 11644473600000000#i128",
    "note": "epoch offset in the wrong unit"
+  },
+  {
+   "decl": "nt_time.file_time.unix_time.FileTime.from_unix_time_secs.closure.Insts.CoreOpsFunctionFnOnceTupleTryFromIntErrorFileTimeRangeErrorKind.call_once",
+   "before": "ok error.FileTimeRangeErrorKind.Negative",
+   "after": "ok error.FileTimeRangeErrorKind.Overflow",
+   "note": "times before the NT epoch report the wrong error kind"
   }
  ]
 }
