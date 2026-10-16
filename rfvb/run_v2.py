@@ -64,6 +64,30 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
     }
 
 
+def regrade(path: Path, grade_jobs: int) -> int:
+    from .v2 import load_targets
+    targets = load_targets()
+    rows = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    run_dir = path.with_suffix("")
+    out = []
+    for r in rows:
+        t = targets.get(r["target"])
+        final = run_dir / t.slug / "final.lean" if t else None
+        if t is None or not final.is_file():
+            out.append(r)
+            continue
+        g = grade(t, final.read_text(encoding="utf-8"), jobs=grade_jobs)
+        (run_dir / t.slug / "grade.json").write_text(json.dumps(g.to_json(), indent=1), encoding="utf-8")
+        r.update({"status": g.status, "class_score": round(g.class_score, 4), "kill_rate": round(g.score, 4),
+                  "killed": g.killed, "relevant": g.relevant, "classes": g.classes, "properties": g.properties,
+                  "false_properties": list(g.false_properties), "overspecified": list(g.overspecified),
+                  "untestable": list(g.untestable), "detail": g.detail[:1500]})
+        print(f"{t.id}: {g.status} class={g.class_score:.3f} kill={g.score:.3f}", flush=True)
+        out.append(r)
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in out), encoding="utf-8")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m rfvb.run_v2")
     ap.add_argument("--model", required=True)
@@ -78,7 +102,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-tokens", type=int, default=16384)
     ap.add_argument("--stream", action="store_true")
     ap.add_argument("--mode", default="whitebox", choices=["whitebox", "blackbox"])
+    ap.add_argument("--regrade", metavar="RUN_JSONL", help="re-grade the final.lean files of an existing run "
+                    "(after mutants were re-prepared) and rewrite its rows; no model calls")
     args = ap.parse_args(argv)
+    if args.regrade:
+        return regrade(Path(args.regrade), args.grade_jobs)
     targets = select(args.targets)
     run = args.run or f"v2-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{args.model.replace('/', '_')}"
     run_dir = ROOT / "results" / run

@@ -421,7 +421,8 @@ def grade(t: Target, text: str, jobs: int = 6, keep: bool = False) -> Grade:
             r = test_properties(t, testable, cand_root, TRUTH_N, TRUTH_SEED, mutant_root=work / sib.mid / "olean",
                                 timeout=900)
             for p in list(testable):
-                if not r[p].get("ok") or r[p]["failures"]:
+                # only a counterexample on a valid sibling counts; errors/timeouts are harness issues
+                if r[p].get("ok") and r[p]["failures"]:
                     g.overspecified.setdefault(p.split(".")[-1], []).append(sib.note or sib.mid)
                     testable.remove(p)
         if not testable:

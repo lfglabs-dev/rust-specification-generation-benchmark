@@ -69,7 +69,10 @@ def propOf (c : Name) : MetaM (Expr × Expr × Nat) := do
         pure (mkAppN (Expr.const c lvls) xs)
       else pure body
     let stmt ← mkForallFVars hyps stmt
-    if data.isEmpty then throwError "property {c} has no inputs"
+    if data.isEmpty then
+      -- a closed fact: evaluate it once (the input is `()`)
+      let P ← withLocalDeclD `t (Expr.const ``Unit []) fun t => mkLambdaFVars #[t] stmt
+      return (Expr.const ``Unit [], P, 0)
     let tys ← data.mapM inferType
     for t in tys do
       if t.hasAnyFVar (fun f => data.any (·.fvarId! == f)) then
