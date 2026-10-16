@@ -195,6 +195,10 @@ def prepare(t: Target, n_mutants: int = 60, jobs: int = 6, seed: int = 0, log=pr
         o = run_driver(driver([t.gold_module], [(g, GOLD_N, KILL_SEED) for g in golds]), mlp, timeout=600)
         r = parse_results(o)
         m.killed_by_gold = [g.split(".")[-1] for g in golds if r.get(g, {}).get("ok") and r[g]["failures"]]
+        if not m.killed_by_gold and ("RSGB_TIMEOUT" in o or any(not r.get(g, {}).get("ok") for g in golds)):
+            # a gold property could not be evaluated on this mutant (timeout / error): not classifiable
+            m.status = "driver_error"
+            return m
         m.status = "relevant" if m.killed_by_gold else "unspecified"
         return m
 

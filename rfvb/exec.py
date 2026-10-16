@@ -27,12 +27,17 @@ from . import ROOT
 
 EXEC_ROOT = Path(os.environ.get("RSGB_EXEC_ROOT", str(ROOT / ".lake" / "exec")))
 MARK = "-- (rsgb-exec) noncomputable section removed"
+# Do not export small function bodies for cross-module inlining: callers (gold
+# specs, candidates, drivers) compiled against the original extraction would
+# otherwise keep the original body of tiny wrappers and never see a mutant.
+NO_INLINE = "set_option compiler.small 0"
 
 
 def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
     exec_root.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         ["rsync", "-a", "--delete", "--exclude", ".lake", "--exclude", "results", "--exclude", ".git",
+         "--exclude", ".rsgb_drivers",
          f"{source_root}/", f"{exec_root}/"],
         check=True,
     )
@@ -43,7 +48,8 @@ def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
     for f in (exec_root / "extracted").rglob("*.lean"):
         text = f.read_text(encoding="utf-8")
         if "\nnoncomputable section\n" in text:
-            f.write_text(text.replace("\nnoncomputable section\n", f"\n{MARK}\n"), encoding="utf-8")
+            text = text.replace("\nnoncomputable section\n", f"\n{MARK}\n{NO_INLINE}\n")
+            f.write_text(text, encoding="utf-8")
     shims = source_root / "exec_shims"
     if shims.is_dir():
         subprocess.run(["rsync", "-a", f"{shims}/", f"{exec_root / 'extracted'}/"], check=True)

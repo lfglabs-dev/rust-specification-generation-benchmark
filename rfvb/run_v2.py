@@ -56,6 +56,7 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
         "classes": g.classes,
         "properties": g.properties,
         "false_properties": list(g.false_properties),
+        "overspecified": list(g.overspecified),
         "untestable": list(g.untestable),
         "detail": g.detail[:1500],
         "agent": asdict(res) | {"final_candidate": None},

@@ -210,13 +210,15 @@ class MutantBuilder:
 
     def build(self, m: Mutant, timeout: int = 600) -> tuple[bool, str]:
         d = self.work / m.mid
-        if (d / "ok").is_file():
+        text = apply(self.original, m)
+        key = hashlib.sha256(text.encode()).hexdigest()
+        if (d / "ok").is_file() and (d / "ok").read_text() == key:
             return True, ""
         if d.exists():
             shutil.rmtree(d)
         src = d / "src" / self.funs_rel
         src.parent.mkdir(parents=True)
-        src.write_text(apply(self.original, m), encoding="utf-8")
+        src.write_text(text, encoding="utf-8")
         olean_pkg = d / "olean" / self.package
         olean_pkg.parent.mkdir(parents=True)
         subprocess.run(["cp", "-rs", str(self.exec_root / ".lake/build/lib/lean" / self.package), str(olean_pkg.parent)], check=True)
@@ -237,7 +239,7 @@ class MutantBuilder:
             return False, "timeout"
         ok = proc.returncode == 0 and out_olean.is_file()
         if ok:
-            (d / "ok").write_text("")
+            (d / "ok").write_text(key)
         return ok, (proc.stdout + proc.stderr)[-2000:]
 
     def lean_path_for(self, m: Mutant | None) -> str:
