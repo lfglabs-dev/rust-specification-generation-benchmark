@@ -52,7 +52,20 @@ lean_lib Extracted where
     .submodules `TinysetFits64,
     .submodules `UintU64,
     .submodules `UseCombinatoricsCounting,
-    .submodules `VaringPackable
+    .submodules `VaringPackable,
+    .submodules `DatealgoCore,
+    .submodules `FixedbitsetBitset,
+    .submodules `SlabSlab,
+    .submodules `Adler32Rolling,
+    .submodules `CircularQueueQueue,
+    .submodules `CobsState,
+    .submodules `IntegerSqrtIsqrt,
+    .submodules `Leb128fmtCodec,
+    .submodules `CrcReflected,
+    .submodules `ModinverseModinv,
+    .submodules `AtoiRadix,
+    .submodules `Crc16Presets,
+    .submodules `PulzBitsetBitset
   ]
 
 /-- Specifications and reference proofs (`Benchmark/Cases/*/*/Proofs`). The

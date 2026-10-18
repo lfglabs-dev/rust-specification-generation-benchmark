@@ -1,0 +1,116 @@
+{
+ "id": "leb128fmt/codec",
+ "package": "Leb128fmtCodec",
+ "module_prefix": "Benchmark.V2.Leb128fmt.Codec",
+ "rust_dir": "rust/leb128fmt/codec",
+ "api": [
+  "leb128fmt.encode_u32",
+  "leb128fmt.encode_u64",
+  "leb128fmt.encode_fixed_u32",
+  "leb128fmt.encode_fixed_u64",
+  "leb128fmt.decode_u32",
+  "leb128fmt.decode_u64",
+  "leb128fmt.encode_s32",
+  "leb128fmt.encode_s64",
+  "leb128fmt.encode_fixed_s32",
+  "leb128fmt.encode_fixed_s64",
+  "leb128fmt.decode_s32",
+  "leb128fmt.decode_s64"
+ ],
+ "mutation_roots": [
+  "leb128fmt.encode_u32",
+  "leb128fmt.encode_u64",
+  "leb128fmt.encode_fixed_u32",
+  "leb128fmt.encode_fixed_u64",
+  "leb128fmt.decode_u32",
+  "leb128fmt.decode_u64",
+  "leb128fmt.encode_s32",
+  "leb128fmt.encode_s64",
+  "leb128fmt.encode_fixed_s32",
+  "leb128fmt.encode_fixed_s64",
+  "leb128fmt.decode_s32",
+  "leb128fmt.decode_s64"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "Leb128fmtCodec.Extraction"
+ ],
+ "opens": [
+  "leb128fmt"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the array-based LEB128 API of the `leb128fmt` crate for 32 and 64 bits: `encode_u32`, `encode_u64`, `encode_fixed_u32`, `encode_fixed_u64`, `decode_u32`, `decode_u64`, `encode_s32`, `encode_s64`, `encode_fixed_s32`, `encode_fixed_s64`, `decode_s32`, `decode_s64`. In Lean they are `leb128fmt.<name>`; arrays are `Std.Array Std.U8 5#usize` (32 bits) / `Std.Array Std.U8 10#usize` (64 bits) and results are `core.option.Option` values.",
+ "manual_mutants": [
+  {
+   "decl": "leb128fmt.decode_u64_loop.body",
+   "before": "if i2 <= n",
+   "after": "if i2 < n",
+   "note": "last-byte overflow check off by one: a 10th byte of 2 is accepted and its bits are silently dropped"
+  },
+  {
+   "decl": "leb128fmt.decode_s64_loop.body",
+   "before": "if n < mask",
+   "after": "if n <= mask",
+   "note": "a final byte 0x7f (sign extension of a negative value) is rejected"
+  },
+  {
+   "decl": "leb128fmt.decode_s32_loop.body",
+   "before": "let i3 ← core.num.U32.saturating_sub i1 1#u32",
+   "after": "let i3 ← ok i1",
+   "note": "final-byte sign mask for 32 bits computed one bit too high: out-of-range 5-byte values accepted / valid ones rejected"
+  },
+  {
+   "decl": "leb128fmt.encode_s64_loop2.body",
+   "before": "if i1 != 0#u8",
+   "after": "if true",
+   "note": "negative values stop as soon as the rest is -1 without checking the sign bit (e.g. -128 encodes as [0x00])"
+  },
+  {
+   "decl": "leb128fmt.encode_fixed_s64_loop5.body",
+   "before": "then Array.update output index 255#u8",
+   "after": "then Array.update output index 128#u8",
+   "note": "fixed-width encoding pads negative values with 0x80 instead of 0xFF"
+  },
+  {
+   "decl": "leb128fmt.decode_u32",
+   "before": "ok (core.option.Option.Some (i1, 1#usize))",
+   "after": "ok (core.option.Option.Some (i1, 0#usize))",
+   "note": "single-byte values report 0 bytes read"
+  },
+  {
+   "decl": "leb128fmt.encode_u64_loop1.body",
+   "before": "let b1 ← lift (b ||| 128#u8)",
+   "after": "let b1 ← ok b",
+   "note": "continuation bit not set on non-final bytes"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "injected",
+   "source": "injected (mirrors the open unsigned-varint issue #73, https://github.com/paritytech/unsigned-varint/issues/73)",
+   "note": "decode_u64 no longer rejects a 10th byte whose value bits do not fit in 64 bits: the extra bits are silently dropped, so values that do not fit decode to a wrong number (documented: if the value does not fit, return None)",
+   "edits": [
+    {
+     "decl": "leb128fmt.decode_u64_loop.body",
+     "before": "if i2 <= n",
+     "after": "if 128#u8 <= n"
+    }
+   ]
+  },
+  {
+   "id": "bug2",
+   "kind": "injected",
+   "source": "injected",
+   "note": "decode_s64 forgets to sign-extend values shorter than 10 bytes: negative numbers decode as large positive ones (breaks the encode/decode round trip)",
+   "edits": [
+    {
+     "decl": "leb128fmt.decode_s64_loop.body",
+     "before": "let i7 ← (-1)#i64 <<< shift1",
+     "after": "let i7 ← ok 0#i64"
+    }
+   ]
+  }
+ ]
+}

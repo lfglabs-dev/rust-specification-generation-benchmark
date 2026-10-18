@@ -1,0 +1,98 @@
+{
+ "id": "cobs/state",
+ "package": "CobsState",
+ "module_prefix": "Benchmark.V2.Cobs.State",
+ "rust_dir": "rust/cobs/state",
+ "api": [
+  "cobs.max_encoding_overhead",
+  "cobs.max_encoding_length",
+  "cobs.enc.EncoderState.Insts.CoreDefaultDefault.default",
+  "cobs.enc.EncoderState.push",
+  "cobs.enc.EncoderState.finalize",
+  "cobs.dec.DecoderState.Insts.CoreDefaultDefault.default",
+  "cobs.dec.DecoderState.feed"
+ ],
+ "mutation_roots": [
+  "cobs.max_encoding_overhead",
+  "cobs.max_encoding_length",
+  "cobs.enc.EncoderState.Insts.CoreDefaultDefault.default",
+  "cobs.enc.EncoderState.push",
+  "cobs.enc.EncoderState.finalize",
+  "cobs.dec.DecoderState.Insts.CoreDefaultDefault.default",
+  "cobs.dec.DecoderState.feed"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "CobsState.Extraction"
+ ],
+ "opens": [
+  "cobs"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the buffer-free streaming COBS (Consistent Overhead Byte Stuffing) API of the `cobs` crate: the encoder state machine `cobs::EncoderState` (`Default::default`, `push`, `finalize`, together with the `PushResult` protocol it documents), the decoder state machine `cobs::DecoderState` (`Default::default`, `feed`), and the size bounds `cobs::max_encoding_overhead` and `cobs::max_encoding_length`. In Lean: `cobs.enc.EncoderState.Insts.CoreDefaultDefault.default`, `cobs.enc.EncoderState.push st b` (returns the `PushResult` and the new state), `cobs.enc.EncoderState.finalize st`, `cobs.dec.DecoderState.Insts.CoreDefaultDefault.default`, `cobs.dec.DecoderState.feed st b` (returns the result and the new state), `cobs.max_encoding_overhead n`, `cobs.max_encoding_length n` (`n : Std.Usize`).",
+ "manual_mutants": [
+  {
+   "decl": "cobs.enc.EncoderState.push",
+   "before": "if 255#u8 = i",
+   "after": "if 254#u8 = i",
+   "note": "full-block threshold off by one: blocks of 253 data bytes get the 0xFE code (which implies a zero)"
+  },
+  {
+   "decl": "cobs.enc.EncoderState.push",
+   "before": "data), { code_idx := i3, num_bt_sent := 1#u8, offset_idx := 1#u8 })",
+   "after": "data), { code_idx := i3, num_bt_sent := 1#u8, offset_idx := 2#u8 })",
+   "note": "after a full 254-byte block the distance to the next code byte is off by one"
+  },
+  {
+   "decl": "cobs.enc.EncoderState.push",
+   "before": "{ code_idx := i1, num_bt_sent := 1#u8, offset_idx := 1#u8 })",
+   "after": "{ code_idx := i1, num_bt_sent := self.num_bt_sent, offset_idx := 1#u8 })",
+   "note": "run length not reset after a zero byte: later code bytes are too large"
+  },
+  {
+   "decl": "cobs.dec.DecoderState.feed",
+   "before": "let i ← data - 1#u8",
+   "after": "let i ← ok data",
+   "note": "first code byte of a frame read as a run length one too large"
+  },
+  {
+   "decl": "cobs.dec.DecoderState.feed",
+   "before": "ok (core.result.Result.Ok dec.DecodeResult.NoData, dec.DecoderState.Idle)",
+   "after": "ok (core.result.Result.Ok dec.DecodeResult.DataStart, dec.DecoderState.Grab 0#u8)",
+   "note": "an idle sentinel starts a new (empty) frame instead of being ignored: repeated zeros deliver spurious empty frames"
+  },
+  {
+   "decl": "cobs.max_encoding_overhead",
+   "before": "else core.num.Usize.div_ceil source_len 254#usize",
+   "after": "else core.num.Usize.div_ceil source_len 255#usize",
+   "note": "overhead computed per 255 bytes instead of 254: bound too small for long messages"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/jamesmunns/cobs.rs/commit/7d74b38",
+   "note": "before PR #49 max_encoding_overhead(0) was 0, so max_encoding_length(0) = 0 although the encoding of an empty message is the single code byte 0x01 (the documented buffer-size bound is violated)",
+   "edits": [
+    {
+     "replace_decl": "cobs.max_encoding_overhead",
+     "with_text": "def max_encoding_overhead (source_len : Std.Usize) : RustM Std.Usize := do\n  core.num.Usize.div_ceil source_len 254#usize"
+    }
+   ]
+  },
+  {
+   "id": "bug2",
+   "kind": "historical",
+   "source": "https://github.com/jamesmunns/cobs.rs/commit/8fc7f6f",
+   "note": "before the switch to div_ceil, max_encoding_overhead computed (n + 254 - 1) / 254, which overflows (panics in debug builds) for n > usize::MAX - 253 although the overhead itself is representable",
+   "edits": [
+    {
+     "replace_decl": "cobs.max_encoding_overhead",
+     "with_text": "def max_encoding_overhead (source_len : Std.Usize) : RustM Std.Usize := do\n  let i ← source_len + 254#usize\n  let i1 ← i - 1#usize\n  i1 / 254#usize"
+    }
+   ]
+  }
+ ]
+}

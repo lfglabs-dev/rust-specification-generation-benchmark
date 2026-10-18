@@ -1,0 +1,159 @@
+{
+ "id": "datealgo/core",
+ "package": "DatealgoCore",
+ "module_prefix": "Benchmark.V2.Datealgo.Core",
+ "rust_dir": "rust/datealgo/core",
+ "api": [
+  "datealgo.is_leap_year",
+  "datealgo.days_in_month",
+  "datealgo.date_to_rd",
+  "datealgo.rd_to_date",
+  "datealgo.rd_to_weekday",
+  "datealgo.date_to_weekday",
+  "datealgo.next_date",
+  "datealgo.prev_date",
+  "datealgo.secs_to_dhms",
+  "datealgo.dhms_to_secs",
+  "datealgo.secs_to_datetime",
+  "datealgo.datetime_to_secs",
+  "datealgo.rd_to_isoweekdate",
+  "datealgo.isoweekdate_to_rd",
+  "datealgo.date_to_isoweekdate",
+  "datealgo.isoweekdate_to_date",
+  "datealgo.isoweeks_in_year",
+  "datealgo.RD_MIN",
+  "datealgo.RD_MAX",
+  "datealgo.RD_SECONDS_MIN",
+  "datealgo.RD_SECONDS_MAX"
+ ],
+ "mutation_roots": [
+  "datealgo.is_leap_year",
+  "datealgo.days_in_month",
+  "datealgo.date_to_rd",
+  "datealgo.rd_to_date",
+  "datealgo.rd_to_weekday",
+  "datealgo.date_to_weekday",
+  "datealgo.next_date",
+  "datealgo.prev_date",
+  "datealgo.secs_to_dhms",
+  "datealgo.dhms_to_secs",
+  "datealgo.secs_to_datetime",
+  "datealgo.datetime_to_secs",
+  "datealgo.rd_to_isoweekdate",
+  "datealgo.isoweekdate_to_rd",
+  "datealgo.date_to_isoweekdate",
+  "datealgo.isoweekdate_to_date",
+  "datealgo.isoweeks_in_year",
+  "datealgo.RD_MIN",
+  "datealgo.RD_MAX",
+  "datealgo.RD_SECONDS_MIN",
+  "datealgo.RD_SECONDS_MAX"
+ ],
+ "forbidden_constants": [
+  "datealgo.date_to_internal",
+  "datealgo.DAY_OFFSET",
+  "datealgo.YEAR_OFFSET",
+  "datealgo.SECS_OFFSET",
+  "datealgo.ERA_OFFSET",
+  "datealgo.DAYS_IN_ERA",
+  "datealgo.YEARS_IN_ERA",
+  "datealgo.DAYS_TO_UNIX_EPOCH",
+  "datealgo.SECS_IN_DAY",
+  "datealgo.rd_to_weekday.P64_OVER_SEVEN",
+  "datealgo.date_to_weekday.P32_OVER_SEVEN"
+ ],
+ "allowed_imports": [
+  "DatealgoCore.Extraction"
+ ],
+ "opens": [
+  "datealgo"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of the `datealgo` crate (low-level proleptic Gregorian calendar algorithms): `is_leap_year`, `days_in_month`, `date_to_rd`, `rd_to_date`, `rd_to_weekday`, `date_to_weekday`, `next_date`, `prev_date`, `secs_to_dhms`, `dhms_to_secs`, `secs_to_datetime`, `datetime_to_secs`, `rd_to_isoweekdate`, `isoweekdate_to_rd`, `date_to_isoweekdate`, `isoweekdate_to_date`, `isoweeks_in_year`, and the public range constants `YEAR_MIN`, `YEAR_MAX`, `RD_MIN`, `RD_MAX`, `RD_SECONDS_MIN`, `RD_SECONDS_MAX`. In Lean they live in namespace `datealgo` (e.g. `datealgo.date_to_rd (y, m, d)` with `y : Std.I32`, `m d : Std.U8`); tuple arguments and results are Lean products, and `RD_MIN` etc. are `RustM` values.",
+ "manual_mutants": [
+  {
+   "decl": "datealgo.is_leap_year",
+   "before": "else let i1 ← lift (y &&& 15#i32)",
+   "after": "else let i1 ← lift (y &&& 7#i32)",
+   "note": "century test uses divisibility by 200 instead of 400 (2200 becomes a leap year)"
+  },
+  {
+   "decl": "datealgo.days_in_month",
+   "before": "massert (m <= consts.MONTH_MAX)",
+   "after": "ok ()",
+   "note": "month upper bound not checked: month 13.. returns a garbage length instead of panicking"
+  },
+  {
+   "decl": "datealgo.next_date",
+   "before": "else massert (d != consts.DAY_MAX)",
+   "after": "else ok ()",
+   "note": "next_date of the last supported date silently returns a year beyond YEAR_MAX"
+  },
+  {
+   "decl": "datealgo.prev_date",
+   "before": "ok (i1, 12#u8, 31#u8)",
+   "after": "ok (i1, 12#u8, 30#u8)",
+   "note": "January 1st steps back to December 30th of the previous year"
+  },
+  {
+   "decl": "datealgo.secs_to_dhms",
+   "before": "massert (secs <= i1)",
+   "after": "ok ()",
+   "note": "seconds above RD_SECONDS_MAX are clamped to 0 instead of panicking"
+  },
+  {
+   "decl": "datealgo.dhms_to_secs",
+   "before": "massert (d <= i1)",
+   "after": "ok ()",
+   "note": "day above RD_MAX silently yields 0 seconds instead of panicking"
+  },
+  {
+   "decl": "datealgo.isoweeks_in_year",
+   "before": "else ok 52#u8",
+   "after": "else ok 53#u8",
+   "note": "every year starting on a Wednesday gets 53 ISO weeks (leap-year condition forgotten)"
+  },
+  {
+   "decl": "datealgo.rd_to_isoweekdate",
+   "before": "let i5 ← rdt - ys",
+   "after": "let i5 ← rd - ys",
+   "note": "week number counted from the given day instead of that week's Thursday: early-January days of week 1 (Mon-Wed before Jan 1) and some late-December days get the wrong week"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "decl": "datealgo.days_in_month",
+   "before": "massert (m >= consts.MONTH_MIN)",
+   "after": "massert (y >= YEAR_MIN ∧ y <= YEAR_MAX ∧ m >= consts.MONTH_MIN)",
+   "note": "days_in_month also debug-asserts the documented year range for every month (upstream only checks it via is_leap_year in February)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/nakedible/datealgo-rs/commit/addda48df68652c41b8e4c784899dd62d59c0167",
+   "note": "before the fix isoweekdate_to_rd accepted Friday..Sunday of ISO week 53 of YEAR_MAX and returned a Rata Die above RD_MAX (isoweekdate_to_date then panics in rd_to_date); every in-range ISO week date must map into [RD_MIN, RD_MAX] and out-of-range arguments must panic",
+   "edits": [
+    {
+     "replace_decl": "datealgo.isoweekdate_to_rd",
+     "with_text": "def isoweekdate_to_rd (t : (Std.I32 × Std.U8 × Std.U8)) : RustM Std.I32 := do\n  let (y, w, d) := t\n  massert (y >= YEAR_MIN)\n  massert (y <= YEAR_MAX)\n  massert (w >= consts.WEEK_MIN)\n  let i ← isoweeks_in_year y\n  massert (w <= i)\n  massert (d >= consts.WEEKDAY_MIN)\n  massert (d <= consts.WEEKDAY_MAX)\n  let rd4 ← date_to_rd (y, 1#u8, 4#u8)\n  let wd4 ← rd_to_weekday rd4\n  let i1 ← wd4 - 1#u8\n  let i2 ← lift (UScalar.hcast .I32 i1)\n  let ys ← rd4 - i2\n  let i3 ← lift (UScalar.hcast .I32 w)\n  let i4 ← i3 - 1#i32\n  let i5 ← i4 * 7#i32\n  let i6 ← ys + i5\n  let i7 ← lift (UScalar.hcast .I32 d)\n  let i8 ← i7 - 1#i32\n  i6 + i8"
+    }
+   ]
+  },
+  {
+   "id": "bug2",
+   "kind": "injected",
+   "source": "injected",
+   "note": "Julian leap rule: is_leap_year treats every year divisible by 4 as leap (1900, 2100 become leap years), contradicting the documented proleptic Gregorian calendar",
+   "edits": [
+    {
+     "decl": "datealgo.is_leap_year",
+     "before": "else let i1 ← lift (y &&& 15#i32)",
+     "after": "else let i1 ← lift (y &&& 3#i32)"
+    }
+   ]
+  }
+ ]
+}
