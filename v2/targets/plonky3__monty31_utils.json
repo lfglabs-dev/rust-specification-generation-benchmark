@@ -1,0 +1,147 @@
+{
+ "id": "plonky3/monty31_utils",
+ "package": "Plonky3Monty31Utils",
+ "module_prefix": "Benchmark.V2.Plonky3.Monty31Utils",
+ "rust_dir": "rust/plonky3/monty31_utils",
+ "api": [
+  "p3_monty_31.utils.to_monty",
+  "p3_monty_31.utils.to_monty_64",
+  "p3_monty_31.utils.from_monty",
+  "p3_monty_31.utils.monty_reduce",
+  "p3_monty_31.utils.large_monty_reduce",
+  "p3_monty_31.utils.monty_reduce_u128",
+  "p3_monty_31.utils.add",
+  "p3_monty_31.utils.sub"
+ ],
+ "mutation_roots": [
+  "p3_monty_31.utils.to_monty",
+  "p3_monty_31.utils.to_monty_64",
+  "p3_monty_31.utils.from_monty",
+  "p3_monty_31.utils.monty_reduce",
+  "p3_monty_31.utils.large_monty_reduce",
+  "p3_monty_31.utils.monty_reduce_u128",
+  "p3_monty_31.utils.add",
+  "p3_monty_31.utils.sub"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "Plonky3Monty31Utils.Extraction",
+  "Benchmark.V2.Plonky3.Monty31Utils.Params"
+ ],
+ "opens": [
+  "p3_monty_31"
+ ],
+ "upstream_imports": [
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream"
+ ],
+ "upstream_props": [
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.bb_add_sub_roundtrip",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.bb_from_to_monty_roundtrip",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.bb_large_monty_reduce_identity",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.bb_monty_reduce_output_range",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.bb_monty_reduce_u128_agrees_with_u64",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.bb_to_monty_64_extends_32",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_add_commutative",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_large_agrees_with_standard",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_large_monty_reduce_output_range",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_monty_mul_correct",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_monty_reduce_identity",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_monty_reduce_u128_identity",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_to_from_monty_roundtrip",
+  "Benchmark.V2.Plonky3.Monty31Utils.Upstream.kb_to_monty_output_range"
+ ],
+ "intent": "Specify the Montgomery-arithmetic helpers of `p3_monty_31::utils` (crate `p3-monty-31`): `to_monty`, `to_monty_64`, `from_monty`, `monty_reduce`, `large_monty_reduce`, `monty_reduce_u128`, `add` and `sub`, for the BabyBear and KoalaBear parameter sets. They are generic over `MP: MontyParameters`; in Lean the trait instance is an explicit argument, e.g. `utils.monty_reduce inst x`. Instantiate them with the ready-made instances of the module `Benchmark.V2.Plonky3.Monty31Utils.Params` (already imported by the template): `RSGB.Monty31.BB : data_traits.MontyParameters Unit` (BabyBear: `PRIME = 0x78000001`, `MONTY_BITS = 32`, `MONTY_MU = 0x88000001`, `MONTY_MASK = 0xffffffff`) and `RSGB.Monty31.KB` (KoalaBear: `PRIME = 0x7f000001`, `MONTY_BITS = 32`, `MONTY_MU = 0x81000001`, `MONTY_MASK = 0xffffffff`), e.g. `utils.add RSGB.Monty31.BB a b`.",
+ "manual_mutants": [
+  {
+   "note": "high limb truncated to 16 bits: correct for every x < 2^80 (in particular on all u64 inputs)",
+   "decl": "p3_monty_31.utils.monty_reduce_u128",
+   "before": "let hi \u2190 lift (UScalar.cast .U32 i2)",
+   "after": "let hi \u2190 lift (UScalar.cast .U32 (UScalar.cast .U16 i2))"
+  },
+  {
+   "note": "high limb not converted (hi instead of hi*R mod P): agrees with monty_reduce on every u64 input",
+   "decl": "p3_monty_31.utils.monty_reduce_u128",
+   "before": "let hi_r_mod_p \u2190 utils.to_monty data_traitsMontyParametersInst hi",
+   "after": "let hi_r_mod_p \u2190 ok hi"
+  },
+  {
+   "note": "pre-reduction dropped: result is still congruent to x/R but can be >= P for x in [R*P, 2*R*P)",
+   "decl": "p3_monty_31.utils.large_monty_reduce",
+   "before": "else ok x_prime",
+   "after": "else ok x"
+  },
+  {
+   "note": "missing +P correction after a borrow (result off by P when x < t*P)",
+   "decl": "p3_monty_31.utils.monty_reduce",
+   "before": "then ok i5",
+   "after": "then ok 0#u32"
+  },
+  {
+   "note": "reduction only when the sum exceeds P: a + b = P returns P instead of 0",
+   "decl": "p3_monty_31.utils.add",
+   "before": "if over",
+   "after": "if over || corr_sum = 0#u32"
+  },
+  {
+   "note": "equal operands return P instead of 0 (non-canonical zero)",
+   "decl": "p3_monty_31.utils.sub",
+   "before": "let corr \u2190 if over",
+   "after": "let corr \u2190 if over || diff = 0#u32"
+  },
+  {
+   "note": "input truncated to 32 bits: still agrees with to_monty on every u32",
+   "decl": "p3_monty_31.utils.to_monty_64",
+   "before": "let i \u2190 lift (UScalar.cast .U128 x)",
+   "after": "let i \u2190 lift (UScalar.cast .U128 (UScalar.cast .U32 x))"
+  },
+  {
+   "note": "pre-reduction subtracts P*2^31 instead of P*2^32 (congruent, but outputs leave [0, P) near 2RP)",
+   "decl": "p3_monty_31.utils.large_monty_reduce",
+   "before": "let i9 \u2190 i7 <<< i8",
+   "after": "let i9 \u2190 i7 <<< 31#u32"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "wrapping sum: identical on the documented domain a + b <= 2P, no overflow panic outside it",
+   "decl": "p3_monty_31.utils.add",
+   "before": "let sum \u2190 lhs + rhs",
+   "after": "let sum \u2190 core.num.U32.wrapping_add lhs rhs"
+  },
+  {
+   "note": "outside the documented domain x < R*P the (unspecified) result is clamped to 0",
+   "decl": "p3_monty_31.utils.monty_reduce",
+   "before": "core.num.U32.wrapping_add x_sub_u_hi corr",
+   "after": "(do let r \u2190 core.num.U32.wrapping_add x_sub_u_hi corr; ok (if r < i5 then r else 0#u32))"
+  },
+  {
+   "note": "pre-reduction by x mod R*P: identical on [0, 2RP), different (correct) results above",
+   "decl": "p3_monty_31.utils.large_monty_reduce",
+   "before": "else ok x_prime",
+   "after": "else x % i9"
+  },
+  {
+   "note": "historical implementation before Plonky3 #1483 (a172a19a): x * R^-1 mod P via one u128 multiplication and %; same results on the documented domain x < 2^96, no debug_assert (and no panic for x >= 2^96 as long as x * R^-1 fits u128)",
+   "edits": [
+    {
+     "replace_decl": "p3_monty_31.utils.monty_reduce_u128",
+     "with_text": "def utils.monty_reduce_u128\n  {MP : Type} (data_traitsMontyParametersInst : data_traits.MontyParameters MP)\n  (x : Std.U128) :\n  RustM Std.U32\n  := do\n  let i \u2190 data_traitsMontyParametersInst.PRIME\n  let i1 \u2190 lift (UScalar.cast .U64 i)\n  let i2 \u2190 data_traitsMontyParametersInst.MONTY_MU\n  let i3 \u2190 lift (UScalar.cast .U64 i2)\n  let i4 \u2190 i1 * i3\n  let i5 \u2190 i4 - 1#u64\n  let i6 \u2190 data_traitsMontyParametersInst.MONTY_BITS\n  let i7 \u2190 i5 >>> i6\n  let monty_inv_mod_p \u2190 i - (UScalar.cast .U32 i7)\n  let i8 \u2190 lift (UScalar.cast .U128 monty_inv_mod_p)\n  let i9 \u2190 x * i8\n  let i10 \u2190 lift (UScalar.cast .U128 i)\n  let i11 \u2190 i9 % i10\n  ok (UScalar.cast .U32 i11)\n"
+    }
+   ]
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "injected",
+   "note": "monty_reduce_u128 combines the two reduced limbs with a plain (checked) u32 addition instead of the modular add: the sum is congruent to x * R^-1 but lies in [0, 2P), breaking the documented output range [0, P) (and disagreeing with monty_reduce on most u64 inputs is avoided only because hi = 0 there). No historical bug fix touches these helpers (history of monty-31/src/utils.rs and baby-bear/src/baby_bear.rs up to 6468485f: only refactors/speedups).",
+   "edits": [
+    {
+     "decl": "p3_monty_31.utils.monty_reduce_u128",
+     "before": "utils.add data_traitsMontyParametersInst hi_r_mod_p r",
+     "after": "hi_r_mod_p + r"
+    }
+   ]
+  }
+ ]
+}

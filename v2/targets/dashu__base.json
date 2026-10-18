@@ -1,0 +1,214 @@
+{
+ "id": "dashu/base",
+ "package": "DashuBase",
+ "module_prefix": "Benchmark.V2.Dashu.Base",
+ "rust_dir": "rust/dashu/base",
+ "api": [
+  "dashu_base.U8.Insts.Dashu_baseRingDivRemU8U8U8.div_rem",
+  "dashu_base.U8.Insts.Dashu_baseRingDivRemAssignU8U8.div_rem_assign",
+  "dashu_base.U8.Insts.Dashu_baseRingRemEuclidU8U8.rem_euclid",
+  "dashu_base.U8.Insts.Dashu_baseRingDivRemEuclidU8U8U8.div_rem_euclid",
+  "dashu_base.U16.Insts.Dashu_baseRingDivRemU16U16U16.div_rem",
+  "dashu_base.U16.Insts.Dashu_baseRingDivRemAssignU16U16.div_rem_assign",
+  "dashu_base.U16.Insts.Dashu_baseRingRemEuclidU16U16.rem_euclid",
+  "dashu_base.U16.Insts.Dashu_baseRingDivRemEuclidU16U16U16.div_rem_euclid",
+  "dashu_base.U32.Insts.Dashu_baseRingDivRemU32U32U32.div_rem",
+  "dashu_base.U32.Insts.Dashu_baseRingDivRemAssignU32U32.div_rem_assign",
+  "dashu_base.U32.Insts.Dashu_baseRingRemEuclidU32U32.rem_euclid",
+  "dashu_base.U32.Insts.Dashu_baseRingDivRemEuclidU32U32U32.div_rem_euclid",
+  "dashu_base.U64.Insts.Dashu_baseRingDivRemU64U64U64.div_rem",
+  "dashu_base.U64.Insts.Dashu_baseRingDivRemAssignU64U64.div_rem_assign",
+  "dashu_base.U64.Insts.Dashu_baseRingRemEuclidU64U64.rem_euclid",
+  "dashu_base.U64.Insts.Dashu_baseRingDivRemEuclidU64U64U64.div_rem_euclid",
+  "dashu_base.U128.Insts.Dashu_baseRingDivRemU128U128U128.div_rem",
+  "dashu_base.U128.Insts.Dashu_baseRingDivRemAssignU128U128.div_rem_assign",
+  "dashu_base.U128.Insts.Dashu_baseRingRemEuclidU128U128.rem_euclid",
+  "dashu_base.U128.Insts.Dashu_baseRingDivRemEuclidU128U128U128.div_rem_euclid",
+  "dashu_base.Usize.Insts.Dashu_baseRingDivRemUsizeUsizeUsize.div_rem",
+  "dashu_base.Usize.Insts.Dashu_baseRingDivRemAssignUsizeUsize.div_rem_assign",
+  "dashu_base.Usize.Insts.Dashu_baseRingRemEuclidUsizeUsize.rem_euclid",
+  "dashu_base.Usize.Insts.Dashu_baseRingDivRemEuclidUsizeUsizeUsize.div_rem_euclid",
+  "dashu_base.I8.Insts.Dashu_baseRingDivRemI8I8I8.div_rem",
+  "dashu_base.I8.Insts.Dashu_baseRingDivRemAssignI8I8.div_rem_assign",
+  "dashu_base.I8.Insts.Dashu_baseRingRemEuclidI8I8.rem_euclid",
+  "dashu_base.I8.Insts.Dashu_baseRingDivRemEuclidI8I8I8.div_rem_euclid",
+  "dashu_base.I16.Insts.Dashu_baseRingDivRemI16I16I16.div_rem",
+  "dashu_base.I16.Insts.Dashu_baseRingDivRemAssignI16I16.div_rem_assign",
+  "dashu_base.I16.Insts.Dashu_baseRingRemEuclidI16I16.rem_euclid",
+  "dashu_base.I16.Insts.Dashu_baseRingDivRemEuclidI16I16I16.div_rem_euclid",
+  "dashu_base.I32.Insts.Dashu_baseRingDivRemI32I32I32.div_rem",
+  "dashu_base.I32.Insts.Dashu_baseRingDivRemAssignI32I32.div_rem_assign",
+  "dashu_base.I32.Insts.Dashu_baseRingRemEuclidI32I32.rem_euclid",
+  "dashu_base.I32.Insts.Dashu_baseRingDivRemEuclidI32I32I32.div_rem_euclid",
+  "dashu_base.I64.Insts.Dashu_baseRingDivRemI64I64I64.div_rem",
+  "dashu_base.I64.Insts.Dashu_baseRingDivRemAssignI64I64.div_rem_assign",
+  "dashu_base.I64.Insts.Dashu_baseRingRemEuclidI64I64.rem_euclid",
+  "dashu_base.I64.Insts.Dashu_baseRingDivRemEuclidI64I64I64.div_rem_euclid",
+  "dashu_base.I128.Insts.Dashu_baseRingDivRemI128I128I128.div_rem",
+  "dashu_base.I128.Insts.Dashu_baseRingDivRemAssignI128I128.div_rem_assign",
+  "dashu_base.I128.Insts.Dashu_baseRingRemEuclidI128I128.rem_euclid",
+  "dashu_base.I128.Insts.Dashu_baseRingDivRemEuclidI128I128I128.div_rem_euclid",
+  "dashu_base.Isize.Insts.Dashu_baseRingDivRemIsizeIsizeIsize.div_rem",
+  "dashu_base.Isize.Insts.Dashu_baseRingDivRemAssignIsizeIsize.div_rem_assign",
+  "dashu_base.Isize.Insts.Dashu_baseRingRemEuclidIsizeIsize.rem_euclid",
+  "dashu_base.Isize.Insts.Dashu_baseRingDivRemEuclidIsizeIsizeIsize.div_rem_euclid",
+  "dashu_base.U8.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U8.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two",
+  "dashu_base.U16.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U16.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two",
+  "dashu_base.U32.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U32.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two",
+  "dashu_base.U64.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U64.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two",
+  "dashu_base.U128.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U128.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two",
+  "dashu_base.Usize.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.Usize.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two"
+ ],
+ "mutation_roots": [
+  "dashu_base.U8.Insts.Dashu_baseRingDivRemU8U8U8.div_rem",
+  "dashu_base.U8.Insts.Dashu_baseRingDivRemAssignU8U8.div_rem_assign",
+  "dashu_base.U8.Insts.Dashu_baseRingRemEuclidU8U8.rem_euclid",
+  "dashu_base.U8.Insts.Dashu_baseRingDivRemEuclidU8U8U8.div_rem_euclid",
+  "dashu_base.U16.Insts.Dashu_baseRingDivRemU16U16U16.div_rem",
+  "dashu_base.U16.Insts.Dashu_baseRingDivRemAssignU16U16.div_rem_assign",
+  "dashu_base.U16.Insts.Dashu_baseRingRemEuclidU16U16.rem_euclid",
+  "dashu_base.U16.Insts.Dashu_baseRingDivRemEuclidU16U16U16.div_rem_euclid",
+  "dashu_base.U32.Insts.Dashu_baseRingDivRemU32U32U32.div_rem",
+  "dashu_base.U32.Insts.Dashu_baseRingDivRemAssignU32U32.div_rem_assign",
+  "dashu_base.U32.Insts.Dashu_baseRingRemEuclidU32U32.rem_euclid",
+  "dashu_base.U32.Insts.Dashu_baseRingDivRemEuclidU32U32U32.div_rem_euclid",
+  "dashu_base.U64.Insts.Dashu_baseRingDivRemU64U64U64.div_rem",
+  "dashu_base.U64.Insts.Dashu_baseRingDivRemAssignU64U64.div_rem_assign",
+  "dashu_base.U64.Insts.Dashu_baseRingRemEuclidU64U64.rem_euclid",
+  "dashu_base.U64.Insts.Dashu_baseRingDivRemEuclidU64U64U64.div_rem_euclid",
+  "dashu_base.U128.Insts.Dashu_baseRingDivRemU128U128U128.div_rem",
+  "dashu_base.U128.Insts.Dashu_baseRingDivRemAssignU128U128.div_rem_assign",
+  "dashu_base.U128.Insts.Dashu_baseRingRemEuclidU128U128.rem_euclid",
+  "dashu_base.U128.Insts.Dashu_baseRingDivRemEuclidU128U128U128.div_rem_euclid",
+  "dashu_base.Usize.Insts.Dashu_baseRingDivRemUsizeUsizeUsize.div_rem",
+  "dashu_base.Usize.Insts.Dashu_baseRingDivRemAssignUsizeUsize.div_rem_assign",
+  "dashu_base.Usize.Insts.Dashu_baseRingRemEuclidUsizeUsize.rem_euclid",
+  "dashu_base.Usize.Insts.Dashu_baseRingDivRemEuclidUsizeUsizeUsize.div_rem_euclid",
+  "dashu_base.I8.Insts.Dashu_baseRingDivRemI8I8I8.div_rem",
+  "dashu_base.I8.Insts.Dashu_baseRingDivRemAssignI8I8.div_rem_assign",
+  "dashu_base.I8.Insts.Dashu_baseRingRemEuclidI8I8.rem_euclid",
+  "dashu_base.I8.Insts.Dashu_baseRingDivRemEuclidI8I8I8.div_rem_euclid",
+  "dashu_base.I16.Insts.Dashu_baseRingDivRemI16I16I16.div_rem",
+  "dashu_base.I16.Insts.Dashu_baseRingDivRemAssignI16I16.div_rem_assign",
+  "dashu_base.I16.Insts.Dashu_baseRingRemEuclidI16I16.rem_euclid",
+  "dashu_base.I16.Insts.Dashu_baseRingDivRemEuclidI16I16I16.div_rem_euclid",
+  "dashu_base.I32.Insts.Dashu_baseRingDivRemI32I32I32.div_rem",
+  "dashu_base.I32.Insts.Dashu_baseRingDivRemAssignI32I32.div_rem_assign",
+  "dashu_base.I32.Insts.Dashu_baseRingRemEuclidI32I32.rem_euclid",
+  "dashu_base.I32.Insts.Dashu_baseRingDivRemEuclidI32I32I32.div_rem_euclid",
+  "dashu_base.I64.Insts.Dashu_baseRingDivRemI64I64I64.div_rem",
+  "dashu_base.I64.Insts.Dashu_baseRingDivRemAssignI64I64.div_rem_assign",
+  "dashu_base.I64.Insts.Dashu_baseRingRemEuclidI64I64.rem_euclid",
+  "dashu_base.I64.Insts.Dashu_baseRingDivRemEuclidI64I64I64.div_rem_euclid",
+  "dashu_base.I128.Insts.Dashu_baseRingDivRemI128I128I128.div_rem",
+  "dashu_base.I128.Insts.Dashu_baseRingDivRemAssignI128I128.div_rem_assign",
+  "dashu_base.I128.Insts.Dashu_baseRingRemEuclidI128I128.rem_euclid",
+  "dashu_base.I128.Insts.Dashu_baseRingDivRemEuclidI128I128I128.div_rem_euclid",
+  "dashu_base.Isize.Insts.Dashu_baseRingDivRemIsizeIsizeIsize.div_rem",
+  "dashu_base.Isize.Insts.Dashu_baseRingDivRemAssignIsizeIsize.div_rem_assign",
+  "dashu_base.Isize.Insts.Dashu_baseRingRemEuclidIsizeIsize.rem_euclid",
+  "dashu_base.Isize.Insts.Dashu_baseRingDivRemEuclidIsizeIsizeIsize.div_rem_euclid",
+  "dashu_base.U8.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U16.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U32.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U64.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.U128.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+  "dashu_base.Usize.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "DashuBase.Extraction"
+ ],
+ "opens": [
+  "dashu_base"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Dashu.Base.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Dashu.Base.Oracle.i64_div_rem_euclid_matches_std",
+  "Benchmark.Cases.Dashu.Base.Oracle.i64_div_rem_reconstructs",
+  "Benchmark.Cases.Dashu.Base.Oracle.u128_div_rem_reconstructs",
+  "Benchmark.Cases.Dashu.Base.Oracle.u64_is_power_of_two_iff_one_bit"
+ ],
+ "intent": "Specify the primitive-integer implementations of the public `dashu_base` traits `DivRem::div_rem`, `DivRemAssign::div_rem_assign`, `RemEuclid::rem_euclid` and `DivRemEuclid::div_rem_euclid` for all twelve primitive integer types (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, `isize`), and `PowerOfTwo::is_power_of_two` / `PowerOfTwo::next_power_of_two` for the six unsigned types. In Lean they are e.g. `I64.Insts.Dashu_baseRingDivRemI64I64I64.div_rem`, `I64.Insts.Dashu_baseRingDivRemAssignI64I64.div_rem_assign`, `I64.Insts.Dashu_baseRingRemEuclidI64I64.rem_euclid`, `I64.Insts.Dashu_baseRingDivRemEuclidI64I64I64.div_rem_euclid`, `U64.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two` and `U64.Insts.Dashu_baseBitPowerOfTwo.next_power_of_two` (same pattern for the other types). `div_rem_assign` takes `&mut self` and is threaded functionally: it returns the pair (its return value, the final value of `self`).",
+ "manual_mutants": [
+  {
+   "note": "i64 Euclidean division: wrong quotient correction for a negative divisor (q - 1 instead of q + 1); remainder still in range",
+   "decl": "dashu_base.I64.Insts.Dashu_baseRingDivRemEuclidI64I64I64.div_rem_euclid",
+   "before": "else let i \u2190 q + 1#i64",
+   "after": "else let i \u2190 q - 1#i64"
+  },
+  {
+   "note": "isize Euclidean division: remainder correction for a negative divisor adds the divisor (stays negative)",
+   "decl": "dashu_base.Isize.Insts.Dashu_baseRingDivRemEuclidIsizeIsizeIsize.div_rem_euclid",
+   "before": "let i1 \u2190 r - rhs",
+   "after": "let i1 \u2190 r + rhs"
+  },
+  {
+   "note": "i32 Euclidean division: zero remainder is treated as negative (exact divisions get a corrected quotient)",
+   "decl": "dashu_base.I32.Insts.Dashu_baseRingDivRemEuclidI32I32I32.div_rem_euclid",
+   "before": "if r >= 0#i32",
+   "after": "if r > 0#i32"
+  },
+  {
+   "note": "i8 div_rem: a fast path for divisor -1 negates with wrapping, so MIN / -1 returns (MIN, 0) instead of panicking",
+   "edits": [
+    {
+     "decl": "dashu_base.I8.Insts.Dashu_baseRingDivRemI8I8I8.div_rem",
+     "before": "let i \u2190 self / rhs",
+     "after": "let i \u2190 (if rhs.val = -1 then core.num.I8.wrapping_neg self else self / rhs)"
+    },
+    {
+     "decl": "dashu_base.I8.Insts.Dashu_baseRingDivRemI8I8I8.div_rem",
+     "before": "let i1 \u2190 self % rhs",
+     "after": "let i1 \u2190 (if rhs.val = -1 then ok 0#i8 else self % rhs)"
+    }
+   ]
+  },
+  {
+   "note": "i128 div_rem_assign returns (quotient, remainder) instead of (remainder, new self)",
+   "decl": "dashu_base.I128.Insts.Dashu_baseRingDivRemAssignI128I128.div_rem_assign",
+   "before": "ok (r, self1)",
+   "after": "ok (self1, r)"
+  },
+  {
+   "note": "i64 rem_euclid uses the truncated remainder (wrong only for a negative dividend)",
+   "decl": "dashu_base.I64.Insts.Dashu_baseRingRemEuclidI64I64.rem_euclid",
+   "before": "core.num.I64.rem_euclid self rhs",
+   "after": "self % rhs"
+  },
+  {
+   "note": "u32 is_power_of_two via x & (x - 1) == 0 with wrapping subtraction: 0 is reported as a power of two",
+   "decl": "dashu_base.U32.Insts.Dashu_baseBitPowerOfTwo.is_power_of_two",
+   "before": "core.num.U32.is_power_of_two self",
+   "after": "(do let m \u2190 core.num.U32.wrapping_sub self 1#u32; ok (decide ((self &&& m) = 0#u32)))"
+  },
+  {
+   "note": "i16 Euclidean division: the divisor-sign test is inverted (corrections swapped between positive and negative divisors)",
+   "decl": "dashu_base.I16.Insts.Dashu_baseRingDivRemEuclidI16I16I16.div_rem_euclid",
+   "before": "if rhs >= 0#i16",
+   "after": "if rhs <= 0#i16"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "injected",
+   "note": "i64 RemEuclid::rem_euclid via the folklore formula ((a % b) + b) % b: negative remainders for negative divisors (violates 0 <= r < |b|) and an overflow panic when a % b + b exceeds i64::MAX. No historical fix touches the extracted functions (the only bug fix in base/, b5c6471, is in BitTest::bit / FloatEncoding::encode, which are not part of this extraction).",
+   "edits": [
+    {
+     "decl": "dashu_base.I64.Insts.Dashu_baseRingRemEuclidI64I64.rem_euclid",
+     "before": "core.num.I64.rem_euclid self rhs",
+     "after": "(do let r \u2190 self % rhs; let s \u2190 r + rhs; s % rhs)"
+    }
+   ]
+  }
+ ]
+}

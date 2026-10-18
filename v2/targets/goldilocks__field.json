@@ -1,0 +1,293 @@
+{
+ "id": "goldilocks/field",
+ "package": "GoldilocksField",
+ "module_prefix": "Benchmark.V2.Goldilocks.Field",
+ "rust_dir": "rust/goldilocks/field",
+ "api": [
+  "goldilocks_ntt.field.Field.new",
+  "goldilocks_ntt.field.Field.Insts.CoreConvertFromU64.from",
+  "goldilocks_ntt.field.Field.Insts.CoreConvertFromU128.from",
+  "goldilocks_ntt.field.Field.Insts.CoreConvertFromI32.from",
+  "goldilocks_ntt.U64.Insts.CoreConvertFromField.from",
+  "goldilocks_ntt.U64.Insts.CoreConvertFromShared0Field.from",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithAddFieldField.add",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithAddAssignField.add_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithSubFieldField.sub",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithSubAssignField.sub_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithNegField.neg",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithMulFieldField.mul",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithMulAssignField.mul_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithDivFieldField.div",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithDivAssignField.div_assign",
+  "goldilocks_ntt.field.Field.inv",
+  "goldilocks_ntt.field.Field.pow",
+  "goldilocks_ntt.field.Field.root",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShlU64Field.shl",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShlAssignU64.shl_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShrU64Field.shr",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShrAssignU64.shr_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreCmpOrd.cmp",
+  "goldilocks_ntt.field.Field.Insts.CoreCmpPartialOrdField.partial_cmp",
+  "goldilocks_ntt.field.Field.Insts.CoreCmpPartialEqField.eq",
+  "goldilocks_ntt.field.Field.Insts.CoreDefaultDefault.default",
+  "goldilocks_ntt.field.Field.Insts.CoreCloneClone.clone",
+  "goldilocks_ntt.field.algo.generic.add",
+  "goldilocks_ntt.field.algo.generic.sub",
+  "goldilocks_ntt.field.algo.generic.mul",
+  "goldilocks_ntt.field.algo.generic.mont_mul",
+  "goldilocks_ntt.field.algo.generic.mont_reduce_128",
+  "goldilocks_ntt.field.algo.generic.reduce_64",
+  "goldilocks_ntt.field.algo.generic.reduce_128",
+  "goldilocks_ntt.field.algo.generic.mont_pow",
+  "goldilocks_ntt.field.algo.generic.inv",
+  "goldilocks_ntt.field.algo.generic.shift",
+  "goldilocks_ntt.field.algo.generic.root_384"
+ ],
+ "mutation_roots": [
+  "goldilocks_ntt.field.Field.new",
+  "goldilocks_ntt.field.Field.Insts.CoreConvertFromU64.from",
+  "goldilocks_ntt.field.Field.Insts.CoreConvertFromU128.from",
+  "goldilocks_ntt.field.Field.Insts.CoreConvertFromI32.from",
+  "goldilocks_ntt.U64.Insts.CoreConvertFromField.from",
+  "goldilocks_ntt.U64.Insts.CoreConvertFromShared0Field.from",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithAddFieldField.add",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithAddAssignField.add_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithSubFieldField.sub",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithSubAssignField.sub_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithNegField.neg",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithMulFieldField.mul",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithMulAssignField.mul_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithDivFieldField.div",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsArithDivAssignField.div_assign",
+  "goldilocks_ntt.field.Field.inv",
+  "goldilocks_ntt.field.Field.pow",
+  "goldilocks_ntt.field.Field.root",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShlU64Field.shl",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShlAssignU64.shl_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShrU64Field.shr",
+  "goldilocks_ntt.field.Field.Insts.CoreOpsBitShrAssignU64.shr_assign",
+  "goldilocks_ntt.field.Field.Insts.CoreCmpOrd.cmp",
+  "goldilocks_ntt.field.Field.Insts.CoreCmpPartialOrdField.partial_cmp",
+  "goldilocks_ntt.field.Field.Insts.CoreCmpPartialEqField.eq",
+  "goldilocks_ntt.field.Field.Insts.CoreDefaultDefault.default",
+  "goldilocks_ntt.field.Field.Insts.CoreCloneClone.clone",
+  "goldilocks_ntt.field.algo.generic.add",
+  "goldilocks_ntt.field.algo.generic.sub",
+  "goldilocks_ntt.field.algo.generic.mul",
+  "goldilocks_ntt.field.algo.generic.mont_mul",
+  "goldilocks_ntt.field.algo.generic.mont_reduce_128",
+  "goldilocks_ntt.field.algo.generic.reduce_64",
+  "goldilocks_ntt.field.algo.generic.reduce_128",
+  "goldilocks_ntt.field.algo.generic.mont_pow",
+  "goldilocks_ntt.field.algo.generic.inv",
+  "goldilocks_ntt.field.algo.generic.shift",
+  "goldilocks_ntt.field.algo.generic.root_384"
+ ],
+ "forbidden_constants": [
+  "goldilocks_ntt.field.algo.generic.reduce_159",
+  "goldilocks_ntt.field.algo.generic.inv_ebgcd",
+  "goldilocks_ntt.field.algo.generic.inv_addchain",
+  "goldilocks_ntt.field.algo.generic.inv_addchain_loop0",
+  "goldilocks_ntt.field.algo.generic.inv_addchain_loop0.body",
+  "goldilocks_ntt.field.algo.generic.inv_addchain_loop1",
+  "goldilocks_ntt.field.algo.generic.inv_addchain_loop1.body",
+  "goldilocks_ntt.field.algo.generic.mont_pow_loop",
+  "goldilocks_ntt.field.algo.generic.mont_pow_loop.body"
+ ],
+ "allowed_imports": [
+  "GoldilocksField.Extraction"
+ ],
+ "opens": [
+  "goldilocks_ntt"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Goldilocks.Field.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Goldilocks.Field.Oracle.add_matches_naive",
+  "Benchmark.Cases.Goldilocks.Field.Oracle.construct_roundtrip",
+  "Benchmark.Cases.Goldilocks.Field.Oracle.mont_pow_add_exponents",
+  "Benchmark.Cases.Goldilocks.Field.Oracle.mul_commutative",
+  "Benchmark.Cases.Goldilocks.Field.Oracle.sub_matches_naive"
+ ],
+ "intent": "Specify the public API of the Goldilocks prime field crate `goldilocks_ntt::field`: the field element type `Field` with `Field::new`, the conversions `From<u64>`, `From<u128>`, `From<i32>` for `Field` and `From<Field>` / `From<&Field>` for `u64`, the operators `Add`, `AddAssign`, `Sub`, `SubAssign`, `Neg`, `Mul`, `MulAssign`, `Div`, `DivAssign`, `Shl<u64>`, `ShlAssign<u64>`, `Shr<u64>`, `ShrAssign<u64>`, `Field::inv`, `Field::pow`, `Field::root`, and the trait impls `Ord::cmp`, `PartialOrd::partial_cmp`, `PartialEq::eq`, `Default::default`, `Clone::clone`; and the raw `u64` arithmetic of `field::algo` (`algo::generic`): `add`, `sub`, `mul`, `mont_mul`, `mont_reduce_128`, `reduce_64`, `reduce_128`, `mont_pow`, `inv`, `shift` and `root_384`. In the extraction `Field` is (reducibly) `Std.U64`; the `*Assign` operators take `&mut self` and return its final value.",
+ "manual_mutants": [
+  {
+   "decl": "goldilocks_ntt.field.Field.new",
+   "before": "massert (value < field.Field.MODULUS)",
+   "after": "massert (value <= field.Field.MODULUS)",
+   "note": "Field::new accepts MODULUS itself (off-by-one in the range assertion)"
+  },
+  {
+   "decl": "goldilocks_ntt.field.algo.generic.reduce_64",
+   "before": "if n > field.algo.MODULUS",
+   "after": "if n > 18446744069414584322#u64",
+   "note": "reduce_64 leaves MODULUS + 1 unreduced (From<u64> still correct: mont_mul absorbs it)"
+  },
+  {
+   "decl": "goldilocks_ntt.field.Field.inv",
+   "before": "let i1 \u2190 field.algo.generic.mont_mul i field.algo.MONT_R3",
+   "after": "let i1 \u2190 field.algo.generic.mont_mul i field.algo.MONT_R2",
+   "note": "inverse converted back with R^2 instead of R^3: inv(0) = 0 still holds, x * inv(x) is not one"
+  },
+  {
+   "decl": "goldilocks_ntt.field.Field.root",
+   "before": "if order = 0#u64",
+   "after": "if false",
+   "note": "missing zero check: root(0) panics (division by zero) instead of returning None"
+  },
+  {
+   "decl": "goldilocks_ntt.field.algo.generic.shift",
+   "before": "| 48#uscalar => field.algo.generic.shift_48 a",
+   "after": "| 48#uscalar => field.algo.generic.shift_32 a",
+   "note": "fast path for n = 48 dispatches to the wrong helper"
+  },
+  {
+   "decl": "goldilocks_ntt.field.Field.Insts.CoreOpsBitShrU64Field.shr",
+   "before": "let i \u2190 rhs % 192#u64",
+   "after": "let i \u2190 rhs % 96#u64",
+   "note": "right shift reduces the amount modulo 96 instead of 192 (sign flips for n mod 192 >= 96)"
+  },
+  {
+   "decl": "goldilocks_ntt.field.algo.generic.mont_pow",
+   "before": "field.algo.generic.mont_pow_loop a e field.algo.MONT_R1",
+   "after": "field.algo.generic.mont_pow_loop a e 1#u64",
+   "note": "accumulator starts at raw 1 instead of the Montgomery one (results scaled by R^-1)"
+  },
+  {
+   "note": "Ord compares the internal (Montgomery) representations instead of the canonical values; equality unaffected",
+   "edits": [
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreCmpOrd.cmp",
+     "before": "let a \u2190 U64.Insts.CoreConvertFromShared0Field.from self",
+     "after": "let a \u2190 core.num.U64.wrapping_add self 0#u64"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreCmpOrd.cmp",
+     "before": "let b \u2190 U64.Insts.CoreConvertFromShared0Field.from other",
+     "after": "let b \u2190 core.num.U64.wrapping_add other 0#u64"
+    }
+   ]
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "plain (non-Montgomery) internal representation: Field stores the canonical value; also From<i32> no longer overflows on i32::MIN",
+   "edits": [
+    {
+     "decl": "goldilocks_ntt.field.Field.new",
+     "before": "let i1 \u2190 lift (UScalar.cast .U128 field.algo.MONT_R1)",
+     "after": "let i1 \u2190 lift (UScalar.cast .U128 1#u64)"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.inv",
+     "before": "let i1 \u2190 field.algo.generic.mont_mul i field.algo.MONT_R3",
+     "after": "let i1 \u2190 ok i"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.pow",
+     "before": "let i \u2190 field.algo.generic.mont_pow self exp",
+     "after": "let i \u2190 (do let m \u2190 field.algo.generic.mont_mul self field.algo.MONT_R2; let r \u2190 field.algo.generic.mont_pow m exp; field.algo.generic.mont_mul r 1#u64)"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.root",
+     "before": "let i2 \u2190 field.algo.generic.mont_pow field.algo.GENERATOR_R exponent",
+     "after": "let i2 \u2190 (do let r \u2190 field.algo.generic.mont_pow field.algo.GENERATOR_R exponent; field.algo.generic.mont_mul r 1#u64)"
+    },
+    {
+     "decl": "goldilocks_ntt.U64.Insts.CoreConvertFromShared0Field.from",
+     "before": "field.algo.generic.mont_mul value 1#u64",
+     "after": "core.num.U64.wrapping_add value 0#u64"
+    },
+    {
+     "decl": "goldilocks_ntt.U64.Insts.CoreConvertFromField.from",
+     "before": "field.algo.generic.mont_mul value 1#u64",
+     "after": "core.num.U64.wrapping_add value 0#u64"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreConvertFromI32.from",
+     "before": "let i1 \u2190 lift (IScalar.hcast .U64 value)",
+     "after": "let i1 \u2190 (do let v \u2190 lift (IScalar.hcast .U64 value); field.algo.generic.mont_mul v 1#u64)"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreConvertFromI32.from",
+     "before": "let i \u2190 -. value",
+     "after": "let i \u2190 (do let v \u2190 lift (IScalar.cast .I64 value); -. v)"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreConvertFromI32.from",
+     "before": "let i1 \u2190 lift (IScalar.hcast .U64 i)",
+     "after": "let i1 \u2190 (do let v \u2190 lift (IScalar.hcast .U64 i); field.algo.generic.mont_mul v 1#u64)"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreConvertFromU64.from",
+     "before": "let i \u2190 field.algo.generic.reduce_64 value",
+     "after": "let i \u2190 field.algo.generic.reduce_128 (UScalar.cast .U128 value)"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreConvertFromU64.from",
+     "before": "let i1 \u2190 field.algo.generic.mont_mul i field.algo.MONT_R2",
+     "after": "let i1 \u2190 ok i"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreConvertFromU128.from",
+     "before": "let i1 \u2190 field.algo.generic.mont_mul i field.algo.MONT_R2",
+     "after": "let i1 \u2190 ok i"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreOpsArithMulFieldField.mul",
+     "before": "let i \u2190 field.algo.generic.mont_mul self rhs",
+     "after": "let i \u2190 field.algo.generic.mul self rhs"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreOpsArithMulAssignField.mul_assign",
+     "before": "let i \u2190 field.algo.generic.mont_mul self rhs",
+     "after": "let i \u2190 field.algo.generic.mul self rhs"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreOpsArithDivFieldField.div",
+     "before": "let i \u2190 field.algo.generic.mont_mul self f",
+     "after": "let i \u2190 field.algo.generic.mul self f"
+    },
+    {
+     "decl": "goldilocks_ntt.field.Field.Insts.CoreOpsArithDivAssignField.div_assign",
+     "before": "let i \u2190 field.algo.generic.mont_mul self f",
+     "after": "let i \u2190 field.algo.generic.mul self f"
+    }
+   ]
+  },
+  {
+   "decl": "goldilocks_ntt.field.Field.root",
+   "before": "let i2 \u2190 field.algo.generic.mont_pow field.algo.GENERATOR_R exponent",
+   "after": "let i2 \u2190 field.algo.generic.mont_pow 30064771065#u64 exponent",
+   "note": "roots of unity derived from the generator 7 instead of 2717 (another primitive root of unity of each order)"
+  },
+  {
+   "decl": "goldilocks_ntt.field.algo.generic.reduce_64",
+   "before": "if n > field.algo.MODULUS",
+   "after": "if n >= field.algo.MODULUS",
+   "note": "reduce_64 fixed: MODULUS itself reduces to 0"
+  },
+  {
+   "decl": "goldilocks_ntt.field.algo.generic.root_384",
+   "before": "field.algo.generic.add i4 i6",
+   "after": "(do let s \u2190 field.algo.generic.add i4 i6; field.algo.generic.sub 0#u64 s)",
+   "note": "root_384 uses the other square root of two (-omega) as omega_384"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/recmo/goldilocks/commit/444d7bf (\"Use montgomery form\": `a = MODULUS - a` -> `a = sub(0, a)` in algo::generic::shift)",
+   "note": "shift(a, n) negated with `MODULUS - a` for odd n / 96: for a = 0 and n = 96 (mod 192) it returns MODULUS, a non-canonical zero (shift must return a reduced value equal to a * 2^n mod P); through Field this makes zero << 96 (and zero >> 96) compare unequal to zero. The pre-fix tree predates the crate reorganisation and cannot be extracted with the same --start-from, so the single changed line is transcribed in extraction style.",
+   "edits": [
+    {
+     "decl": "goldilocks_ntt.field.algo.generic.shift",
+     "before": "then field.algo.generic.sub 0#u64 a",
+     "after": "then field.algo.MODULUS - a"
+    }
+   ]
+  }
+ ]
+}
