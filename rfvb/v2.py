@@ -220,8 +220,18 @@ def prepare(t: Target, n_mutants: int = 60, jobs: int = 6, seed: int = 0, log=pr
         m.op, m.status = "sibling", "sibling"
         return m
 
+    bugs = manual_mutants(t, funs, key="bug_variants")
+
+    def one_bug(m: Mutant) -> Mutant:
+        m = one(m)
+        if m.status != "relevant":
+            raise RuntimeError(f"bug variant {m.mid} ({m.note!r}) is {m.status}: it must compile, differ "
+                               f"observably and violate a gold property")
+        m.op, m.status = "bug", "bug_variant"
+        return m
+
     with ThreadPoolExecutor(max_workers=jobs) as pool:
-        muts = list(pool.map(one, muts)) + list(pool.map(one_sibling, sibs))
+        muts = (list(pool.map(one, muts)) + list(pool.map(one_sibling, sibs)) + list(pool.map(one_bug, bugs)))
     summary = {}
     for m in muts:
         summary[m.status] = summary.get(m.status, 0) + 1
@@ -244,33 +254,53 @@ def check_gold(t: Target) -> str:
 
 
 def manual_mutants(t: Target, funs: str, key: str = "manual_mutants") -> list[Mutant]:
-    """Hand-written plausible bugs.
+    """Hand-written plausible bugs, sibling implementations or bug variants (`key`).
 
     Each entry is either a single edit `{"decl", "before", "after", "note"}` or
-    `{"edits": [{"decl", "before", "after"}, ...], "note"}` for coordinated edits.
-    `before` must match exactly one (trimmed) line inside the body of `decl`;
-    `after` replaces that line (indentation is preserved).
+    `{"edits": [...], "note"}` with line edits `{"decl", "before", "after"}` (the
+    trimmed `before` must match exactly one line inside the body of `decl`; `after`
+    replaces it, indentation preserved) and/or whole-definition replacements
+    `{"replace_decl": name, "with_text": "<complete def block>"}` (used for
+    historical bugs: the pre-fix extraction of the function).
     """
     import hashlib
+    from .exec import add_noinline
     from .mutate import decl_ranges
     lines = funs.splitlines()
     ranges = {n: (a, b) for n, a, b in decl_ranges(funs)}
+    prefix = {"sibling_mutants": "sib-", "bug_variants": "bug-"}.get(key, "man-")
     out = []
     for spec in t.raw.get(key, []):
-        edits = []
+        edits, blocks = [], []
         for e in spec.get("edits", [spec]):
+            if "replace_decl" in e:
+                if e["replace_decl"] not in ranges:
+                    raise ValueError(f"{key} {spec.get('id', '')}: unknown definition {e['replace_decl']}")
+                a, b = ranges[e["replace_decl"]]
+                blocks.append((a - 1, b, add_noinline(e["with_text"].strip("\n")).splitlines()))
+                continue
             a, b = ranges[e["decl"]]
             hits = [i for i in range(a, b) if lines[i].strip() == e["before"].strip()]
             if len(hits) != 1:
-                raise ValueError(f"manual mutant {e}: `before` matches {len(hits)} lines of {e['decl']}")
+                raise ValueError(f"{key} {e}: `before` matches {len(hits)} lines of {e['decl']}")
             i = hits[0]
             indent = lines[i][: len(lines[i]) - len(lines[i].lstrip())]
             edits.append((i + 1, lines[i], indent + e["after"].strip()))
-        key_s = ";".join(f"{l}:{a}" for l, _, a in edits)
-        mid = ("sib-" if key == "sibling_mutants" else "man-") + hashlib.sha1(key_s.encode()).hexdigest()[:8]
+        key_s = ";".join(f"{l}:{a}" for l, _, a in edits) + "".join("\n".join(b[2]) for b in blocks)
+        mid = prefix + (spec["id"] + "-" if "id" in spec else "") + hashlib.sha1(key_s.encode()).hexdigest()[:8]
+        decl = spec.get("decl") or next((e.get("decl") or e.get("replace_decl") for e in spec.get("edits", [])), "")
+        note = spec.get("note", "")
+        if blocks:
+            new = list(lines)
+            for line, _before, after in edits:
+                new[line - 1] = after
+            for start, stop, repl in sorted(blocks, reverse=True):
+                new[start:stop] = repl + [""]
+            out.append(Mutant(mid, decl, 0, prefix[:-1], "", "", note=note, text="\n".join(new) + "\n"))
+            continue
         first = edits[0]
-        out.append(Mutant(mid, spec.get("decl", spec.get("edits", [{}])[0].get("decl", "")), first[0], "manual",
-                          first[1], first[2], extra=[list(e) for e in edits[1:]], note=spec.get("note", "")))
+        out.append(Mutant(mid, decl, first[0], "manual", first[1], first[2], extra=[list(e) for e in edits[1:]],
+                          note=note))
     return out
 
 

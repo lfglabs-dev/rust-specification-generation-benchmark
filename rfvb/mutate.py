@@ -77,6 +77,7 @@ class Mutant:
     status: str = "new"  # new | compile_error | equivalent | unspecified | relevant
     extra: list = field(default_factory=list)  # further [line, before, after] edits (hand-written bugs)
     note: str = ""
+    text: str = ""  # complete mutated Funs.lean (whole-definition replacements); overrides the line edits
     differing_inputs: int = 0
     killed_by_gold: list[str] = field(default_factory=list)
 
@@ -192,6 +193,8 @@ def sample(cands: list[Mutant], k: int, seed: int = 0) -> list[Mutant]:
 
 
 def apply(text: str, m: Mutant) -> str:
+    if m.text:
+        return m.text
     lines = text.splitlines(keepends=True)
     for line, before, after in [(m.line, m.before, m.after), *m.extra]:
         nl = "\n" if lines[line - 1].endswith("\n") else ""
