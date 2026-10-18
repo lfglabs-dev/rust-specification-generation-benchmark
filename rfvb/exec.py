@@ -16,6 +16,7 @@ implementations from `exec_shims/<Package>/...` (overlaid on the copy).
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import functools
 import os
@@ -119,6 +120,52 @@ def add_noinline(text: str) -> str:
     return "\n".join(out)
 
 
+def transform_tree(tree: Path, extracted_root: Path) -> None:
+    """Make an extraction tree executable (in place): implement axioms, drop `noncomputable
+    section`, forbid cross-module inlining, raise the recursion limit."""
+    for f in tree.rglob("*.lean"):
+        text = f.read_text(encoding="utf-8")
+        orig = text
+        if "/Assumptions/" in str(f) and re.search(r"^axiom\s", text, re.M):
+            text = implement_axioms(text, f.relative_to(extracted_root).parts[0])
+        text = text.replace("set_option maxRecDepth 2048", "set_option maxRecDepth 100000")
+        if "\nnoncomputable section\n" in text:
+            text = text.replace("\nnoncomputable section\n", f"\n{MARK}\n{NO_INLINE}\n")
+            # Callers (gold specs, candidates, drivers) are compiled once against the original
+            # extraction; inlining an extracted body into them would hide mutants of it.
+            text = add_noinline(text)
+        if text != orig:
+            f.write_text(text, encoding="utf-8")
+
+
+def add_package(pkg: str, exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> tuple[bool, str]:
+    """Add (or refresh) one extracted package in the executable copy and build it, under the build lock."""
+    import fcntl
+    lock = exec_root / ".lake" / "build.lock"
+    with open(lock, "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        shutil.copy2(source_root / "lakefile.lean", exec_root / "lakefile.lean")
+        dst = exec_root / "extracted" / pkg
+        subprocess.run(["rsync", "-a", "--delete", f"{source_root / 'extracted' / pkg}/", f"{dst}/"], check=True)
+        transform_tree(dst, exec_root / "extracted")
+        shim = source_root / "exec_shims" / pkg
+        if shim.is_dir():
+            subprocess.run(["rsync", "-a", f"{shim}/", f"{dst}/"], check=True)
+        proc = subprocess.run(["lake", "build", f"{pkg}.Extraction.Funs"], cwd=exec_root, capture_output=True,
+                              text=True, timeout=7200)
+        if proc.returncode:
+            return False, (proc.stdout + proc.stderr)[-6000:]
+    # instances (builds under the lock itself, module by module)
+    rep = gen_instances(exec_root, source_root, only=pkg)
+    if shim.is_dir():
+        subprocess.run(["rsync", "-a", f"{shim}/", f"{dst}/"], check=True)
+    with open(lock, "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        proc = subprocess.run(["lake", "build", f"{pkg}.Extraction"], cwd=exec_root, capture_output=True,
+                              text=True, timeout=7200)
+    return proc.returncode == 0, json.dumps(rep) + "\n" + (proc.stdout + proc.stderr)[-4000:]
+
+
 def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
     exec_root.mkdir(parents=True, exist_ok=True)
     subprocess.run(
@@ -131,21 +178,7 @@ def sync(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT) -> None:
     pk = exec_root / ".lake" / "packages"
     if not pk.exists():
         pk.symlink_to(source_root / ".lake" / "packages")
-    for f in (exec_root / "extracted").rglob("*.lean"):
-        text = f.read_text(encoding="utf-8")
-        if "/Assumptions/" in str(f) and re.search(r"^axiom\s", text, re.M):
-            pkg = f.relative_to(exec_root / "extracted").parts[0]
-            text = implement_axioms(text, pkg)
-            f.write_text(text, encoding="utf-8")
-        if "set_option maxRecDepth 2048" in text:
-            text = text.replace("set_option maxRecDepth 2048", "set_option maxRecDepth 100000")
-            f.write_text(text, encoding="utf-8")
-        if "\nnoncomputable section\n" in text:
-            text = text.replace("\nnoncomputable section\n", f"\n{MARK}\n{NO_INLINE}\n")
-            # Callers (gold specs, candidates, drivers) are compiled once against the original
-            # extraction; inlining an extracted body into them would hide mutants of it.
-            text = add_noinline(text)
-            f.write_text(text, encoding="utf-8")
+    transform_tree(exec_root / "extracted", exec_root / "extracted")
     shims = source_root / "exec_shims"
     if shims.is_dir():
         subprocess.run(["rsync", "-a", f"{shims}/", f"{exec_root / 'extracted'}/"], check=True)
@@ -183,11 +216,14 @@ def type_names(types_lean: Path) -> list[str]:
     return [ns + n for n in re.findall(r"^(?:inductive|structure)\s+([^\s(:]+)", text, re.M)]
 
 
-def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds: int = 12) -> dict:
+def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds: int = 12,
+                  only: str | None = None) -> dict:
     """Generate (and validate by building) `ExecInstances` modules deriving `DecidableEq`, `Repr`
     and `Plausible.Arbitrary` for every crate type, into `exec_shims/<Pkg>/Extraction/`."""
     report = {}
     for pkg_dir in sorted((source_root / "extracted").iterdir()):
+        if only and pkg_dir.name != only:
+            continue
         types = pkg_dir / "Extraction" / "Types.lean"
         if not types.is_file():
             continue
@@ -234,7 +270,7 @@ def gen_instances(exec_root: Path = EXEC_ROOT, source_root: Path = ROOT, rounds:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m rfvb.exec")
-    ap.add_argument("cmd", choices=["sync", "build", "path", "instances"])
+    ap.add_argument("cmd", choices=["sync", "build", "path", "instances", "add-package"])
     ap.add_argument("modules", nargs="*")
     args = ap.parse_args(argv)
     if args.cmd == "sync":
@@ -242,6 +278,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"synced {EXEC_ROOT}")
     elif args.cmd == "path":
         print(lean_path())
+    elif args.cmd == "add-package":
+        for pkg in args.modules:
+            ok, out = add_package(pkg)
+            print(f"{pkg}: {'ok' if ok else 'FAILED'}\n{out}")
+            if not ok:
+                return 1
     elif args.cmd == "instances":
         import json
         print(json.dumps(gen_instances(), indent=1))

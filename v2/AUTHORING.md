@@ -133,3 +133,61 @@ over-specified. Do not add siblings when the contract is fully determined
 Exact internal representations or constants that are pinned *only* by the crate's
 tests (which agents never see) are not part of a recoverable contract. Keep such
 checks out of `gold_*` (prefix them `info_` if you want them in the file).
+
+## New crates (real upstream code only)
+
+Never write or hand-edit implementation code. New targets come from published
+crates at a pinned commit:
+
+```sh
+. ~/.cargo/env
+python3 -m rfvb.extract_crate --name <project>/<case> --repo <git url> [--rev <sha>] [--subdir <crate dir>] \
+    --start-from <crate::path::fn> [--start-from ...] [--default-features "a,b"]   # "" = no default features
+python3 -m rfvb.exec add-package <Pkg>        # copy into the executable tree, derive instances, build
+```
+
+- `--start-from` selects what Charon translates; start from the specific public
+  functions/modules you want (whole-crate extraction often hits Aeneas limits).
+- Aeneas cannot translate early `return`/`break` to outer loops inside loops,
+  nested `&mut` in ADTs, `dyn`, and some iterator adaptors; such bodies become
+  axioms (reported as `ignored_bodies`). Choose functions whose bodies extract,
+  or another commit/crate. Axioms that the target needs make it unusable.
+- Charon runs its own cargo build: select features with `--default-features`.
+- Provenance (repo, commit, start-from) is recorded in `v2/sources.jsonl`.
+  `extracted/<Pkg>/` and `rust/<project>/<case>/` are written by the tool.
+- The v1 case layout is mirrored: module prefix `Benchmark.V2.<Project>.<Case>`
+  with CamelCase of the `<project>`/`<case>` names you chose.
+- There are no v1 oracles for new crates: set `upstream_props: []`,
+  `upstream_imports: []` (or wrap the crate's own proptests/unit tests as
+  `gold_upstream_*`-style properties in a separate `Upstream.lean` if you want a
+  baseline).
+
+## Bug variants (`bug_variants`)
+
+Tasks where the shipped code contains a bug: the agent must specify the
+*intended* contract (graded against the fixed code) and may report the bug with
+a witness. Add to the target JSON:
+
+```json
+"bug_variants": [
+  {"id": "bug1", "kind": "historical", "source": "https://github.com/o/r/commit/<fix sha>",
+   "note": "what is wrong and which documented promise / invariant it breaks",
+   "edits": [ {"decl": "<lean def name>", "before": "<line>", "after": "<line>"},
+              {"replace_decl": "<lean def name>", "with_text": "<complete def block>"} ]}
+]
+```
+
+- **historical** (strongly preferred): a real bug fixed upstream. Extract the
+  pre-fix commit with the same `--start-from` into a scratch package (use a
+  different `--name`, e.g. `<project>/<case>_prefix`, then delete its
+  `extracted/`, `rust/` and lakefile entry), and copy the pre-fix Lean bodies
+  of the changed functions into `edits` (`replace_decl` replaces a whole
+  `def … :=` block up to the next docstring). Find candidates with
+  `git log --oneline -i --grep='fix\|bug\|overflow\|panic\|wrong' -- <files>`.
+  Only use fixes whose public signatures are unchanged.
+- **injected**: a plausible single regression (same format as manual mutants),
+  only when no historical bug is usable; at most 2 per target.
+- Every variant must contradict something *recoverable without seeing the
+  fix*: the docs, an obvious invariant (round trip, ranges, no-panic promise),
+  or consistency with another API function. `prepare` checks that the buggy
+  build violates at least one gold property.
