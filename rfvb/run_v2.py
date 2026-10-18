@@ -21,7 +21,7 @@ from pathlib import Path
 from . import ROOT
 from .agent import BUDGETS
 from .transport import ChatConfig
-from .v2 import Target, grade, select
+from .v2 import Target, grade, grade_task, select
 from .v2_agent import V2Runner, build_v2_workspace
 
 
@@ -32,6 +32,8 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
     art.mkdir(parents=True)
     ws = run_dir / "_workspaces" / t.slug
     started = time.time()
+    if t.variant:
+        mode = "blackbox"  # audit tasks: bodies hidden, the bug must be found from behaviour vs. the docs
     build_v2_workspace(t, ws, mode)
     runner = V2Runner(t, ws, cfg, BUDGETS[budget], art)
     res = runner.run()
@@ -39,7 +41,7 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
     (art / "final.lean").write_text(final, encoding="utf-8")
     from .slots import slot
     with slot("grade", int(os.environ.get("RSGB_GRADE_SLOTS", "2"))):
-        g = grade(t, final, jobs=grade_jobs)
+        g = grade_task(t, final, runner.reports, jobs=grade_jobs)
     (art / "grade.json").write_text(json.dumps(g.to_json(), indent=1), encoding="utf-8")
     shutil.rmtree(ws, ignore_errors=True)
     return {
@@ -49,6 +51,12 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
         "mode": mode,
         "submitted": res.status == "solved",
         "status": g.status,
+        "family": t.family,
+        "task_score": round(g.task_score, 4),
+        "detected": getattr(g, "detected", None),
+        "report_valid": getattr(g, "report_valid", None),
+        "false_alarm": getattr(g, "false_alarm", None),
+        "reports": len(runner.reports),
         "class_score": round(g.class_score, 4),
         "kill_rate": round(g.score, 4),
         "killed": g.killed,
@@ -66,7 +74,8 @@ def run_one(t: Target, run_dir: Path, cfg: ChatConfig, budget: str, grade_jobs: 
 
 def regrade(path: Path, grade_jobs: int, only: set[str] | None = None) -> int:
     from .v2 import load_targets
-    targets = load_targets()
+    from .v2 import all_tasks
+    targets = all_tasks()
     rows = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
     run_dir = path.with_suffix("")
     out = []
@@ -76,9 +85,14 @@ def regrade(path: Path, grade_jobs: int, only: set[str] | None = None) -> int:
         if t is None or not final.is_file() or (only and r["target"] not in only):
             out.append(r)
             continue
-        g = grade(t, final.read_text(encoding="utf-8"), jobs=grade_jobs)
+        reps = run_dir / t.slug / "bug_reports.json"
+        reports = json.loads(reps.read_text()) if reps.is_file() else []
+        g = grade_task(t, final.read_text(encoding="utf-8"), reports, jobs=grade_jobs)
         (run_dir / t.slug / "grade.json").write_text(json.dumps(g.to_json(), indent=1), encoding="utf-8")
-        r.update({"status": g.status, "class_score": round(g.class_score, 4), "kill_rate": round(g.score, 4),
+        r.update({"status": g.status, "family": t.family, "task_score": round(g.task_score, 4),
+                  "detected": getattr(g, "detected", None), "report_valid": getattr(g, "report_valid", None),
+                  "false_alarm": getattr(g, "false_alarm", None),
+                  "class_score": round(g.class_score, 4), "kill_rate": round(g.score, 4),
                   "killed": g.killed, "relevant": g.relevant, "classes": g.classes, "properties": g.properties,
                   "false_properties": list(g.false_properties), "overspecified": list(g.overspecified),
                   "untestable": list(g.untestable), "detail": g.detail[:1500]})
@@ -131,15 +145,15 @@ def main(argv: list[str] | None = None) -> int:
         with lock:
             with out_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-            print(f"{t.id}: {row['status']} class={row.get('class_score')} kill={row.get('kill_rate')} "
+            print(f"{t.id}: {row['status']} task={row.get('task_score')} class={row.get('class_score')} kill={row.get('kill_rate')} "
                   f"props={len(row.get('properties') or [])} false={row.get('false_properties')}", flush=True)
 
     with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
         list(pool.map(work, todo))
     shutil.rmtree(run_dir / "_workspaces", ignore_errors=True)
     rows = [json.loads(l) for l in out_path.read_text().splitlines() if l.strip()]
-    mean = sum(r.get("class_score", 0) for r in rows) / max(1, len(rows))
-    print(f"\n{run}: mean class score {mean:.3f} over {len(rows)} targets -> {out_path}")
+    mean = sum(r.get("task_score", r.get("class_score", 0)) for r in rows) / max(1, len(rows))
+    print(f"\n{run}: mean task score {mean:.3f} over {len(rows)} tasks -> {out_path}")
     return 0
 
 

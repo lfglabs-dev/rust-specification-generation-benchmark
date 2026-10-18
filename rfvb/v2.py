@@ -60,7 +60,21 @@ class Target:
 
     @property
     def slug(self) -> str:
-        return self.id.replace("/", "__")
+        return self.id.replace("/", "__").replace("@", "--")
+
+    @property
+    def cache_slug(self) -> str:
+        """Mutant cache directory: variants share their base target's mutants."""
+        return self.raw.get("base_id", self.id).replace("/", "__")
+
+    @property
+    def variant(self) -> dict | None:
+        return self.raw.get("variant")
+
+    @property
+    def family(self) -> str:
+        v = self.variant
+        return "base" if v is None else ("clean" if v.get("kind") == "clean" else "bug")
 
     @property
     def gold_module(self) -> str:
@@ -95,7 +109,55 @@ def load_targets() -> dict[str, Target]:
     return out
 
 
+CONTROL_SEED = 20261018
+
+
+def variants_of(t: Target) -> list[Target]:
+    out = []
+    for v in t.raw.get("bug_variants", []):
+        raw = dict(t.raw)
+        raw.update({"id": f"{t.id}@{v['id']}", "base_id": t.id, "variant": v})
+        out.append(Target(raw))
+    return out
+
+
+def clean_control(t: Target) -> Target:
+    raw = dict(t.raw)
+    raw.update({"id": f"{t.id}@clean", "base_id": t.id, "variant": {"id": "clean", "kind": "clean"}})
+    return Target(raw)
+
+
+def control_targets(ts: dict[str, Target], n: int = 8) -> list[Target]:
+    """Deterministic choice of `n` clean controls among targets that also have bug variants."""
+    import random
+    pool = sorted(i for i, t in ts.items() if t.raw.get("bug_variants"))
+    random.Random(CONTROL_SEED).shuffle(pool)
+    return [clean_control(ts[i]) for i in sorted(pool[:n])]
+
+
+def all_tasks() -> dict[str, Target]:
+    ts = load_targets()
+    out = dict(ts)
+    for t in ts.values():
+        for v in variants_of(t):
+            out[v.id] = v
+    for c in control_targets(ts):
+        out[c.id] = c
+    return out
+
+
 def select(spec: str) -> list[Target]:
+    """`all` (base targets), `tasks` (every task: base + bug variants + clean controls),
+    `bug` / `clean` / `audit` (= bug + clean) families, or a comma list of task ids."""
+    if spec in ("tasks", "bug", "clean", "audit"):
+        tasks = list(all_tasks().values())
+        if spec == "tasks":
+            return tasks
+        fams = {"bug": {"bug"}, "clean": {"clean"}, "audit": {"bug", "clean"}}[spec]
+        return [t for t in tasks if t.family in fams]
+    if "@" in spec:
+        tasks = all_tasks()
+        return [tasks[s] for s in spec.split(",")]
     ts = load_targets()
     if spec == "all":
         return list(ts.values())
@@ -148,7 +210,7 @@ def run_driver(text: str, lean_path: str, timeout: int = 900) -> str:
 
 def prepare(t: Target, n_mutants: int = 60, jobs: int = 6, seed: int = 0, log=print) -> dict:
     lp = exec_lean_path()
-    work = CACHE / t.slug
+    work = CACHE / t.cache_slug
     work.mkdir(parents=True, exist_ok=True)
     funs = (EXEC_ROOT / "extracted" / t.package / "Extraction" / "Funs.lean").read_text(encoding="utf-8")
     targets = cone(funs, t.mutation_roots)
@@ -305,7 +367,7 @@ def manual_mutants(t: Target, funs: str, key: str = "manual_mutants") -> list[Mu
 
 
 def load_mutants(t: Target) -> list[Mutant]:
-    data = json.loads((CACHE / t.slug / "mutants.json").read_text(encoding="utf-8"))
+    data = json.loads((CACHE / t.cache_slug / "mutants.json").read_text(encoding="utf-8"))
     return [Mutant(**m) for m in data["mutants"]]
 
 
@@ -334,7 +396,7 @@ class Grade:
     detail: str = ""
 
     def to_json(self) -> dict:
-        return self.__dict__.copy()
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
 
 def policy(t: Target, text: str) -> str | None:
@@ -422,6 +484,7 @@ def grade(t: Target, text: str, jobs: int = 6, keep: bool = False) -> Grade:
     build = Path(tempfile.mkdtemp(prefix=f"v2-{t.slug}-", dir=CACHE.parent))
     try:
         ok, out, cand_root = compile_candidate(t, text, build)
+        g._cand_root = cand_root
         if not ok:
             g.status, g.detail = "lean_error", out[-4000:]
             return g
@@ -444,7 +507,7 @@ def grade(t: Target, text: str, jobs: int = 6, keep: bool = False) -> Grade:
             g.status, g.detail = "no_properties", "no executable property (see untestable)"
             return g
         all_muts = load_mutants(t)
-        work = CACHE / t.slug / "mutants"
+        work = CACHE / t.cache_slug / "mutants"
         # over-specification: a property must also hold on every sibling implementation
         # (variants that differ only in behaviour the contract does not promise)
         for sib in [m for m in all_muts if m.status == "sibling"]:
@@ -476,6 +539,77 @@ def grade(t: Target, text: str, jobs: int = 6, keep: bool = False) -> Grade:
     finally:
         if not keep:
             shutil.rmtree(build, ignore_errors=True)
+
+
+def shipped_root(t: Target) -> Path | None:
+    """olean shadow of the shipped (buggy) implementation for a bug-variant task."""
+    v = t.variant
+    if not v or v.get("kind") == "clean":
+        return None
+    for m in load_mutants(t):
+        if m.status == "bug_variant" and m.mid.startswith(f"bug-{v['id']}-"):
+            return CACHE / t.cache_slug / "mutants" / m.mid / "olean"
+    raise RuntimeError(f"bug variant {t.id} is not prepared (run prepare {t.cache_slug.replace('__', '/')})")
+
+
+def check_witness(t: Target, expr: str, mutant_root: Path | None, timeout: int = 180) -> bool | None:
+    """Evaluate a closed `Prop` term (bug-report witness) on the implementation; None if it errors."""
+    if re.search(r"#|\bIO\b|unsafe|implemented_by|\bextern\b|macro|elab|syntax", expr.replace("#u", "").replace(
+            "#i", "")):
+        return None
+    header = "\n".join(f"import {m}" for m in ["Benchmark.Exec.Driver", "Benchmark.V2.Prelude", *t.allowed_imports])
+    opens = " ".join(t.raw.get("opens", []))
+    text = (f"{header}\nopen CoreModels Aeneas Aeneas.Std.WP\nopen Aeneas.Std hiding namespace core alloc\n"
+            f"open RustM{(' ' + opens) if opens else ''}\n"
+            f"def Benchmark.Witness.w : Prop := ({expr})\n#rsgb_test Benchmark.Witness.w 1 0\n")
+    lp = exec_lean_path() if mutant_root is None else f"{mutant_root}:{exec_lean_path()}"
+    r = parse_results(run_driver(text, lp, timeout)).get("Benchmark.Witness.w")
+    if not r or not r.get("ok"):
+        return None
+    return not r["failures"]
+
+
+def grade_task(t: Target, text: str, reports: list[dict] | None = None, jobs: int = 6) -> Grade:
+    """Grade any task. Base tasks: `grade`. Bug variants: graded against the *fixed* (original)
+    implementation, plus detection (a property is false on the shipped buggy code) and a valid bug
+    report (a witness true on the fixed and false on the shipped code):
+        score = 0.4 * class_score + 0.3 * detected + 0.3 * report_valid   (0 if any property is false)
+    Clean controls: class_score, halved if a bug was reported (false alarm)."""
+    reports = reports or []
+    g = grade(t, text, jobs=jobs, keep=t.family == "bug")
+    g.family = t.family
+    g.reports = reports
+    if t.family == "base" or g.status != "graded":
+        g.task_score = g.class_score if g.status == "graded" else 0.0
+        _cleanup(g)
+        return g
+    if t.family == "clean":
+        g.false_alarm = bool(reports)
+        g.task_score = g.class_score * (0.5 if reports else 1.0)
+        _cleanup(g)
+        return g
+    sroot = shipped_root(t)
+    props = [f"{t.cand_ns}.{p}" for p in g.properties if p not in g.untestable and p not in g.overspecified]
+    lp = f"{g._cand_root}:{exec_lean_path()}"
+    k = run_kill([t.candidate_module], props, f"{sroot}:{lp}") if props else None
+    g.detected = k is not None
+    g.detected_by = k
+    g.report_valid = False
+    for rep in reports[:5]:
+        w = str(rep.get("witness", ""))
+        if w and check_witness(t, w, None) is True and check_witness(t, w, sroot) is False:
+            g.report_valid = True
+            break
+    g.task_score = 0.4 * g.class_score + 0.3 * float(g.detected) + 0.3 * float(g.report_valid)
+    _cleanup(g)
+    return g
+
+
+def _cleanup(g: Grade) -> None:
+    root = getattr(g, "_cand_root", None)
+    if root is not None:
+        shutil.rmtree(Path(root).parent, ignore_errors=True)
+        del g._cand_root
 
 
 def finish(g: Grade, muts: list[Mutant]) -> None:
@@ -514,7 +648,7 @@ def baseline(t: Target, jobs: int = 6) -> Grade:
             g.false_properties[p.split(".")[-1]] = r["failures"]
     muts = [m for m in load_mutants(t) if m.status == "relevant"]
     g.relevant = len(muts)
-    work = CACHE / t.slug / "mutants"
+    work = CACHE / t.cache_slug / "mutants"
 
     def kill(m: Mutant) -> tuple[str, list[str]]:
         k = run_kill(imports, testable, f"{work / m.mid / 'olean'}:{lp}")

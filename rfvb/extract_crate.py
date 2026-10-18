@@ -112,8 +112,9 @@ def extract(name: str, repo: str, rev: str, subdir: str, start_from: list[str], 
     # Aeneas reports unsupported bodies but still writes the package (those bodies become
     # axioms); keep the extraction and record how many bodies were lost.
     errlog = crate / "proofs" / "lean" / "aeneas-error.log"
-    ignored = re.findall(r"Ignoring the body of '([^']+)'", (errlog.read_text(errors="replace") if errlog.is_file()
-                                                              else "") + log)
+    errtext = (errlog.read_text(errors="replace") if errlog.is_file() else "") + log
+    ignored = re.findall(r"Ignoring the body of '([^']+)'", errtext) + \
+        re.findall(r"Could not translate the body of function '([^']+)'", errtext)
     gen_dir = gen[0].parent
     gen_pkg = gen_dir.name
     dst = ROOT / "extracted" / pkg
@@ -123,6 +124,15 @@ def extract(name: str, repo: str, rev: str, subdir: str, start_from: list[str], 
         if (gen_dir / sub).is_dir():
             shutil.copytree(gen_dir / sub, dst / sub,
                             ignore=shutil.ignore_patterns("*_Template.lean"))
+    # When aeneas exits early hax only writes the *_Template.lean seeds of the external modules;
+    # recreate the layout of a successful run (Assumptions/<X>.lean seeded, Extraction/<X>.lean imports it).
+    for ext in ("FunsExternal", "TypesExternal"):
+        tmpl = gen_dir / "Extraction" / f"{ext}_Template.lean"
+        if tmpl.is_file() and not (dst / "Extraction" / f"{ext}.lean").is_file():
+            (dst / "Assumptions").mkdir(parents=True, exist_ok=True)
+            if not (dst / "Assumptions" / f"{ext}.lean").is_file():
+                shutil.copy2(tmpl, dst / "Assumptions" / f"{ext}.lean")
+            (dst / "Extraction" / f"{ext}.lean").write_text(f"import {gen_pkg}.Assumptions.{ext}\n", encoding="utf-8")
     if (gen_dir / "Extraction.lean").is_file():
         shutil.copy2(gen_dir / "Extraction.lean", dst / "Extraction.lean")
     else:  # hax writes the umbrella last; recreate it when aeneas stopped early

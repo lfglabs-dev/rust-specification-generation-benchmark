@@ -63,6 +63,15 @@ V2_TOOLS = [
                         "properties. Does not submit. `spec` must be the complete file content."),
         "parameters": {"type": "object", "properties": {"spec": {"type": "string"}}, "required": ["spec"]}}},
     {"type": "function", "function": {
+        "name": "report_bug",
+        "description": ("Report a bug in the shipped implementation (only when you are convinced the code violates its "
+                        "intended, documented behaviour). `witness` is a closed Lean `Prop` (same imports/opens as "
+                        "Candidate.lean) that holds for the intended behaviour but is FALSE on the shipped code, e.g. "
+                        "\"crate.f 3#u32 = ok 7#u32\". Reports on correct code are penalised."),
+        "parameters": {"type": "object", "properties": {
+            "function": {"type": "string"}, "description": {"type": "string"}, "witness": {"type": "string"}},
+            "required": ["function", "description", "witness"]}}},
+    {"type": "function", "function": {
         "name": "submit",
         "description": ("Submit the complete Candidate.lean as your final specification (ends the run). It is graded by "
                         "truth (every property must hold on thousands of hidden inputs; a single false property scores 0) "
@@ -187,12 +196,23 @@ on inputs of your choice and `test_spec` to check conjectured properties.
 """
 
 
+AUDIT_NOTE = """
+**Audit task.** This copy of the crate may contain a bug, or may be correct. Specify the
+*intended* behaviour (from the documentation, names and evident design), not whatever the
+code happens to do: your specification is graded against a correct implementation, so a
+property that encodes a bug counts as false. `test_spec` and `eval_expr` run the shipped
+code, so a property of the intended behaviour can fail there: decide whether the property
+or the code is wrong. If the code is wrong, keep the correct property, and report the bug
+with `report_bug` (a concrete witness). Reporting a bug in correct code is penalised.
+"""
+
+
 def briefing(t: Target, mode: str = "whitebox") -> str:
     forb = ", ".join(f"`{c}`" for c in t.raw.get("forbidden_constants", [])) or "(none)"
     return f"""# Task `{t.id}` — write a formal specification
 
 {t.intent}
-{BLACKBOX_NOTE if mode == "blackbox" else ""}
+{BLACKBOX_NOTE if mode == "blackbox" else ""}{AUDIT_NOTE if t.variant else ""}
 ## Public API (Lean signatures of the extracted functions)
 ```lean
 {api_listing(t)}
@@ -298,6 +318,10 @@ class V2Runner(Runner):
         self.deadline = None
         self.lean_src = self._lean_src()
         self.tests = 0
+        self.reports: list[dict] = []
+        from .v2 import shipped_root
+        self.shipped = shipped_root(t)  # None: the shipped code is the original implementation
+        self.tools = [x for x in V2_TOOLS if t.variant or x["function"]["name"] != "report_bug"]
 
     def _safe_path(self, rel: str):
         p = super()._safe_path(rel)
@@ -331,7 +355,7 @@ class V2Runner(Runner):
                     out = out.replace(str(build / "src") + "/", "")
                     return "LEAN ERROR (the file does not elaborate):\n" + out.strip()[-5000:]
                 res = test_properties(self.target, [f"{self.target.cand_ns}.{p}" for p in props], root, n, seed,
-                                      timeout=600)
+                                      mutant_root=self.shipped, timeout=600)
             lines = []
             for p in props:
                 r = res[f"{self.target.cand_ns}.{p}"]
@@ -372,7 +396,8 @@ class V2Runner(Runner):
             fh.write(text)
             path = Path(fh.name)
         try:
-            out = run_lean_file(EXEC_ROOT, lean_path(), path, timeout=120)
+            lp = lean_path() if self.shipped is None else f"{self.shipped}:{lean_path()}"
+            out = run_lean_file(EXEC_ROOT, lp, path, timeout=120)
         finally:
             path.unlink(missing_ok=True)
         if out == "RSGB_TIMEOUT":
@@ -390,6 +415,16 @@ class V2Runner(Runner):
         self.editable.write_text(text, encoding="utf-8")
         return self._evaluate(text, AGENT_N, AGENT_SEED + self.tests)
 
+    def t_report_bug(self, args) -> str:
+        rep = {"function": str(args.get("function", ""))[:200], "description": str(args.get("description", ""))[:2000],
+               "witness": str(args.get("witness", ""))[:2000]}
+        if not rep["witness"].strip():
+            return "error: `witness` must be a closed Lean Prop that the intended behaviour satisfies"
+        self.reports.append(rep)
+        (self.art / "bug_reports.json").write_text(json.dumps(self.reports, indent=1), encoding="utf-8")
+        return ("Bug report recorded. It is checked after the run: the witness must hold for the intended behaviour "
+                "and be false on the shipped code. Continue and submit your specification of the intended behaviour.")
+
     def t_submit(self, args) -> str:
         text = self._normalize(str(args.get("spec", "")))
         self.res.attempts += 1
@@ -406,7 +441,7 @@ class V2Runner(Runner):
     def run(self) -> AgentResult:
         import rfvb.agent as A
         saved_tools, saved_prompt = A.TOOLS, A.load_prompt
-        A.TOOLS = V2_TOOLS
+        A.TOOLS = self.tools
         prompt_text = PROMPT.read_text(encoding="utf-8")
         A.load_prompt = lambda root=None: prompt_text
         self.intro = ""
@@ -436,7 +471,7 @@ class V2Runner(Runner):
                 break
             self.compact_history(messages)
             try:
-                resp = self.chat_fn(self.cfg, messages, V2_TOOLS)
+                resp = self.chat_fn(self.cfg, messages, self.tools)
             except A.TransportError as exc:
                 msg = str(exc)
                 self.res.status = "context_overflow" if ("context" in msg or "too long" in msg) else "provider_error"
