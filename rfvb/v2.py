@@ -339,7 +339,7 @@ def manual_mutants(t: Target, funs: str, key: str = "manual_mutants") -> list[Mu
                 if e["replace_decl"] not in ranges:
                     raise ValueError(f"{key} {spec.get('id', '')}: unknown definition {e['replace_decl']}")
                 a, b = ranges[e["replace_decl"]]
-                blocks.append((a - 1, b, add_noinline(e["with_text"].strip("\n")).splitlines()))
+                blocks.append((a - 1, b, e["with_text"].strip("\n").splitlines()))
                 continue
             a, b = ranges[e["decl"]]
             hits = [i for i in range(a, b) if lines[i].strip() == e["before"].strip()]
@@ -358,7 +358,9 @@ def manual_mutants(t: Target, funs: str, key: str = "manual_mutants") -> list[Mu
                 new[line - 1] = after
             for start, stop, repl in sorted(blocks, reverse=True):
                 new[start:stop] = repl + [""]
-            out.append(Mutant(mid, decl, 0, prefix[:-1], "", "", note=note, text="\n".join(new) + "\n"))
+            # noinline after splicing, so attribute lines kept above a replaced block are merged correctly
+            out.append(Mutant(mid, decl, 0, prefix[:-1], "", "", note=note,
+                              text=add_noinline("\n".join(new)) + "\n"))
             continue
         first = edits[0]
         out.append(Mutant(mid, decl, first[0], "manual", first[1], first[2], extra=[list(e) for e in edits[1:]],
