@@ -54,14 +54,14 @@
   },
   {
    "decl": "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
-   "before": "let i15 ← Array.index_usize self.ecu_id 3#usize",
-   "after": "let i15 ← Array.index_usize self.ecu_id 2#usize",
+   "before": "let i15 \u2190 Array.index_usize self.ecu_id 3#usize",
+   "after": "let i15 \u2190 Array.index_usize self.ecu_id 2#usize",
    "note": "last ECU id byte duplicated"
   },
   {
    "decl": "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
-   "before": "let tms ← core.num.U32.to_le_bytes self.timestamp_microseconds",
-   "after": "let tms ← core.num.U32.to_be_bytes self.timestamp_microseconds",
+   "before": "let tms \u2190 core.num.U32.to_le_bytes self.timestamp_microseconds",
+   "after": "let tms \u2190 core.num.U32.to_be_bytes self.timestamp_microseconds",
    "note": "microseconds big-endian on the wire (from_bytes unchanged)"
   },
   {
@@ -69,6 +69,20 @@
    "before": "core.U8.Insts.CoreCmpPartialEqU8 self.ecu_id other.ecu_id",
    "after": "core.U8.Insts.CoreCmpPartialEqU8 self.ecu_id self.ecu_id",
    "note": "eq ignores the ECU id"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/JulianSchmid/dlt-parse-rs/commit/d0c00e53f9b3896d4162f9e65d1ee6863f5e4afe ('fixed timestamp endianess bug'; endianness then settled to little endian in 86780505487d1f4c6b5dfa3d0008d4685736db77). Pre-fix to_bytes from 416ec52 (src/storage.rs, later moved to src/storage/storage_header.rs)",
+   "note": "to_bytes serialises timestamp_seconds / timestamp_microseconds big-endian while from_bytes decodes them little-endian: from_bytes(to_bytes(h)) != h for most timestamps, so headers written by the crate are read back with garbled timestamps",
+   "edits": [
+    {
+     "replace_decl": "dlt_parse.storage.storage_header.StorageHeader.to_bytes",
+     "with_text": "def storage.storage_header.StorageHeader.to_bytes\n  (self : storage.storage_header.StorageHeader) : RustM (Array Std.U8 16#usize) := do\n  let ts \u2190 core.num.U32.to_be_bytes self.timestamp_seconds\n  let tms \u2190 core.num.U32.to_be_bytes self.timestamp_microseconds\n  let i \u2190 Array.index_usize storage.storage_header.StorageHeader.PATTERN_AT_START 0#usize\n  let i1 \u2190 Array.index_usize storage.storage_header.StorageHeader.PATTERN_AT_START 1#usize\n  let i2 \u2190 Array.index_usize storage.storage_header.StorageHeader.PATTERN_AT_START 2#usize\n  let i3 \u2190 Array.index_usize storage.storage_header.StorageHeader.PATTERN_AT_START 3#usize\n  let i4 \u2190 Array.index_usize ts 0#usize\n  let i5 \u2190 Array.index_usize ts 1#usize\n  let i6 \u2190 Array.index_usize ts 2#usize\n  let i7 \u2190 Array.index_usize ts 3#usize\n  let i8 \u2190 Array.index_usize tms 0#usize\n  let i9 \u2190 Array.index_usize tms 1#usize\n  let i10 \u2190 Array.index_usize tms 2#usize\n  let i11 \u2190 Array.index_usize tms 3#usize\n  let i12 \u2190 Array.index_usize self.ecu_id 0#usize\n  let i13 \u2190 Array.index_usize self.ecu_id 1#usize\n  let i14 \u2190 Array.index_usize self.ecu_id 2#usize\n  let i15 \u2190 Array.index_usize self.ecu_id 3#usize\n  ok\n    (Array.make 16#usize [\n      i, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15\n      ])"
+    }
+   ]
   }
  ]
 }

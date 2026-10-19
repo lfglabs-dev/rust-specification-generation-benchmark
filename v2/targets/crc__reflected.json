@@ -1,0 +1,179 @@
+{
+ "id": "crc/reflected",
+ "package": "CrcReflected",
+ "module_prefix": "Benchmark.V2.Crc.Reflected",
+ "rust_dir": "rust/crc/reflected",
+ "api": [
+  "crc.util.make_table_crc16",
+  "crc.crc16.update",
+  "crc.crc16.checksum_x25",
+  "crc.crc16.checksum_usb",
+  "crc.crc16.Digest.new",
+  "crc.crc16.Digest.new_with_initial",
+  "crc.crc16.Digest.Insts.CrcCrc16Hasher16.write",
+  "crc.crc16.Digest.Insts.CrcCrc16Hasher16.reset",
+  "crc.crc16.Digest.Insts.CrcCrc16Hasher16.sum16",
+  "crc.crc16.Digest.Insts.CoreHashHasher.write",
+  "crc.crc16.Digest.Insts.CoreHashHasher.finish",
+  "crc.util.make_table_crc32",
+  "crc.crc32.update",
+  "crc.crc32.checksum_ieee",
+  "crc.crc32.checksum_castagnoli",
+  "crc.crc32.checksum_koopman",
+  "crc.crc32.Digest.new",
+  "crc.crc32.Digest.new_with_initial",
+  "crc.crc32.Digest.Insts.CrcCrc32Hasher32.write",
+  "crc.crc32.Digest.Insts.CrcCrc32Hasher32.reset",
+  "crc.crc32.Digest.Insts.CrcCrc32Hasher32.sum32",
+  "crc.crc32.Digest.Insts.CoreHashHasher.write",
+  "crc.crc32.Digest.Insts.CoreHashHasher.finish",
+  "crc.util.make_table_crc64",
+  "crc.crc64.update",
+  "crc.crc64.checksum_ecma",
+  "crc.crc64.checksum_iso",
+  "crc.crc64.Digest.new",
+  "crc.crc64.Digest.new_with_initial",
+  "crc.crc64.Digest.Insts.CrcCrc64Hasher64.write",
+  "crc.crc64.Digest.Insts.CrcCrc64Hasher64.reset",
+  "crc.crc64.Digest.Insts.CrcCrc64Hasher64.sum64",
+  "crc.crc64.Digest.Insts.CoreHashHasher.write",
+  "crc.crc64.Digest.Insts.CoreHashHasher.finish"
+ ],
+ "mutation_roots": [
+  "crc.util.make_table_crc16",
+  "crc.crc16.update",
+  "crc.crc16.checksum_x25",
+  "crc.crc16.checksum_usb",
+  "crc.crc16.Digest.new",
+  "crc.crc16.Digest.new_with_initial",
+  "crc.crc16.Digest.Insts.CrcCrc16Hasher16.write",
+  "crc.crc16.Digest.Insts.CrcCrc16Hasher16.reset",
+  "crc.crc16.Digest.Insts.CrcCrc16Hasher16.sum16",
+  "crc.crc16.Digest.Insts.CoreHashHasher.write",
+  "crc.crc16.Digest.Insts.CoreHashHasher.finish",
+  "crc.util.make_table_crc32",
+  "crc.crc32.update",
+  "crc.crc32.checksum_ieee",
+  "crc.crc32.checksum_castagnoli",
+  "crc.crc32.checksum_koopman",
+  "crc.crc32.Digest.new",
+  "crc.crc32.Digest.new_with_initial",
+  "crc.crc32.Digest.Insts.CrcCrc32Hasher32.write",
+  "crc.crc32.Digest.Insts.CrcCrc32Hasher32.reset",
+  "crc.crc32.Digest.Insts.CrcCrc32Hasher32.sum32",
+  "crc.crc32.Digest.Insts.CoreHashHasher.write",
+  "crc.crc32.Digest.Insts.CoreHashHasher.finish",
+  "crc.util.make_table_crc64",
+  "crc.crc64.update",
+  "crc.crc64.checksum_ecma",
+  "crc.crc64.checksum_iso",
+  "crc.crc64.Digest.new",
+  "crc.crc64.Digest.new_with_initial",
+  "crc.crc64.Digest.Insts.CrcCrc64Hasher64.write",
+  "crc.crc64.Digest.Insts.CrcCrc64Hasher64.reset",
+  "crc.crc64.Digest.Insts.CrcCrc64Hasher64.sum64",
+  "crc.crc64.Digest.Insts.CoreHashHasher.write",
+  "crc.crc64.Digest.Insts.CoreHashHasher.finish"
+ ],
+ "forbidden_constants": [
+  "crc.crc16.update_loop",
+  "crc.crc16.update_loop.body",
+  "crc.util.make_table_crc16_loop0",
+  "crc.util.make_table_crc16_loop0.body",
+  "crc.util.make_table_crc16_loop0_loop0",
+  "crc.util.make_table_crc16_loop0_loop0.body",
+  "crc.crc32.update_loop",
+  "crc.crc32.update_loop.body",
+  "crc.util.make_table_crc32_loop0",
+  "crc.util.make_table_crc32_loop0.body",
+  "crc.util.make_table_crc32_loop0_loop0",
+  "crc.util.make_table_crc32_loop0_loop0.body",
+  "crc.crc64.update_loop",
+  "crc.crc64.update_loop.body",
+  "crc.util.make_table_crc64_loop0",
+  "crc.util.make_table_crc64_loop0.body",
+  "crc.util.make_table_crc64_loop0_loop0",
+  "crc.util.make_table_crc64_loop0_loop0.body"
+ ],
+ "allowed_imports": [
+  "CrcReflected.Extraction"
+ ],
+ "opens": [
+  "crc"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of the `crc` crate 1.8.1 (modules `crc::crc16`, `crc::crc32`, `crc::crc64`): for each width, `make_table(poly)` (Lean `util.make_table_crc16/32/64`), `update(value, &table, bytes)`, the checksum functions (`crc16::checksum_x25`, `checksum_usb`; `crc32::checksum_ieee`, `checksum_castagnoli`, `checksum_koopman`; `crc64::checksum_ecma`, `checksum_iso`), the polynomial constants, and the `Digest` type: `Digest::new(poly)`, `Digest::new_with_initial(poly, initial)`, the `Hasher16/Hasher32/Hasher64` methods `write`, `reset`, `sum16/sum32/sum64` (Lean `crcNN.Digest.Insts.CrcCrcNNHasherNN.*`) and the `core::hash::Hasher` methods `write`, `finish` (Lean `crcNN.Digest.Insts.CoreHashHasher.*`). Byte slices are `Slice Std.U8`; `&mut self` methods return the updated digest.",
+ "manual_mutants": [
+  {
+   "note": "crc16::update forgets the final complement (raw register returned)",
+   "decl": "crc.crc16.update",
+   "before": "ok (~~~ value2)",
+   "after": "ok value2"
+  },
+  {
+   "note": "Hasher32::reset returns to 0 instead of the digest's initial value",
+   "decl": "crc.crc32.Digest.Insts.CrcCrc32Hasher32.reset",
+   "before": "ok { self with value := self.initial }",
+   "after": "ok { self with value := 0#u32 }"
+  },
+  {
+   "note": "crc64 new_with_initial does not remember the initial value (reset goes back to 0)",
+   "decl": "crc.crc64.Digest.new_with_initial",
+   "before": "ok { table := a, initial, value := initial }",
+   "after": "ok { table := a, initial := 0#u64, value := initial }"
+  },
+  {
+   "note": "checksum_usb uses the X25 table (copy-paste)",
+   "decl": "crc.crc16.checksum_usb",
+   "before": "crc16.update 0#u16 crc16.USB_TABLE bytes",
+   "after": "crc16.update 0#u16 crc16.X25_TABLE bytes"
+  },
+  {
+   "note": "make_table_crc32 performs only 7 shift rounds per entry",
+   "decl": "crc.util.make_table_crc32_loop0.body",
+   "before": "util.make_table_crc32_loop0_loop0 { start := 0#i32, \u00abend\u00bb := 8#i32 }",
+   "after": "util.make_table_crc32_loop0_loop0 { start := 0#i32, \u00abend\u00bb := 7#i32 }"
+  },
+  {
+   "note": "crc64 update ignores the lowest register bit when indexing the table",
+   "decl": "crc.crc64.update_loop.body",
+   "before": "let i1 \u2190 lift (UScalar.cast .U8 value)",
+   "after": "let i1 \u2190 lift (UScalar.cast .U8 (value &&& 18446744073709551614#u64))"
+  },
+  {
+   "note": "crc32 Digest::new starts from all ones instead of 0 (double complement confusion)",
+   "decl": "crc.crc32.Digest.new",
+   "before": "ok { table := a, initial := 0#u32, value := 0#u32 }",
+   "after": "ok { table := a, initial := 0#u32, value := 4294967295#u32 }"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "injected",
+   "source": "injected (no fixed bug in crc 1.x history of these functions)",
+   "note": "crc16::update does not complement the incoming value: check values (documented 0x906e for X-25) and incremental=one-shot break",
+   "edits": [
+    {
+     "decl": "crc.crc16.update",
+     "before": "let value1 \u2190 lift (~~~ value)",
+     "after": "let value1 \u2190 ok value"
+    }
+   ]
+  },
+  {
+   "id": "bug2",
+   "kind": "injected",
+   "source": "injected (no fixed bug in crc 1.x history of these functions)",
+   "note": "checksum_iso uses the ECMA table: contradicts the documented check value 0xb90956c775a41001",
+   "edits": [
+    {
+     "decl": "crc.crc64.checksum_iso",
+     "before": "crc64.update 0#u64 crc64.ISO_TABLE bytes",
+     "after": "crc64.update 0#u64 crc64.ECMA_TABLE bytes"
+    }
+   ]
+  }
+ ]
+}

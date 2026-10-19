@@ -93,5 +93,20 @@
    "after": "ok { a := s1, b := s }",
    "note": "Union stores its operands in the other order (union is symmetric; fields are private)"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #0); no usable historical fix found upstream",
+   "note": "UnionIter::next consumes a common element only from the left slice: every element present in both sets is emitted twice, so the union is no longer a sorted, deduplicated set (and disagrees with Union::into_set_buf)",
+   "edits": [
+    {
+     "decl": "sdset.duo.union.UnionIter.Insts.CoreIterTraitsIteratorIteratorSharedAT.next",
+     "before": "ok (core.option.Option.Some first_a, { a := s, b := s1 })",
+     "after": "ok (core.option.Option.Some first_a, { self with a := s })"
+    }
+   ]
+  }
  ]
 }

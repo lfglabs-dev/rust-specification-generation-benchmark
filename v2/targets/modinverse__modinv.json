@@ -1,0 +1,162 @@
+{
+ "id": "modinverse/modinv",
+ "package": "ModinverseModinv",
+ "module_prefix": "Benchmark.V2.Modinverse.Modinv",
+ "rust_dir": "rust/modinverse/modinv",
+ "api": [
+  "modinverse.U8.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U16.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U32.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U64.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U128.Insts.ModinverseModInverse.modinverse",
+  "modinverse.Usize.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I8.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I16.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I32.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I64.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I128.Insts.ModinverseModInverse.modinverse",
+  "modinverse.Isize.Insts.ModinverseModInverse.modinverse",
+  "modinverse.modinverse",
+  "modinverse.egcd_u64"
+ ],
+ "mutation_roots": [
+  "modinverse.U8.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U16.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U32.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U64.Insts.ModinverseModInverse.modinverse",
+  "modinverse.U128.Insts.ModinverseModInverse.modinverse",
+  "modinverse.Usize.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I8.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I16.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I32.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I64.Insts.ModinverseModInverse.modinverse",
+  "modinverse.I128.Insts.ModinverseModInverse.modinverse",
+  "modinverse.Isize.Insts.ModinverseModInverse.modinverse",
+  "modinverse.modinverse",
+  "modinverse.egcd_u64"
+ ],
+ "forbidden_constants": [
+  "modinverse.modinverse_u8",
+  "modinverse.modinverse_u8_loop",
+  "modinverse.modinverse_u8_loop.body",
+  "modinverse.mul_mod_u8",
+  "modinverse.modinverse_u16",
+  "modinverse.modinverse_u16_loop",
+  "modinverse.modinverse_u16_loop.body",
+  "modinverse.mul_mod_u16",
+  "modinverse.modinverse_u32",
+  "modinverse.modinverse_u32_loop",
+  "modinverse.modinverse_u32_loop.body",
+  "modinverse.mul_mod_u32",
+  "modinverse.modinverse_u64",
+  "modinverse.modinverse_u64_loop",
+  "modinverse.modinverse_u64_loop.body",
+  "modinverse.mul_mod_u64",
+  "modinverse.modinverse_u128",
+  "modinverse.modinverse_u128_loop",
+  "modinverse.modinverse_u128_loop.body",
+  "modinverse.mul_mod_u128",
+  "modinverse.mul_mod_u128_loop",
+  "modinverse.mul_mod_u128_loop.body",
+  "modinverse.add_mod_u128",
+  "modinverse.egcd_u64_loop",
+  "modinverse.egcd_u64_loop.body"
+ ],
+ "allowed_imports": [
+  "ModinverseModinv.Extraction"
+ ],
+ "opens": [
+  "modinverse"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of the `modinverse` crate: the `ModInverse::modinverse(self, modulus)` implementations for every primitive integer type (`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`, `i32`, `i64`, `i128`, `isize`; Lean: `modinverse.<T>.Insts.ModinverseModInverse.modinverse`, e.g. `modinverse.I32.Insts.ModinverseModInverse.modinverse (a m : Std.I32) : RustM (core.option.Option Std.I32)`), the free function `modinverse::modinverse` (Lean: `modinverse.modinverse <instance> a m`) and `modinverse::egcd_u64(a: u64, b: u64) -> (u64, i128, i128)` (Lean: `modinverse.egcd_u64`). The generic `egcd` is not part of this task.",
+ "manual_mutants": [
+  {
+   "note": "modulus 1 returns None instead of the documented Some(0)",
+   "decl": "modinverse.modinverse_u8",
+   "before": "then ok (core.option.Option.Some 0#u8)",
+   "after": "then ok core.option.Option.None"
+  },
+  {
+   "note": "negative i8 values are not canonicalised: computes the inverse of |a| instead of a",
+   "decl": "modinverse.I8.Insts.ModinverseModInverse.modinverse",
+   "before": "then m_abs - a_abs",
+   "after": "then ok a_abs"
+  },
+  {
+   "note": "i16: negative value congruent to -1 is mapped to 1 (wrong residue only for a = -1 mod |m|)",
+   "decl": "modinverse.I16.Insts.ModinverseModInverse.modinverse",
+   "before": "then if a_abs != 0#u16",
+   "after": "then if a_abs != 1#u16"
+  },
+  {
+   "note": "u64: returns Some even when gcd(a, m) != 1",
+   "decl": "modinverse.modinverse_u64",
+   "before": "if r = 1#u64",
+   "after": "if r != 0#u64"
+  },
+  {
+   "note": "u128 Russian-peasant multiplication shifts by 2 (wrong products only on the u128 path)",
+   "decl": "modinverse.mul_mod_u128_loop.body",
+   "before": "let b1 ← b >>> 1#i32",
+   "after": "let b1 ← b >>> 2#i32"
+  },
+  {
+   "note": "u32: value not reduced modulo m first (only wrong when a >= m)",
+   "decl": "modinverse.modinverse_u32",
+   "before": "let r_next ← a % m",
+   "after": "let r_next ← ok a"
+  },
+  {
+   "note": "egcd_u64(a, 0) returns coefficients (0, 1): Bezout identity fails",
+   "decl": "modinverse.egcd_u64",
+   "before": "then ok (a, 1#i128, 0#i128)",
+   "after": "then ok (a, 0#i128, 1#i128)"
+  },
+  {
+   "note": "egcd_u64 when b divides a returns (1, 0) instead of (0, 1)",
+   "decl": "modinverse.egcd_u64",
+   "before": "then ok (r, 0#i128, 1#i128)",
+   "after": "then ok (r, 1#i128, 0#i128)"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "egcd_u64 returns the smallest non-negative Bezout coefficient x (x mod b/g) instead of the one in [0, b) found by the reduced loop; still 0 <= x < b, y in (-2^64, 1]",
+   "edits": [
+    {
+     "replace_decl": "modinverse.egcd_u64",
+     "with_text": "def egcd_u64\n  (a : Std.U64) (b : Std.U64) : RustM (Std.U64 × Std.I128 × Std.I128) := do\n  if b = 0#u64\n  then ok (a, 1#i128, 0#i128)\n  else\n    if b = 1#u64\n    then ok (1#u64, 0#i128, 1#i128)\n    else\n      let r_next ← a % b\n      let (r, s0) ← egcd_u64_loop b b r_next 0#u64 1#u64\n      let step ← b / r\n      let s ← s0 % step\n      if s = 0#u64\n      then ok (r, 0#i128, 1#i128)\n      else\n        let i ← lift (UScalar.cast .U128 a)\n        let i1 ← lift (UScalar.cast .U128 s)\n        let i2 ← i * i1\n        let i3 ← lift (UScalar.cast .U128 r)\n        let num ← i2 - i3\n        let i4 ← lift (UScalar.hcast .I128 s)\n        let i5 ← lift (UScalar.cast .U128 b)\n        let i6 ← num / i5\n        let i7 ← lift (UScalar.hcast .I128 i6)\n        let i8 ← -. i7\n        ok (r, i4, i8)\n"
+    }
+   ]
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected: no fixed upstream bug in the extractable fixed-width API (pre-c105ce7 impls go through the generic num-integer egcd, which does not extract); modelled on the T::MIN overflow footgun documented for the signed egcd path",
+   "note": "i64 computes |m| with a checked negation: modinverse(a, i64::MIN) panics although the fixed-width impls are documented to never overflow / handle T::MIN losslessly",
+   "edits": [
+    {
+     "replace_decl": "modinverse.I64.Insts.ModinverseModInverse.modinverse",
+     "with_text": "def I64.Insts.ModinverseModInverse.modinverse\n  (self : Std.I64) (m : Std.I64) : RustM (core.option.Option Std.I64) := do\n  if m = 0#i64\n  then ok core.option.Option.None\n  else\n    let m_abs ←\n      if m < 0#i64\n      then\n        do\n        let n ← -. m\n        ok (IScalar.hcast .U64 n)\n      else ok (IScalar.hcast .U64 m)\n    let s_abs ←\n      if self < 0#i64\n      then\n        do\n        let i ← lift (IScalar.hcast .U64 self)\n        core.num.U64.wrapping_sub 0#u64 i\n      else ok (IScalar.hcast .U64 self)\n    let a_abs ← s_abs % m_abs\n    let a_u ←\n      if self < 0#i64\n      then if a_abs != 0#u64\n           then m_abs - a_abs\n           else ok a_abs\n      else ok a_abs\n    let o ← modinverse_u64 a_u m_abs\n    match o with\n    | core.option.Option.None => ok core.option.Option.None\n    | core.option.Option.Some x =>\n      let i ← lift (UScalar.hcast .I64 x)\n      ok (core.option.Option.Some i)\n\n"
+    }
+   ]
+  },
+  {
+   "id": "inj2",
+   "kind": "injected",
+   "source": "injected: egcd_u64 was added in its final form (d27c99c); no fixed upstream bug",
+   "note": "egcd_u64 forgets to negate y = (g - a*x)/b: the documented exact Bezout identity a*x + b*y = g fails whenever x != 0",
+   "edits": [
+    {
+     "decl": "modinverse.egcd_u64",
+     "before": "let i8 ← -. i7",
+     "after": "let i8 ← ok i7"
+    }
+   ]
+  }
+ ]
+}

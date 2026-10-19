@@ -1,0 +1,128 @@
+{
+ "id": "slab/slab",
+ "package": "SlabSlab",
+ "module_prefix": "Benchmark.V2.Slab.Slab",
+ "rust_dir": "rust/slab/slab",
+ "api": [
+  "slab.Slab.new",
+  "slab.Slab.with_capacity",
+  "slab.Slab.insert",
+  "slab.Slab.vacant_key",
+  "slab.Slab.vacant_entry",
+  "slab.VacantEntry.impl.key",
+  "slab.VacantEntry.insert",
+  "slab.Slab.try_remove",
+  "slab.Slab.remove",
+  "slab.Slab.get",
+  "slab.Slab.get_mut",
+  "slab.Slab.contains",
+  "slab.Slab.impl.len",
+  "slab.Slab.is_empty",
+  "slab.Slab.clear"
+ ],
+ "mutation_roots": [
+  "slab.Slab.new",
+  "slab.Slab.with_capacity",
+  "slab.Slab.insert",
+  "slab.Slab.vacant_key",
+  "slab.Slab.vacant_entry",
+  "slab.VacantEntry.impl.key",
+  "slab.VacantEntry.insert",
+  "slab.Slab.try_remove",
+  "slab.Slab.remove",
+  "slab.Slab.get",
+  "slab.Slab.get_mut",
+  "slab.Slab.contains",
+  "slab.Slab.impl.len",
+  "slab.Slab.is_empty",
+  "slab.Slab.clear"
+ ],
+ "forbidden_constants": [
+  "slab.Slab.insert_at"
+ ],
+ "allowed_imports": [
+  "SlabSlab.Extraction"
+ ],
+ "opens": [
+  "slab"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of `slab::Slab<T>` instantiated at `T = u32`: `new`, `with_capacity`, `insert`, `vacant_key`, `vacant_entry` with `VacantEntry::key` and `VacantEntry::insert`, `try_remove`, `remove`, `get`, `get_mut`, `contains`, `len`, `is_empty` and `clear`. In Lean these are `slab.Slab.new Std.U32`, `slab.Slab.with_capacity Std.U32 c`, `slab.Slab.insert s x`, `slab.Slab.vacant_key s`, `slab.Slab.vacant_entry s`, `slab.VacantEntry.impl.key e`, `slab.VacantEntry.insert e x`, `slab.Slab.try_remove s k`, `slab.Slab.remove s k`, `slab.Slab.get s k`, `slab.Slab.get_mut s k`, `slab.Slab.contains s k`, `slab.Slab.impl.len s`, `slab.Slab.is_empty s`, `slab.Slab.clear s`. Mutable borrows are threaded functionally: `&mut self` methods return the new slab (paired with their result); `get_mut` and `vacant_entry` return the borrowed value together with a backward function that rebuilds the slab (resp. entry) from the final value of the borrow.",
+ "manual_mutants": [
+  {
+   "note": "appending a new slot does not advance the next vacant key: the following insert hits an occupied slot",
+   "decl": "slab.Slab.insert_at",
+   "before": "let i2 ← key + 1#usize",
+   "after": "let i2 ← ok key"
+  },
+  {
+   "note": "freed slot is not pushed on the vacant list (leak): keys are never reused, the slab grows while it has holes",
+   "decl": "slab.Slab.try_remove",
+   "before": "ok (o1, { entries := v, len := i, next := key })",
+   "after": "ok (o1, { entries := v, len := i, next := self.next })"
+  },
+  {
+   "note": "try_remove forgets to decrement len",
+   "decl": "slab.Slab.try_remove",
+   "before": "let i ← self.len - 1#usize",
+   "after": "let i ← ok self.len"
+  },
+  {
+   "note": "contains reports vacant slots as present",
+   "decl": "slab.Slab.contains",
+   "before": "| Entry.Vacant _ => ok false",
+   "after": "| Entry.Vacant _ => ok true"
+  },
+  {
+   "note": "clear does not reset the next vacant key: the first insert after clear panics",
+   "decl": "slab.Slab.clear",
+   "before": "ok { entries := v, len := 0#usize, next := 0#usize }",
+   "after": "ok { entries := v, len := 0#usize, next := self.next }"
+  },
+  {
+   "note": "clear forgets to reset len",
+   "decl": "slab.Slab.clear",
+   "before": "ok { entries := v, len := 0#usize, next := 0#usize }",
+   "after": "ok { entries := v, len := self.len, next := 0#usize }"
+  },
+  {
+   "note": "is_empty tests the next vacant key instead of the number of values",
+   "decl": "slab.Slab.is_empty",
+   "before": "ok (self.len = 0#usize)",
+   "after": "ok (self.next = 0#usize)"
+  },
+  {
+   "note": "get_mut on a vacant key overwrites the vacant-list link (corrupts the free list)",
+   "decl": "slab.Slab.get_mut",
+   "before": "let s1 := get_mut_back o",
+   "after": "let s1 := get_mut_back (core.option.Option.Some (Entry.Vacant 0#usize))"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "different (valid) reuse order: a released slot is linked in second on the vacant list (below the current top) instead of on top; every hole is still reused before the slab grows, insert still returns vacant_key()",
+   "edits": [
+    {
+     "replace_decl": "slab.Slab.try_remove",
+     "with_text": "def Slab.try_remove\n  {T : Type} (self : Slab T) (key : Std.Usize) :\n  RustM ((core.option.Option T) × (Slab T))\n  := do\n  let s ← alloc.vec.Vec.Insts.CoreOpsDerefDerefSlice.deref self.entries\n  let o ←\n    core.slice.Slice.get (core.Usize.Insts.CoreSliceIndexSliceIndexSliceT\n      (Entry T)) s key\n  match o with\n  | core.option.Option.None => ok (core.option.Option.None, self)\n  | core.option.Option.Some e =>\n    match e with\n    | Entry.Vacant _ => ok (core.option.Option.None, self)\n    | Entry.Occupied val =>\n      let i ← self.len - 1#usize\n      let n ← alloc.vec.Vec.len self.entries\n      if self.next < n\n      then\n        let o2 ←\n          core.slice.Slice.get (core.Usize.Insts.CoreSliceIndexSliceIndexSliceT\n            (Entry T)) s self.next\n        match o2 with\n        | core.option.Option.Some (Entry.Vacant nn) =>\n          let (_, back1) ←\n            alloc.vec.Vec.Insts.CoreOpsIndexIndexMut.index_mut\n              (core.Usize.Insts.CoreSliceIndexSliceIndexSliceT (Entry T))\n              self.entries key\n          let v1 := back1 (Entry.Vacant nn)\n          let (_, back2) ←\n            alloc.vec.Vec.Insts.CoreOpsIndexIndexMut.index_mut\n              (core.Usize.Insts.CoreSliceIndexSliceIndexSliceT (Entry T))\n              v1 self.next\n          let v2 := back2 (Entry.Vacant key)\n          ok (core.option.Option.Some val, { entries := v2, len := i, next := self.next })\n        | _ => fail panic\n      else\n        let (_, back1) ←\n          alloc.vec.Vec.Insts.CoreOpsIndexIndexMut.index_mut\n            (core.Usize.Insts.CoreSliceIndexSliceIndexSliceT (Entry T))\n            self.entries key\n        let v1 := back1 (Entry.Vacant self.next)\n        ok (core.option.Option.Some val, { entries := v1, len := i, next := key })\n"
+    }
+   ]
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/tokio-rs/slab/commit/44f9f41a1680e69db7d370d1912898fb0f90b1f8",
+   "note": "Removing an already-vacant key overwrote the slot with Vacant(next) (fixed upstream in 2016: 'bugfix/test for remove when called on empty slot'; the pre-fix code predates the current API and cannot be extracted, so the same faulty logic is re-applied to the current try_remove's vacant branch). The vacant list becomes cyclic/corrupted: later inserts return an occupied key or panic, and try_remove on an absent key is no longer a no-op.",
+   "edits": [
+    {
+     "decl": "slab.Slab.try_remove",
+     "before": "let s1 := get_mut_back o",
+     "after": "let s1 := get_mut_back (core.option.Option.Some (Entry.Vacant self.next))"
+    }
+   ]
+  }
+ ]
+}

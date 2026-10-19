@@ -1,0 +1,123 @@
+{
+ "id": "integer_sqrt/isqrt",
+ "package": "IntegerSqrtIsqrt",
+ "module_prefix": "Benchmark.V2.IntegerSqrt.Isqrt",
+ "rust_dir": "rust/integer_sqrt/isqrt",
+ "api": [
+  "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.I8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.IntegerSquareRoot.integer_sqrt.default"
+ ],
+ "mutation_roots": [
+  "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.I8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+  "integer_sqrt.IntegerSquareRoot.integer_sqrt.default"
+ ],
+ "forbidden_constants": [
+  "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+  "integer_sqrt.I8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.I8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.I8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.I8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+  "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+  "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+  "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+  "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+  "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0",
+  "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop0.body",
+  "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1",
+  "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body"
+ ],
+ "allowed_imports": [
+  "IntegerSqrtIsqrt.Extraction"
+ ],
+ "opens": [
+  "integer_sqrt"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public trait `integer_sqrt::IntegerSquareRoot` (methods `integer_sqrt` and `integer_sqrt_checked`) for the implementing types `u8`, `i8`, `u32`, `i32`, `u64`, `i64` and `u128`. In Lean (namespace `integer_sqrt`) `integer_sqrt_checked` on `x : Std.U64` is `U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked x` (likewise `U8`, `I8`, `U32`, `I32`, `I64`, `U128`), returning `core.option.Option` (= Lean `Option`), and `integer_sqrt` is the trait default method `IntegerSquareRoot.integer_sqrt.default U64.Insts.Integer_sqrtIntegerSquareRoot x`.",
+ "manual_mutants": [
+  {
+   "note": "i32: when (2r+1)^2 overflows, the candidate digit is accepted instead of rejected (only inputs near i32::MAX)",
+   "decl": "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+   "before": "| core.option.Option.None => ok result1",
+   "after": "| core.option.Option.None => ok candidate_result"
+  },
+  {
+   "note": "i64: the negativity test is off by one, so -1 gets a root (Some 0) instead of None",
+   "decl": "integer_sqrt.I64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+   "before": "if self < 0#i64",
+   "after": "if self < (-1)#i64"
+  },
+  {
+   "note": "u64: digit acceptance uses < instead of <=, wrong at (partial) perfect squares",
+   "decl": "integer_sqrt.U64.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+   "before": "if cr_square <= i",
+   "after": "if cr_square < i"
+  },
+  {
+   "note": "u128: the digit loop steps the shift by 1 instead of 2 (odd shifts), wrong digits for large inputs",
+   "decl": "integer_sqrt.U128.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+   "before": "let shift1 ← core.num.U32.saturating_sub shift 2#u32",
+   "after": "let shift1 ← core.num.U32.saturating_sub shift 1#u32"
+  },
+  {
+   "note": "u32: the starting shift is not backed off (one extra leading digit pair); shifting by >= 32 panics for the largest inputs",
+   "decl": "integer_sqrt.U32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+   "before": "let shift1 ← shift - 2#u32",
+   "after": "let shift1 ← ok shift"
+  },
+  {
+   "note": "i32: integer_sqrt_checked returns None for 0 (zero treated as negative)",
+   "decl": "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked",
+   "before": "if self < 0#i32",
+   "after": "if self <= 0#i32"
+  },
+  {
+   "note": "u8: the last digit (shift 0) is never computed: result is the root of x/4 doubled",
+   "decl": "integer_sqrt.U8.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+   "before": "if shift = 0#u32",
+   "after": "if shift <= 2#u32"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/derekdreery/integer-sqrt-rs/commit/9e6ffa6f8134cd35a985857ae3f762992c3a51dd",
+   "note": "before the fix the digit-by-digit loop squared the candidate digit with plain multiplication; for i32 inputs close to i32::MAX (e.g. 2147483647) (2r+1)^2 overflows and the call panics instead of returning the integer square root (46340), breaking the documented no-panic contract for non-negative input",
+   "edits": [
+    {
+     "replace_decl": "integer_sqrt.I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body",
+     "with_text": "def I32.Insts.Integer_sqrtIntegerSquareRoot.integer_sqrt_checked_loop1.body\n  (self : Std.I32) (shift : Std.U32) (result : Std.I32) :\n  RustM (ControlFlow (Std.U32 × Std.I32) Std.I32)\n  := do\n  let result1 ← result <<< 1#i32\n  let candidate_result ← result1 + 1#i32\n  let i ← candidate_result * candidate_result\n  let i1 ← self >>> shift\n  if i <= i1\n  then\n    if shift = 0#u32\n    then ok (done candidate_result)\n    else\n      let shift1 ← core.num.U32.saturating_sub shift 2#u32\n      ok (cont (shift1, candidate_result))\n  else\n    if shift = 0#u32\n    then ok (done result1)\n    else\n      let shift1 ← core.num.U32.saturating_sub shift 2#u32\n      ok (cont (shift1, result1))\n"
+    }
+   ]
+  }
+ ]
+}

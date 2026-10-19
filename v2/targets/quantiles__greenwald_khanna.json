@@ -81,5 +81,20 @@
    "before": "if i <= 10#usize",
    "after": "if i <= 3#usize"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #0); no usable historical fix found upstream",
+   "note": "plausible comparison regression in the binary-search step of find_insert_pos: elements equal to the pivot send the search into the left half, so for slices longer than 10 the returned position can precede elements equal to v, contradicting the documented contract (element at i-1 <= v < element at i) and disagreeing with find_insert_pos_linear",
+   "edits": [
+    {
+     "decl": "quantiles.greenwald_khanna.find_insert_pos",
+     "before": "core.Shared1A.Insts.CoreCmpPartialOrdShared0B.lt",
+     "after": "(fun inst a b => do let r ← core.Shared1A.Insts.CoreCmpPartialOrdShared0B.gt inst a b; ok (!r))"
+    }
+   ]
+  }
  ]
 }

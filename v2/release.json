@@ -1,0 +1,189 @@
+{
+ "threshold": 0.97,
+ "kept": [
+  "adler32/rolling@bug1",
+  "adler32/rolling@bug2",
+  "arxid/permute@bug1",
+  "byteorder_lite/uint@clean",
+  "circular_queue/queue@inj1",
+  "cobs/state@bug1",
+  "cobs/state@bug2",
+  "crypto_bigint/uint",
+  "dlt_parse/storage_header",
+  "fixedbitset/bitset",
+  "fixedbitset/bitset@hist1",
+  "jiff/civil@clean",
+  "leb128fmt/codec@bug2",
+  "leb128fmt/codec@clean",
+  "lilliput/int_value",
+  "order_stat/quickselect",
+  "plonky3/monty31_utils@bug1",
+  "rev_bits/u32@clean",
+  "sigma_ser/zigzag@clean",
+  "static_filez/slice",
+  "static_filez/slice@bug1",
+  "tinyset/fits64@clean"
+ ],
+ "dropped": {
+  "arxid/permute": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "atoi/radix": {
+   "claude-opus-5-5": 1.0
+  },
+  "blue/scrunch_binary_search": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 0.0
+  },
+  "byteorder/endian": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "byteorder_lite/uint": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 0.944
+  },
+  "circular_queue/queue": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "circular_queue/queue@inj2": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "cobs/state": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "crc32fast/baseline": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "crc32fast/baseline@bug1": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 1.0
+  },
+  "etherparse/link": {
+   "claude-opus-5-5": 0.972,
+   "glm-5.3-flash": 0.0
+  },
+  "etherparse/transport": {
+   "claude-opus-5-5": 1.0,
+   "glm-5.3-flash": 0.91
+  },
+  "fastdivide/divider": {
+   "claude-opus-5-5": 1.0
+  },
+  "indexed_bitvec/word": {
+   "claude-opus-5-5": 1.0
+  },
+  "jiff/civil": {
+   "claude-opus-5-5": 1.0
+  },
+  "jiff/civil@bug1": {
+   "claude-opus-5-5": 0.983
+  },
+  "leb128fmt/codec": {
+   "claude-opus-5-5": 1.0
+  },
+  "leb128fmt/codec@bug1": {
+   "claude-opus-5-5": 1.0
+  },
+  "nt_time/file_time": {
+   "claude-opus-5-5": 1.0
+  },
+  "openpql_prelude/util": {
+   "claude-opus-5-5": 1.0
+  },
+  "plonky3/monty31_utils": {
+   "claude-opus-5-5": 1.0
+  },
+  "quantiles/greenwald_khanna": {
+   "claude-opus-5-5": 1.0
+  },
+  "rev_bits/u32": {
+   "claude-opus-5-5": 1.0
+  },
+  "ruint/uint_add": {
+   "claude-opus-5-5": 1.0
+  },
+  "rust_crdt/dot": {
+   "claude-opus-5-5": 1.0
+  },
+  "sdset/duo_union": {
+   "claude-opus-5-5": 1.0
+  },
+  "sigma_ser/zigzag": {
+   "claude-opus-5-5": 1.0
+  },
+  "succinct/broadword": {
+   "claude-opus-5-5": 1.0
+  },
+  "tinyset/fits64": {
+   "claude-opus-5-5": 1.0
+  },
+  "uint/u64": {
+   "claude-opus-5-5": 1.0
+  },
+  "use_combinatorics/counting": {
+   "claude-opus-5-5": 1.0
+  },
+  "varing/packable": {
+   "claude-opus-5-5": 1.0
+  }
+ },
+ "unevaluated": [
+  "adler32/rolling",
+  "atoi/radix@bug1",
+  "blue/scrunch_binary_search@inj1",
+  "byteorder/endian@bug1",
+  "byteorder_lite/uint@inj1",
+  "crc/reflected",
+  "crc/reflected@bug1",
+  "crc/reflected@bug2",
+  "crc16/presets",
+  "crc16/presets@bug1",
+  "crc16/presets@clean",
+  "crypto_bigint/uint@inj1",
+  "dashu/base",
+  "dashu/base@bug1",
+  "datealgo/core",
+  "datealgo/core@bug1",
+  "datealgo/core@bug2",
+  "dlt_parse/storage_header@bug1",
+  "etherparse/link@inj1",
+  "etherparse/transport@inj1",
+  "fastdivide/divider@inj1",
+  "goldilocks/field",
+  "goldilocks/field@bug1",
+  "indexed_bitvec/word@inj1",
+  "integer_sqrt/isqrt",
+  "integer_sqrt/isqrt@bug1",
+  "lilliput/int_value@inj1",
+  "memchr/twoway",
+  "memchr/twoway@bug1",
+  "modinverse/modinv",
+  "modinverse/modinv@clean",
+  "modinverse/modinv@inj1",
+  "modinverse/modinv@inj2",
+  "nt_time/file_time@inj1",
+  "openpql_prelude/util@inj1",
+  "order_stat/quickselect@inj1",
+  "pulz_bitset/bitset",
+  "pulz_bitset/bitset@bug1",
+  "quantiles/greenwald_khanna@inj1",
+  "rev_bits/u32@inj1",
+  "ruint/uint_add@inj1",
+  "rust_crdt/dot@inj1",
+  "sdset/duo_union@inj1",
+  "sigma_ser/zigzag@inj1",
+  "slab/slab",
+  "slab/slab@bug1",
+  "succinct/broadword@inj1",
+  "tinyset/fits64@bug1",
+  "uint/u64@bug1",
+  "use_combinatorics/counting@inj1",
+  "varing/packable@inj1"
+ ]
+}

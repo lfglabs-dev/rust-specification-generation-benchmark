@@ -115,5 +115,20 @@
    "after": "ok (result1, borrow_1)",
    "note": "borrow lost when two limbs are equal and a borrow comes in (only visible with rippling borrows)"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #0); no usable historical fix found upstream",
+   "note": "overflow flag of overflowing_add only reports the carry out of the last limb and ignores bits carried into the masked-off part of the top limb: for widths that are not a multiple of 64 an overflowing sum is reported as non-overflowing (checked_add returns Some of a wrapped value, saturating_add / strict_add / `+` do not saturate / panic)",
+   "edits": [
+    {
+     "decl": "ruint.add.Uint.overflowing_add",
+     "before": "ok (u, carry || (i1 > i2))",
+     "after": "ok (u, carry)"
+    }
+   ]
+  }
  ]
 }

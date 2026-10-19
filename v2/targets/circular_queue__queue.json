@@ -1,0 +1,112 @@
+{
+ "id": "circular_queue/queue",
+ "package": "CircularQueueQueue",
+ "module_prefix": "Benchmark.V2.CircularQueue.Queue",
+ "rust_dir": "rust/circular_queue/queue",
+ "api": [
+  "circular_queue.CircularQueue.with_capacity",
+  "circular_queue.CircularQueue.len",
+  "circular_queue.CircularQueue.is_empty",
+  "circular_queue.CircularQueue.is_full",
+  "circular_queue.CircularQueue.impl.capacity",
+  "circular_queue.CircularQueue.clear",
+  "circular_queue.CircularQueue.push",
+  "circular_queue.CircularQueue.iter",
+  "circular_queue.CircularQueue.asc_iter",
+  "circular_queue.CircularQueue.into_vec"
+ ],
+ "mutation_roots": [
+  "circular_queue.CircularQueue.with_capacity",
+  "circular_queue.CircularQueue.len",
+  "circular_queue.CircularQueue.is_empty",
+  "circular_queue.CircularQueue.is_full",
+  "circular_queue.CircularQueue.impl.capacity",
+  "circular_queue.CircularQueue.clear",
+  "circular_queue.CircularQueue.push",
+  "circular_queue.CircularQueue.iter",
+  "circular_queue.CircularQueue.asc_iter",
+  "circular_queue.CircularQueue.into_vec"
+ ],
+ "forbidden_constants": [],
+ "allowed_imports": [
+  "CircularQueueQueue.Extraction"
+ ],
+ "opens": [
+  "circular_queue"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of `circular_queue::CircularQueue<T>` instantiated at `T = u32`: `with_capacity`, `len`, `is_empty`, `is_full`, `capacity`, `clear`, `push`, `iter`, `asc_iter` and `into_vec`. In Lean these are `CircularQueue.with_capacity Std.U32 c`, `CircularQueue.len q`, `CircularQueue.is_empty q`, `CircularQueue.is_full q`, `CircularQueue.impl.capacity q`, `CircularQueue.clear q`, `CircularQueue.push q x`, `CircularQueue.iter q`, `CircularQueue.asc_iter q` and `CircularQueue.into_vec q` (`&mut self` is threaded functionally: `clear` returns the new queue, `push` returns the pair (returned value, new queue)); `iter`/`asc_iter` return CoreModels iterator adapters (`Chain`/`Rev` over slice iterators) that can be stepped with the corresponding `Iterator` instances' `next`.",
+ "manual_mutants": [
+  {
+   "note": "zero-capacity guard removed: pushing into a zero-capacity queue panics",
+   "decl": "circular_queue.CircularQueue.push",
+   "before": "if i = 0#usize",
+   "after": "if false"
+  },
+  {
+   "note": "insertion index is not wrapped around: the second lap overwrites out of bounds",
+   "decl": "circular_queue.CircularQueue.push",
+   "before": "let i3 ← i1 % i2",
+   "after": "let i3 ← ok i1"
+  },
+  {
+   "note": "push into a full queue returns the new value instead of the overwritten oldest one",
+   "decl": "circular_queue.CircularQueue.push",
+   "before": "ok (v1, core.option.Option.Some t1)",
+   "after": "ok (v1, core.option.Option.Some x)"
+  },
+  {
+   "note": "clear forgets to reset the insertion index",
+   "decl": "circular_queue.CircularQueue.clear",
+   "before": "ok { self with data := v, insertion_index := 0#usize }",
+   "after": "ok { self with data := v }"
+  },
+  {
+   "note": "asc_iter chains the two halves in the wrong order (only wrong after wrap-around)",
+   "decl": "circular_queue.CircularQueue.asc_iter",
+   "before": "(core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT T)) i i1",
+   "after": "(core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT T)) i1 i"
+  },
+  {
+   "note": "into_vec forgets to reverse the lower part",
+   "decl": "circular_queue.CircularQueue.into_vec",
+   "before": "let s3 ← core.slice.Slice.reverse s2",
+   "after": "let s3 ← ok s2"
+  },
+  {
+   "note": "is_full compares against capacity - 1 (reports full one element early)",
+   "decl": "circular_queue.CircularQueue.is_full",
+   "before": "ok (i = i1)",
+   "after": "ok (i.val = i1.val + 1)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug: the issue/PR history of YaLTeR/circular-queue only contains features — zero capacity, is_full, popped values, into_vec)",
+   "note": "push into a full queue returns the newly pushed value instead of the overwritten oldest one (docs: 'In case an old value is overwritten, it will be returned')",
+   "edits": [
+    {
+     "decl": "circular_queue.CircularQueue.push",
+     "before": "ok (v1, core.option.Option.Some t1)",
+     "after": "ok (v1, core.option.Option.Some x)"
+    }
+   ]
+  },
+  {
+   "id": "inj2",
+   "kind": "injected",
+   "source": "injected (see inj1)",
+   "note": "asc_iter chains the two halves in the wrong order: after wrap-around it no longer goes from the oldest to the newest item (and is no longer the reverse of iter)",
+   "edits": [
+    {
+     "decl": "circular_queue.CircularQueue.asc_iter",
+     "before": "(core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT T)) i i1",
+     "after": "(core.slice.iter.Iter.Insts.CoreIterTraitsIteratorIteratorSharedAT T)) i1 i"
+    }
+   ]
+  }
+ ]
+}

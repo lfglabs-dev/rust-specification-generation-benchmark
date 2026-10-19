@@ -131,5 +131,19 @@
    "after": "massert (overflow = overflow)",
    "note": "`-=` wraps on underflow instead of panicking"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/paritytech/parity-common/commit/b37d0b312d39fa47c61c4430b30ca87d90e45a08 (PR #611 \"uint: Fix overflowing_neg by implementing two's complement\")",
+   "note": "pre-fix overflowing_neg returns the bitwise NOT `!self` for non-zero values instead of the two's complement `!self + 1`: the result is off by one (e.g. 1.overflowing_neg() = (MAX-1, true) instead of (MAX, true)), contradicting the primitive-integer `overflowing_neg` semantics the API mirrors (x + neg(x) wraps to 0) and making checked_neg/wrapping-style identities fail",
+   "edits": [
+    {
+     "replace_decl": "ethereum_types.uint.U64.overflowing_neg",
+     "with_text": "def uint.U64.overflowing_neg (self : uint.U64) : RustM (uint.U64 × Bool) := do\n  let b ← uint.U64.is_zero self\n  if b\n  then ok (self, false)\n  else let u ← uint.U64.Insts.CoreOpsBitNotU64.not self\n       ok (u, true)"
+    }
+   ]
+  }
  ]
 }

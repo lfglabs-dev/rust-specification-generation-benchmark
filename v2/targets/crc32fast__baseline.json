@@ -1,0 +1,104 @@
+{
+ "id": "crc32fast/baseline",
+ "package": "Crc32fastBaseline",
+ "module_prefix": "Benchmark.V2.Crc32fast.Baseline",
+ "rust_dir": "rust/crc32fast/baseline",
+ "api": [
+  "crc32fast.baseline.update_slow",
+  "crc32fast.baseline.update_fast_16"
+ ],
+ "mutation_roots": [
+  "crc32fast.baseline.update_slow",
+  "crc32fast.baseline.update_fast_16"
+ ],
+ "forbidden_constants": [
+  "crc32fast.baseline.fold_16",
+  "crc32fast.baseline.update_slow_loop",
+  "crc32fast.baseline.update_slow_loop.body",
+  "crc32fast.baseline.update_fast_16_loop0",
+  "crc32fast.baseline.update_fast_16_loop0.body",
+  "crc32fast.baseline.update_fast_16_loop0_loop0",
+  "crc32fast.baseline.update_fast_16_loop0_loop0.body",
+  "crc32fast.baseline.update_fast_16_loop1",
+  "crc32fast.baseline.update_fast_16_loop1.body",
+  "crc32fast.table.CRC32_TABLE"
+ ],
+ "allowed_imports": [
+  "Crc32fastBaseline.Extraction"
+ ],
+ "opens": [
+  "crc32fast"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Crc32fast.Baseline.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Crc32fast.Baseline.Oracle.fast_16_is_the_same_as_slow"
+ ],
+ "intent": "Specify the baseline (table-driven, no SIMD) checksum update functions of `crc32fast::baseline`: `update_slow(prev: u32, buf: &[u8]) -> u32` and `update_fast_16(prev: u32, buf: &[u8]) -> u32` (Lean: `baseline.update_slow`, `baseline.update_fast_16`).",
+ "manual_mutants": [
+  {
+   "note": "fold_16 decodes the first word big-endian (only inputs of at least 16 bytes are affected)",
+   "decl": "crc32fast.baseline.fold_16",
+   "before": "let i4 ← core.num.U32.from_le_bytes (Array.make 4#usize [ i, i1, i2, i3 ])",
+   "after": "let i4 ← core.num.U32.from_be_bytes (Array.make 4#usize [ i, i1, i2, i3 ])"
+  },
+  {
+   "note": "fold_16 forgets to xor the running crc into the first word (a fresh hash of 16 zero-prefixed bytes may still look plausible)",
+   "decl": "crc32fast.baseline.fold_16",
+   "before": "let w0 ← lift (i4 ^^^ crc)",
+   "after": "let w0 ← ok i4"
+  },
+  {
+   "note": "fold_16 looks up byte 10 in the table for byte 9's slot",
+   "decl": "crc32fast.baseline.fold_16",
+   "before": "let a5 ← Array.index_usize table.CRC32_TABLE 5#usize",
+   "after": "let a5 ← Array.index_usize table.CRC32_TABLE 6#usize"
+  },
+  {
+   "note": "corrupted entry 255 of slice-by-16 table 6 (reached only through fold_16 with byte 0xFF at offset 9 of a block)",
+   "decl": "crc32fast.table.CRC32_TABLE",
+   "before": "94984985#u32, 876691844#u32, 2453031472#u32",
+   "after": "94984985#u32, 876691844#u32, 2453031473#u32"
+  },
+  {
+   "note": "corrupted entry 255 of the byte table (wrong only when (crc as u8) ^ byte == 0xFF)",
+   "decl": "crc32fast.table.CRC32_TABLE",
+   "before": "3272380065#u32, 1510334235#u32, 755167117#u32",
+   "after": "3272380065#u32, 1510334235#u32, 755167116#u32"
+  },
+  {
+   "note": "fast path hands the folded state to update_slow without re-inverting it",
+   "decl": "crc32fast.baseline.update_fast_16",
+   "before": "let i ← lift (~~~ crc2)",
+   "after": "let i ← ok crc2"
+  },
+  {
+   "note": "the 16-byte tail loop skips 16 bytes without folding them",
+   "decl": "crc32fast.baseline.update_fast_16_loop1.body",
+   "before": "let crc1 ← baseline.fold_16 crc buf",
+   "after": "let crc1 ← ok crc"
+  },
+  {
+   "note": "update_slow does not invert the incoming state: correct for prev = 0xFFFFFFFF only... (and wrong continuation)",
+   "decl": "crc32fast.baseline.update_slow",
+   "before": "let crc ← lift (~~~ prev)",
+   "after": "let crc ← ok prev"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/srijs/rust-crc32fast/commit/210ad2198b3dfd804fc3ef5f25bc6d8a0fe1a13c (fix endianness bug in fast baseline impl)",
+   "note": "pre-fix update_fast_16 xors the running crc into the first four bytes through `u32::from_le(crc)`, which byte-swaps the state on big-endian targets (rendered here as the big-endian behaviour: crc byte-swapped before the xor). Blocks of >= 16 bytes then get a wrong checksum unless the state is a byte palindrome; breaks fast == slow, CRC-32 test vectors and the incremental law",
+   "edits": [
+    {
+     "decl": "crc32fast.baseline.fold_16",
+     "before": "let w0 ← lift (i4 ^^^ crc)",
+     "after": "let w0 ← (do let cb ← core.num.U32.to_le_bytes crc; let c ← core.num.U32.from_be_bytes cb; ok (i4 ^^^ c))"
+    }
+   ]
+  }
+ ]
+}

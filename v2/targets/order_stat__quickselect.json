@@ -35,8 +35,8 @@
   {
    "note": "right-hand recursion uses k - pivot instead of k - pivot - 1 (off by one)",
    "decl": "order_stat.quickselect.select",
-   "before": "let i3 ← i2 - 1#usize",
-   "after": "let i3 ← ok i2"
+   "before": "let i3 \u2190 i2 - 1#usize",
+   "after": "let i3 \u2190 ok i2"
   },
   {
    "note": "when k lands exactly on the pivot the unpartitioned slice is returned",
@@ -47,38 +47,38 @@
   {
    "note": "small-slice sort never compares against the last element",
    "decl": "order_stat.quickselect.select_loop0.body",
-   "before": "let i2 ← core.slice.Slice.len x",
-   "after": "let i2 ← (do let n ← core.slice.Slice.len x; n - 1#usize)"
+   "before": "let i2 \u2190 core.slice.Slice.len x",
+   "after": "let i2 \u2190 (do let n \u2190 core.slice.Slice.len x; n - 1#usize)"
   },
   {
    "note": "partition forgets to move the pivot into its final position",
    "decl": "order_stat.quickselect.partition",
-   "before": "let x2 ← core.slice.Slice.swap x1 store i1",
-   "after": "let x2 ← ok x1"
+   "before": "let x2 \u2190 core.slice.Slice.swap x1 store i1",
+   "after": "let x2 \u2190 ok x1"
   },
   {
    "note": "small-slice (len < 5) sort compares in the wrong direction (sorts descending)",
    "decl": "order_stat.quickselect.select_loop0_loop0.body",
-   "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t t1",
-   "after": "let b ← corecmpOrdInst.PartialOrdInst.lt t1 t"
+   "before": "let b \u2190 corecmpOrdInst.PartialOrdInst.lt t t1",
+   "after": "let b \u2190 corecmpOrdInst.PartialOrdInst.lt t1 t"
   },
   {
    "note": "partition moves elements greater than the pivot to the left",
    "decl": "order_stat.quickselect.partition_loop.body",
-   "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t elem",
-   "after": "let b ← corecmpOrdInst.PartialOrdInst.gt t elem"
+   "before": "let b \u2190 corecmpOrdInst.PartialOrdInst.lt t elem",
+   "after": "let b \u2190 corecmpOrdInst.PartialOrdInst.gt t elem"
   },
   {
    "note": "partition overwrites x[store] with the pivot instead of swapping: still partitioned, but an element is lost and the pivot duplicated",
    "decl": "order_stat.quickselect.partition",
-   "before": "let x2 ← core.slice.Slice.swap x1 store i1",
-   "after": "let x2 ← (do let p ← Slice.index_usize x1 i1; Slice.update x1 store p)"
+   "before": "let x2 \u2190 core.slice.Slice.swap x1 store i1",
+   "after": "let x2 \u2190 (do let p \u2190 Slice.index_usize x1 i1; Slice.update x1 store p)"
   },
   {
    "note": "small-slice sort copies the smaller element instead of swapping: output sorted but not a permutation of the input",
    "decl": "order_stat.quickselect.select_loop0_loop0.body",
-   "before": "then let x1 ← core.slice.Slice.swap x i j",
-   "after": "then let x1 ← (do let t ← Slice.index_usize x j; Slice.update x i t)"
+   "before": "then let x1 \u2190 core.slice.Slice.swap x i j",
+   "after": "then let x1 \u2190 (do let t \u2190 Slice.index_usize x j; Slice.update x i t)"
   }
  ],
  "sibling_mutants": [
@@ -91,8 +91,23 @@
   {
    "note": "partition sends elements equal to the pivot to the left side",
    "decl": "order_stat.quickselect.partition_loop.body",
-   "before": "let b ← corecmpOrdInst.PartialOrdInst.lt t elem",
-   "after": "let b ← corecmpOrdInst.PartialOrdInst.le t elem"
+   "before": "let b \u2190 corecmpOrdInst.PartialOrdInst.lt t elem",
+   "after": "let b \u2190 corecmpOrdInst.PartialOrdInst.le t elem"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #0; src/quickselect.rs unchanged since 2015)",
+   "note": "right-hand recursion uses k - pivot instead of k - pivot - 1: select can leave the wrong element at position k",
+   "edits": [
+    {
+     "decl": "order_stat.quickselect.select",
+     "before": "let i3 \u2190 i2 - 1#usize",
+     "after": "let i3 \u2190 ok i2"
+    }
+   ]
   }
  ]
 }

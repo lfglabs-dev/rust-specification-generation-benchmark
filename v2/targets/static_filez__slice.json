@@ -64,5 +64,19 @@
    "before": "let i ← lift (UScalar.cast .U64 length)",
    "after": "let i ← lift (UScalar.cast .U64 (UScalar.cast .U32 length))"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/killercup/static-filez/commit/f0147df297e1492ffc26ce50437fa524453ec193 (\"fix slice\")",
+   "note": "operator precedence: `input & 0xFFFF_FFFF_0000_0000 >> 32` parses as `input & (0xFFFF_FFFF_0000_0000 >> 32)`, so the offset returned by unpack_from_u64 is the low 32 bits (= the length) instead of the high 32 bits: unpack no longer inverts pack_in_u64 (round trip broken for every offset != length)",
+   "edits": [
+    {
+     "replace_decl": "static_filez.slice.unpack_from_u64",
+     "with_text": "def slice.unpack_from_u64\n  (input : Std.U64) : RustM (Std.Usize × Std.Usize) := do\n  let i ← 18446744069414584320#u64 >>> 32#i32\n  let i1 ← lift (input &&& i)\n  let i2 ← lift (UScalar.cast .Usize i1)\n  let i3 ← lift (input &&& 4294967295#u64)\n  let i4 ← lift (UScalar.cast .Usize i3)\n  ok (i2, i4)"
+    }
+   ]
+  }
  ]
 }

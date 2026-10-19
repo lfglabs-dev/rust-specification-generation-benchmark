@@ -1,0 +1,1 @@
+import Adler32Rolling.Assumptions.FunsExternal

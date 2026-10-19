@@ -78,8 +78,8 @@
  "manual_mutants": [
   {
    "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_s_flag",
-   "before": "let i1 ← lift (self.raw_byte_8 &&& i)",
-   "after": "let i1 ← lift (self.raw_byte_8 ^^^ transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_S_FLAG)",
+   "before": "let i1 \u2190 lift (self.raw_byte_8 &&& i)",
+   "after": "let i1 \u2190 lift (self.raw_byte_8 ^^^ transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.RAW_BYTE_8_MASK_S_FLAG)",
    "note": "clearing the S flag toggles it instead (wrong when it is already clear)"
   },
   {
@@ -90,8 +90,8 @@
   },
   {
    "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_qrv",
-   "before": "let i1 ← lift (self.raw_byte_8 &&& i)",
-   "after": "let i1 ← ok self.raw_byte_8",
+   "before": "let i1 \u2190 lift (self.raw_byte_8 &&& i)",
+   "after": "let i1 \u2190 ok self.raw_byte_8",
    "note": "set_qrv ORs the new QRV into the old one instead of replacing it"
   },
   {
@@ -125,6 +125,21 @@
    "before": "lift (i2 &&&",
    "after": "lift (i2 ||| 0#u8 &&&",
    "note": "set_qrv does not re-mask the Qrv value (only differs for values > Qrv::MAX_U8, which a Qrv cannot hold)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #2)",
+   "note": "set_qrv ORs the new QRV into raw_byte_8 without clearing the old QRV bits: qrv() after set_qrv(v) returns old | v instead of v",
+   "edits": [
+    {
+     "decl": "etherparse.transport.igmp.membership_query_with_sources_header.MembershipQueryWithSourcesHeader.set_qrv",
+     "before": "let i1 \u2190 lift (self.raw_byte_8 &&& i)",
+     "after": "let i1 \u2190 ok self.raw_byte_8"
+    }
+   ]
   }
  ]
 }

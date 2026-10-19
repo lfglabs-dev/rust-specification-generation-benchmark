@@ -86,5 +86,20 @@
     }
    ]
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #0); no usable historical fix found upstream",
+   "note": "permutations(n, k) rejects k = n with KExceedsN (off-by-one in the bound check): P(n, n) = n! should be returned",
+   "edits": [
+    {
+     "decl": "use_combinatorics.counting.permutations",
+     "before": "if k > n",
+     "after": "if k >= n"
+    }
+   ]
+  }
  ]
 }

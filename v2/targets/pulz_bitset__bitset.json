@@ -1,0 +1,152 @@
+{
+ "id": "pulz_bitset/bitset",
+ "package": "PulzBitsetBitset",
+ "module_prefix": "Benchmark.V2.PulzBitset.Bitset",
+ "rust_dir": "rust/pulz_bitset/bitset",
+ "api": [
+  "pulz_bitset.BitSet.new",
+  "pulz_bitset.BitSet.clear",
+  "pulz_bitset.BitSet.from_range",
+  "pulz_bitset.BitSet.insert_range",
+  "pulz_bitset.BitSet.contains",
+  "pulz_bitset.BitSet.is_empty",
+  "pulz_bitset.BitSet.contains_all",
+  "pulz_bitset.BitSet.insert",
+  "pulz_bitset.BitSet.remove",
+  "pulz_bitset.BitSet.find_next",
+  "pulz_bitset.BitSet.extend_bitset",
+  "pulz_bitset.BitSet.remove_bitset",
+  "pulz_bitset.BitSet.retain_bitset",
+  "pulz_bitset.BitSet.is_disjoint"
+ ],
+ "mutation_roots": [
+  "pulz_bitset.BitSet.new",
+  "pulz_bitset.BitSet.clear",
+  "pulz_bitset.BitSet.from_range",
+  "pulz_bitset.BitSet.insert_range",
+  "pulz_bitset.BitSet.contains",
+  "pulz_bitset.BitSet.is_empty",
+  "pulz_bitset.BitSet.contains_all",
+  "pulz_bitset.BitSet.insert",
+  "pulz_bitset.BitSet.remove",
+  "pulz_bitset.BitSet.find_next",
+  "pulz_bitset.BitSet.extend_bitset",
+  "pulz_bitset.BitSet.remove_bitset",
+  "pulz_bitset.BitSet.retain_bitset",
+  "pulz_bitset.BitSet.is_disjoint"
+ ],
+ "forbidden_constants": [
+  "pulz_bitset.BitSet.split_value",
+  "pulz_bitset.BitSet.normalize_after_remove",
+  "pulz_bitset.BitSet.normalize_after_remove_loop",
+  "pulz_bitset.BitSet.normalize_after_remove_loop.body",
+  "pulz_bitset.BitSet.contains_all_loop",
+  "pulz_bitset.BitSet.contains_all_loop.body",
+  "pulz_bitset.BitSet.find_next_loop",
+  "pulz_bitset.BitSet.find_next_loop.body",
+  "pulz_bitset.BitSet.extend_bitset_loop",
+  "pulz_bitset.BitSet.extend_bitset_loop.body",
+  "pulz_bitset.BitSet.remove_bitset_loop",
+  "pulz_bitset.BitSet.remove_bitset_loop.body",
+  "pulz_bitset.BitSet.retain_bitset_loop",
+  "pulz_bitset.BitSet.retain_bitset_loop.body",
+  "pulz_bitset.BitSet.is_disjoint_loop",
+  "pulz_bitset.BitSet.is_disjoint_loop.body"
+ ],
+ "allowed_imports": [
+  "PulzBitsetBitset.Extraction"
+ ],
+ "opens": [
+  "pulz_bitset"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of `pulz_bitset::BitSet` (a growable set of `usize` backed by `Vec<u64>`): `new`, `clear`, `from_range`, `insert_range`, `contains`, `is_empty`, `contains_all`, `insert`, `remove`, `find_next`, `extend_bitset`, `remove_bitset`, `retain_bitset` and `is_disjoint`. In Lean these are `pulz_bitset.BitSet.<name>` with `BitSet = alloc.vec.Vec Std.U64`; ranges are `core.ops.range.Range Std.Usize` (`{ start := a, «end» := b }`); `&mut self` methods return the new set (`insert`/`remove` return the pair (result, new set)).",
+ "manual_mutants": [
+  {
+   "note": "bit index within the word masked with 31 instead of 63",
+   "decl": "pulz_bitset.BitSet.split_value",
+   "before": "let subindex ← lift (value &&& MASK_MOD64)",
+   "after": "let subindex ← lift (value &&& 31#usize)"
+  },
+  {
+   "note": "from_range leaves the full middle words empty",
+   "decl": "pulz_bitset.BitSet.from_range",
+   "before": "alloc.vec.Vec.resize core.U64.Insts.CoreCloneClone result2 words_to i1",
+   "after": "alloc.vec.Vec.resize core.U64.Insts.CoreCloneClone result2 words_to 0#u64"
+  },
+  {
+   "note": "insert_range forgets to fill the full middle words",
+   "decl": "pulz_bitset.BitSet.insert_range",
+   "before": "let s1 ← core.slice.Slice.fill core.U64.Insts.CoreCloneClone s i5",
+   "after": "let s1 ← ok s"
+  },
+  {
+   "note": "remove reports the opposite of whether the value was present",
+   "decl": "pulz_bitset.BitSet.remove",
+   "before": "ok (v1, i != 0#u64)",
+   "after": "ok (v1, i = 0#u64)"
+  },
+  {
+   "note": "insert reports whether the value was already present instead of newly inserted",
+   "decl": "pulz_bitset.BitSet.insert",
+   "before": "ok (i1 = 0#u64, v1)",
+   "after": "ok (i1 != 0#u64, v1)"
+  },
+  {
+   "note": "find_next moves to the next word one bit too early (skips bit 63 of each word)",
+   "decl": "pulz_bitset.BitSet.find_next_loop.body",
+   "before": "if bits > i2",
+   "after": "if bits ≥ i2"
+  },
+  {
+   "note": "contains_all checks the wrong direction (other ⊇ self word-wise)",
+   "decl": "pulz_bitset.BitSet.contains_all_loop.body",
+   "before": "if i1 != r",
+   "after": "if i1 != l"
+  },
+  {
+   "note": "retain_bitset computes the union of the common words",
+   "decl": "pulz_bitset.BitSet.retain_bitset_loop.body",
+   "before": "let i3 ← lift (i2 &&& i1)",
+   "after": "let i3 ← lift (i2 ||| i1)"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "remove never trims trailing zero words (internal layout only; same set)",
+   "decl": "pulz_bitset.BitSet.remove",
+   "before": "then let self1 ← BitSet.normalize_after_remove v",
+   "after": "then let self1 ← ok v"
+  },
+  {
+   "note": "remove_bitset/retain_bitset never trim trailing zero words (internal layout only)",
+   "edits": [
+    {
+     "decl": "pulz_bitset.BitSet.remove_bitset",
+     "before": "then BitSet.normalize_after_remove v",
+     "after": "then ok v"
+    },
+    {
+     "decl": "pulz_bitset.BitSet.retain_bitset",
+     "before": "BitSet.normalize_after_remove v1",
+     "after": "ok v1"
+    }
+   ]
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/HellButcher/pulz/commit/e1e26da806f18c8f72448612259bf7a73550c2b9",
+   "note": "Pre-fix from_range (pulz commit f6d6563, extracted unmodified): the offset inside the first word is taken from range.end instead of range.start, the words below the range are filled with ones instead of zeros, and an inverted range takes the non-empty path. from_range(a..b) then contains elements outside [a, b).",
+   "edits": [
+    {
+     "replace_decl": "pulz_bitset.BitSet.from_range",
+     "with_text": "def BitSet.from_range\n  (range : core.ops.range.Range Std.Usize) : RustM BitSet := do\n  let words_from ← range.start / 64#usize\n  let words_to ← range.end / 64#usize\n  let words_from_rest ← range.end % 64#usize\n  let i ← words_to + 1#usize\n  let result ← alloc.vec.Vec.with_capacity Std.U64 i\n  let result1 ←\n    alloc.vec.Vec.resize core.U64.Insts.CoreCloneClone result words_from\n      core.num.U64.MAX\n  if words_from = words_to\n  then\n    let value ← lift (~~~ 0#u64)\n    let value1 ←\n      if words_from_rest != 0#usize\n      then value <<< words_from_rest\n      else ok value\n    let value2 ←\n      if words_from_rest != 0#usize\n      then\n        do\n        let i1 ← lift (~~~ 0#u64)\n        let i2 ← i1 <<< words_from_rest\n        let i3 ← lift (~~~ i2)\n        ok (value1 &&& i3)\n      else ok value1\n    if value2 != 0#u64\n    then let result2 ← alloc.vec.Vec.push result1 value2\n         ok result2\n    else ok result1\n  else\n    let result2 ←\n      if words_from_rest != 0#usize\n      then\n        do\n        let i1 ← lift (~~~ 0#u64)\n        let i2 ← i1 <<< words_from_rest\n        alloc.vec.Vec.push result1 i2\n      else ok result1\n    let result3 ←\n      alloc.vec.Vec.resize core.U64.Insts.CoreCloneClone result2 words_to\n        core.num.U64.MAX\n    if words_from_rest != 0#usize\n    then\n      let i1 ← lift (~~~ 0#u64)\n      let i2 ← i1 <<< words_from_rest\n      let i3 ← lift (~~~ i2)\n      let result4 ← alloc.vec.Vec.push result3 i3\n      ok result4\n    else ok result3\n\n"
+    }
+   ]
+  }
+ ]
+}

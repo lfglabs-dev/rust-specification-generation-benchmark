@@ -67,6 +67,11 @@ def gold_feistel_panics (x key : Std.U64) (r w : Std.U8) : Prop :=
     permute.feistel_n x key (mkU .Usize r.val) (mkU .U32 w.val) = fail .panic ∧
     permute.feistel_n_inv x key (mkU .Usize r.val) (mkU .U32 w.val) = fail .panic
 
+/-- The key schedule distinguishes a key from its complement (documented: "all 2^64 keys
+are distinct", the spec v1 XOR fold made `key` and `!key` equivalent). -/
+def gold_complement_key_differs (key : Std.U64) : Prop :=
+  ∃ i < 16, permute.obfuscate (mkU .U64 i) key ≠ permute.obfuscate (mkU .U64 i) (mkU .U64 (2^64 - 1 - key.val))
+
 /-! Differential-testing probes (inputs mapped into the terminating range). -/
 
 def diff_obf (id key : Std.U64) := permute.obfuscate id key

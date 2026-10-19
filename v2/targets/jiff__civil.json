@@ -1,0 +1,156 @@
+{
+ "id": "jiff/civil",
+ "package": "JiffCivil",
+ "module_prefix": "Benchmark.V2.Jiff.Civil",
+ "rust_dir": "rust/jiff/civil",
+ "api": [
+  "jiff_core.civil.time.Time.new",
+  "jiff_core.civil.time",
+  "jiff_core.civil.time.Time.impl.hour",
+  "jiff_core.civil.time.Time.impl.minute",
+  "jiff_core.civil.time.Time.impl.second",
+  "jiff_core.civil.time.Time.impl.subsec_nanosecond",
+  "jiff_core.civil.time.Time.millisecond",
+  "jiff_core.civil.time.Time.microsecond",
+  "jiff_core.civil.time.Time.nanosecond",
+  "jiff_core.civil.time.Time.with_subsec_parts",
+  "jiff_core.civil.time.Time.with_subsec_nanosecond",
+  "jiff_core.civil.time.Time.to_second",
+  "jiff_core.civil.time.Time.to_nanosecond",
+  "jiff_core.civil.time.Time.on",
+  "jiff_core.civil.time.Time.Insts.CoreCmpOrd.cmp",
+  "jiff_core.civil.time.Time.Insts.CoreCmpPartialEqTime.eq",
+  "jiff_core.civil.time.TimeSecond.new",
+  "jiff_core.civil.time.TimeSecond.constant",
+  "jiff_core.civil.time.TimeSecond.impl.second",
+  "jiff_core.civil.time.TimeSecond.to_time",
+  "jiff_core.civil.time.TimeNanosecond.new",
+  "jiff_core.civil.time.TimeNanosecond.impl.nanosecond",
+  "jiff_core.civil.time.TimeNanosecond.to_time",
+  "jiff_core.civil.time.TimeSecond.Insts.CoreCmpOrd.cmp",
+  "jiff_core.civil.time.TimeNanosecond.Insts.CoreCmpOrd.cmp"
+ ],
+ "mutation_roots": [
+  "jiff_core.civil.time.Time.new",
+  "jiff_core.civil.time",
+  "jiff_core.civil.time.Time.impl.hour",
+  "jiff_core.civil.time.Time.impl.minute",
+  "jiff_core.civil.time.Time.impl.second",
+  "jiff_core.civil.time.Time.impl.subsec_nanosecond",
+  "jiff_core.civil.time.Time.millisecond",
+  "jiff_core.civil.time.Time.microsecond",
+  "jiff_core.civil.time.Time.nanosecond",
+  "jiff_core.civil.time.Time.with_subsec_parts",
+  "jiff_core.civil.time.Time.with_subsec_nanosecond",
+  "jiff_core.civil.time.Time.to_second",
+  "jiff_core.civil.time.Time.to_nanosecond",
+  "jiff_core.civil.time.Time.on",
+  "jiff_core.civil.time.Time.Insts.CoreCmpOrd.cmp",
+  "jiff_core.civil.time.Time.Insts.CoreCmpPartialEqTime.eq",
+  "jiff_core.civil.time.TimeSecond.new",
+  "jiff_core.civil.time.TimeSecond.constant",
+  "jiff_core.civil.time.TimeSecond.impl.second",
+  "jiff_core.civil.time.TimeSecond.to_time",
+  "jiff_core.civil.time.TimeNanosecond.new",
+  "jiff_core.civil.time.TimeNanosecond.impl.nanosecond",
+  "jiff_core.civil.time.TimeNanosecond.to_time",
+  "jiff_core.civil.time.TimeSecond.Insts.CoreCmpOrd.cmp",
+  "jiff_core.civil.time.TimeNanosecond.Insts.CoreCmpOrd.cmp"
+ ],
+ "forbidden_constants": [
+  "jiff_core.civil.is_leap_year",
+  "jiff_core.civil.days_in_month",
+  "jiff_core.bounds.Hour.checkc"
+ ],
+ "allowed_imports": [
+  "JiffCivil.Extraction"
+ ],
+ "opens": [
+  "jiff_core"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Jiff.Civil.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Jiff.Civil.Oracle.time_to_nanosecond_roundtrip"
+ ],
+ "intent": "Specify the civil time-of-day API of `jiff_core::civil::time`: `Time::new`, the `civil::time` constructor, the accessors `hour`, `minute`, `second`, `subsec_nanosecond`, `millisecond`, `microsecond`, `nanosecond`, the builders `with_subsec_parts` and `with_subsec_nanosecond`, the conversions `to_second` / `to_nanosecond`, `Time::on`, the derived `Ord`/`PartialEq` of `Time`, and the companion types `TimeSecond` (`new`, `constant`, `second`, `to_time`, `Ord`) and `TimeNanosecond` (`new`, `nanosecond`, `to_time`, `Ord`). Lean names live under `civil.time.Time`, `civil.time.TimeSecond`, `civil.time.TimeNanosecond` (field accessors are `….impl.hour` etc., trait methods `….Insts.CoreCmpOrd.cmp` / `….Insts.CoreCmpPartialEqTime.eq`). `bounds.RangeError` has no `DecidableEq`/`Repr`: inspect `core.result.Result` values by pattern matching.",
+ "manual_mutants": [
+  {
+   "note": "century rule: years divisible by 100 use %100 instead of %400 (1900-02-29 accepted)",
+   "decl": "jiff_core.civil.is_leap_year",
+   "before": "else ok 16#i16",
+   "after": "else ok 100#i16"
+  },
+  {
+   "note": "days_in_month bit trick drops the >>3 fold: August..December get the wrong length",
+   "decl": "jiff_core.civil.days_in_month",
+   "before": "ok (30#i8 ||| i1)",
+   "after": "ok (30#i8 ||| month)"
+  },
+  {
+   "note": "Date::new only consults days_in_month above day 29 (Feb 29 accepted in common years)",
+   "decl": "jiff_core.civil.date.Date.new",
+   "before": "if day > 28#i8",
+   "after": "if day > 29#i8"
+  },
+  {
+   "note": "TimeNanosecond::to_time drops the sub-second part when the second component is 0",
+   "decl": "jiff_core.civil.time.TimeNanosecond.to_time",
+   "before": "if nanosecond2 != 0#u64",
+   "after": "if nanosecond2 >= 1000000000#u64"
+  },
+  {
+   "note": "Ord ignores the sub-second component (inconsistent with Eq, not chronological)",
+   "decl": "jiff_core.civil.time.Time.Insts.CoreCmpOrd.cmp",
+   "before": "core.I32.Insts.CoreCmpOrd.cmp self.subsec_nanosecond",
+   "after": "core.I32.Insts.CoreCmpOrd.cmp other.subsec_nanosecond"
+  },
+  {
+   "note": "with_subsec_parts forgets to scale microseconds by 1000",
+   "decl": "jiff_core.civil.time.Time.with_subsec_parts",
+   "before": "let i7 ← i6 * constants.NANOS_PER_MICRO_32",
+   "after": "let i7 ← ok i6"
+  },
+  {
+   "note": "Time::new validates the hour with the minute bound (hours 24..=59 accepted)",
+   "decl": "jiff_core.civil.time.Time.new",
+   "before": "let r ← bounds.Hour.checkc i",
+   "after": "let r ← bounds.Minute.checkc i"
+  },
+  {
+   "note": "microsecond() returns the total microseconds of the sub-second part (no % 1000)",
+   "decl": "jiff_core.civil.time.Time.microsecond",
+   "before": "let i5 ← i3 % i4",
+   "after": "let i5 ← ok i3"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "Time::new validates the sub-second component first (different error reported when several components are invalid)",
+   "decl": "jiff_core.civil.time.Time.new",
+   "before": "let r ← bounds.Hour.checkc i",
+   "after": "let r ← (do let rs ← bounds.SubsecNanosecond.checkc (IScalar.cast .I64 subsec_nanosecond); match rs with | core.result.Result.Ok _ => bounds.Hour.checkc i | core.result.Result.Err e => ok (core.result.Result.Err e))"
+  },
+  {
+   "note": "with_subsec_parts validates the nanosecond part first",
+   "decl": "jiff_core.civil.time.Time.with_subsec_parts",
+   "before": "let r ← bounds.Millisecond.checkc i",
+   "after": "let r ← (do let rs ← bounds.Nanosecond.checkc (IScalar.cast .I64 nanosecond); match rs with | core.result.Result.Ok _ => bounds.Millisecond.checkc i | core.result.Result.Err e => ok (core.result.Result.Err e))"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/BurntSushi/jiff/commit/9e766682f9347a26ba9d3a97ea4d75427a60c645 (civil: check for `days < 1` in `Date::new`, fixes #523)",
+   "note": "pre-fix Date::new only rejects days above 28 that exceed the month length and never checks `day < 1`, so `Time::on(y, m, 0)` (or a negative day) returns a DateTime with an impossible date instead of panicking as documented ('the day must be at least 1')",
+   "edits": [
+    {
+     "replace_decl": "jiff_core.civil.date.Date.new",
+     "with_text": "def civil.date.Date.new\n  (year : Std.I16) (month : Std.I8) (day : Std.I8) :\n  RustM (core.result.Result civil.date.Date bounds.RangeError)\n  := do\n  let i ← lift (IScalar.cast .I64 year)\n  let r ← bounds.Year.checkc i\n  match r with\n  | core.result.Result.Ok val =>\n    let i1 ← lift (IScalar.cast .I64 month)\n    let r1 ← bounds.Month.checkc i1\n    match r1 with\n    | core.result.Result.Ok val1 =>\n      if day > 28#i8\n      then\n        let i2 ← civil.days_in_month val val1\n        if day > i2\n        then\n          let re ←\n            bounds.SpecialBoundsError.into_range_error\n              (bounds.SpecialBoundsError.DateInvalidDay val val1)\n          ok (core.result.Result.Err re)\n        else ok (core.result.Result.Ok { year := val, month := val1, day })\n      else ok (core.result.Result.Ok { year := val, month := val1, day })\n    | core.result.Result.Err err =>\n      let re ← bounds.BoundsError.into_range_error err\n      ok (core.result.Result.Err re)\n  | core.result.Result.Err err =>\n    let re ← bounds.BoundsError.into_range_error err\n    ok (core.result.Result.Err re)\n"
+    }
+   ]
+  }
+ ]
+}

@@ -200,9 +200,24 @@
  "sibling_mutants": [
   {
    "decl": "etherparse.link.linux_sll_header.LinuxSllHeader.from_bytes",
-   "before": "let cf ← core.result.Result.Insts.CoreOpsTry_traitTry.branch r",
-   "after": "let cf ← (core.num.U16.from_be_bytes (Array.make 2#usize [ bytes.val.getD 2 0#u8, bytes.val.getD 3 0#u8 ]) >>= fun arp0 => if arp0.val ∈ [824, 778, 803, 770, 1] then core.result.Result.Insts.CoreOpsTry_traitTry.branch r else core.result.Result.Insts.CoreOpsTry_traitTry.branch (core.result.Result.Err (err.linux_sll.header_error.HeaderError.UnsupportedArpHardwareId arp0) : core.result.Result link.linux_sll_packet_type.LinuxSllPacketType err.linux_sll.header_error.HeaderError))",
+   "before": "let cf \u2190 core.result.Result.Insts.CoreOpsTry_traitTry.branch r",
+   "after": "let cf \u2190 (core.num.U16.from_be_bytes (Array.make 2#usize [ bytes.val.getD 2 0#u8, bytes.val.getD 3 0#u8 ]) >>= fun arp0 => if arp0.val \u2208 [824, 778, 803, 770, 1] then core.result.Result.Insts.CoreOpsTry_traitTry.branch r else core.result.Result.Insts.CoreOpsTry_traitTry.branch (core.result.Result.Err (err.linux_sll.header_error.HeaderError.UnsupportedArpHardwareId arp0) : core.result.Result link.linux_sll_packet_type.LinuxSllPacketType err.linux_sll.header_error.HeaderError))",
    "note": "reports an unsupported ARP hardware id before an unsupported packet type (error precedence is not documented)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #3)",
+   "note": "LinuxSllHeader::from_bytes reads sender_address_valid_length with its two bytes swapped (little-endian): breaks the to_bytes/from_bytes round trip and network byte order",
+   "edits": [
+    {
+     "decl": "etherparse.link.linux_sll_header.LinuxSllHeader.from_bytes",
+     "before": "core.num.U16.from_be_bytes (Array.make 2#usize [ i6, i7 ])",
+     "after": "core.num.U16.from_be_bytes (Array.make 2#usize [ i7, i6 ])"
+    }
+   ]
   }
  ]
 }

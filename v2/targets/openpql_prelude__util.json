@@ -80,8 +80,8 @@
   },
   {
    "decl": "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode_loop.body",
-   "before": "let i ← Array.index_usize self.offsets round",
-   "after": "let i ← Array.index_usize self.block_sizes round",
+   "before": "let i \u2190 Array.index_usize self.offsets round",
+   "after": "let i \u2190 Array.index_usize self.block_sizes round",
    "note": "decode divides by the block sizes instead of the offsets"
   },
   {
@@ -100,15 +100,30 @@
  "sibling_mutants": [
   {
    "decl": "openpql_prelude.waugh_indexer.util.suffix_product_loop.body",
-   "before": "let acc1 ← acc * cur",
-   "after": "let acc1 ← if i1 = 0#usize then ok acc else acc * cur",
+   "before": "let acc1 \u2190 acc * cur",
+   "after": "let acc1 \u2190 if i1 = 0#usize then ok acc else acc * cur",
    "note": "the product of the whole slice (never stored) is not computed, so no spurious overflow panic when only it exceeds u64"
   },
   {
    "decl": "openpql_prelude.waugh_indexer.mixed_radix.MixedRadix.decode_loop.body",
-   "before": "let i1 ← idx / i",
-   "after": "let i1 ← (do let q ← idx / i; if round = 0#usize then (do let b ← Array.index_usize self.block_sizes 0#usize; if b = 0#u64 then ok q else q % b) else ok q)",
+   "before": "let i1 \u2190 idx / i",
+   "after": "let i1 \u2190 (do let q \u2190 idx / i; if round = 0#usize then (do let b \u2190 Array.index_usize self.block_sizes 0#usize; if b = 0#u64 then ok q else q % b) else ok q)",
    "note": "decode reduces the leading digit modulo block_sizes[0] (only differs for out-of-range indices idx >= size)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #1)",
+   "note": "binom tests r >= n instead of r > n: C(n, n) is 0 instead of 1 (breaks Pascal's identity and symmetry)",
+   "edits": [
+    {
+     "decl": "openpql_prelude.iterator.binomial.coefficient.binom",
+     "before": "if r > n",
+     "after": "if r >= n"
+    }
+   ]
   }
  ]
 }

@@ -94,5 +94,19 @@
    "before": "permute.feistel_n_loop { start := 0#usize, \u00abend\u00bb := rounds } key half l r",
    "after": "permute.feistel_n_loop { start := 0#usize, \u00abend\u00bb := (if rounds = 0#usize then 1#usize else rounds) } key half l r"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/lucasolopes/arxid/commit/35a9a085d60808ab89dc5805496569172714ca89 (fixes spec v1 subkey of 9c1c6ca)",
+   "note": "spec v1 key schedule folds the 64-bit word with lo XOR hi: complementing the key complements both halves, the XOR cancels it, so key and !key give the same permutation (effective key space 2^63)",
+   "edits": [
+    {
+     "replace_decl": "arxid.permute.subkey",
+     "with_text": "def permute.subkey (key : Std.U64) (round : Std.Usize) : RustM Std.U32 := do\n  let i \u2190 lift (UScalar.cast .U32 round)\n  let i1 \u2190 i * 7#u32\n  let i2 \u2190 i1 + 1#u32\n  let i3 \u2190 core.num.U64.rotate_left key i2\n  let i4 \u2190 lift (UScalar.cast .U64 round)\n  let i5 \u2190 i4 + 1#u64\n  let i6 \u2190 core.num.U64.wrapping_mul permute.GOLDEN i5\n  let x \u2190 lift (i3 ^^^ i6)\n  let i7 \u2190 x >>> 32#i32\n  let i8 \u2190 lift (x ^^^ i7)\n  ok (UScalar.cast .U32 i8)"
+    }
+   ]
+  }
  ]
 }

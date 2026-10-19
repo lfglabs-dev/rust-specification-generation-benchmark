@@ -60,5 +60,20 @@
    "after": "let i ← lift (x &&& 3074457345618258602#u64)",
    "note": "first-step mask misses bit 63: wrong count only for words with the top bit set"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #3); no usable historical fix found upstream",
+   "note": "count_ones multiplies by L8 with a checked multiplication: panics whenever the summed byte counts overflow 64 bits (any word with a set bit in a high byte), although the module documents that the algorithm relies on wrapping arithmetic in its last line",
+   "edits": [
+    {
+     "decl": "succinct.broadword.count_ones",
+     "before": "let i7 ← core.num.U64.wrapping_mul x3 broadword.L8",
+     "after": "let i7 ← x3 * broadword.L8"
+    }
+   ]
+  }
  ]
 }

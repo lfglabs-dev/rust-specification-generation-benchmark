@@ -68,5 +68,20 @@
    "after": "u32.ref_impl.to_array_loop { start := 0#usize, «end» := 31#usize } input array",
    "note": "off-by-one loop bound: bit 31 is never copied into the array"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #2); no usable historical fix found upstream",
+   "note": "zero is no longer special-cased in range::decrement (guard compares with 1 instead of 0): decrement(0) falls through to `x - 1`, underflows and panics instead of clamping to bit index 0 (so an exclusive end bound of 0 crashes)",
+   "edits": [
+    {
+     "decl": "rev_bits.u32.range.decrement",
+     "before": "if x = 0#u32",
+     "after": "if x = 1#u32"
+    }
+   ]
+  }
  ]
 }

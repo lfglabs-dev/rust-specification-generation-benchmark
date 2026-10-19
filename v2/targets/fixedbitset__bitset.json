@@ -1,0 +1,144 @@
+{
+ "id": "fixedbitset/bitset",
+ "package": "FixedbitsetBitset",
+ "module_prefix": "Benchmark.V2.Fixedbitset.Bitset",
+ "rust_dir": "rust/fixedbitset/bitset",
+ "api": [
+  "fixedbitset.FixedBitSet.new",
+  "fixedbitset.FixedBitSet.with_capacity",
+  "fixedbitset.FixedBitSet.grow",
+  "fixedbitset.FixedBitSet.len",
+  "fixedbitset.FixedBitSet.is_empty",
+  "fixedbitset.FixedBitSet.contains",
+  "fixedbitset.FixedBitSet.insert",
+  "fixedbitset.FixedBitSet.put",
+  "fixedbitset.FixedBitSet.toggle",
+  "fixedbitset.FixedBitSet.set",
+  "fixedbitset.FixedBitSet.copy_bit",
+  "fixedbitset.FixedBitSet.set_range",
+  "fixedbitset.FixedBitSet.insert_range",
+  "fixedbitset.FixedBitSet.toggle_range",
+  "fixedbitset.FixedBitSet.as_slice",
+  "fixedbitset.core.ops.range.Range.Insts.FixedbitsetRangeIndexRange.start",
+  "fixedbitset.core.ops.range.Range.Insts.FixedbitsetRangeIndexRange.end",
+  "fixedbitset.core.ops.range.RangeFrom.Insts.FixedbitsetRangeIndexRange.start",
+  "fixedbitset.core.ops.range.RangeTo.Insts.FixedbitsetRangeIndexRange.end"
+ ],
+ "mutation_roots": [
+  "fixedbitset.FixedBitSet.new",
+  "fixedbitset.FixedBitSet.with_capacity",
+  "fixedbitset.FixedBitSet.grow",
+  "fixedbitset.FixedBitSet.len",
+  "fixedbitset.FixedBitSet.is_empty",
+  "fixedbitset.FixedBitSet.contains",
+  "fixedbitset.FixedBitSet.insert",
+  "fixedbitset.FixedBitSet.put",
+  "fixedbitset.FixedBitSet.toggle",
+  "fixedbitset.FixedBitSet.set",
+  "fixedbitset.FixedBitSet.copy_bit",
+  "fixedbitset.FixedBitSet.set_range",
+  "fixedbitset.FixedBitSet.insert_range",
+  "fixedbitset.FixedBitSet.toggle_range",
+  "fixedbitset.FixedBitSet.as_slice",
+  "fixedbitset.core.ops.range.Range.Insts.FixedbitsetRangeIndexRange.start",
+  "fixedbitset.core.ops.range.Range.Insts.FixedbitsetRangeIndexRange.end",
+  "fixedbitset.core.ops.range.RangeFrom.Insts.FixedbitsetRangeIndexRange.start",
+  "fixedbitset.core.ops.range.RangeTo.Insts.FixedbitsetRangeIndexRange.end"
+ ],
+ "forbidden_constants": [
+  "fixedbitset.div_rem",
+  "fixedbitset.Masks.new",
+  "fixedbitset.Masks.Insts.CoreIterTraitsIteratorIteratorPairUsizeU32.next",
+  "fixedbitset.FixedBitSet.set_range_loop",
+  "fixedbitset.FixedBitSet.set_range_loop.body",
+  "fixedbitset.FixedBitSet.toggle_range_loop",
+  "fixedbitset.FixedBitSet.toggle_range_loop.body"
+ ],
+ "allowed_imports": [
+  "FixedbitsetBitset.Extraction"
+ ],
+ "opens": [
+  "fixedbitset"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of `fixedbitset::FixedBitSet` (fixedbitset 0.4.2): `new`, `with_capacity`, `grow`, `len`, `is_empty`, `contains`, `insert`, `put`, `toggle`, `set`, `copy_bit`, `set_range`, `insert_range`, `toggle_range`, `as_slice` (Lean: `fixedbitset.FixedBitSet.<name>`; `&mut self` methods return the updated set, `put` returns `(previous, set)`). The range methods take an `IndexRange` instance and a range value; the crate's instances are `core.ops.range.Range.Insts.FixedbitsetRangeIndexRange core.Usize.Insts.CoreMarkerCopy` (value `{ start := a, «end» := b }`), `core.ops.range.RangeFrom.Insts.FixedbitsetRangeIndexRange core.Usize.Insts.CoreMarkerCopy` (`{ start := a }`), `core.ops.range.RangeTo.Insts.FixedbitsetRangeIndexRange core.Usize.Insts.CoreMarkerCopy` (`{ «end» := b }`) and `core.ops.range.RangeFull.Insts.FixedbitsetRangeIndexRange Std.Usize` (value `()`), all in namespace `fixedbitset`.",
+ "manual_mutants": [
+  {
+   "note": "range end equal to the length is rejected (full-length ranges panic)",
+   "decl": "fixedbitset.Masks.new",
+   "before": "if «end» <= length",
+   "after": "if «end» < length"
+  },
+  {
+   "note": "reversed ranges are not rejected",
+   "decl": "fixedbitset.Masks.new",
+   "before": "if start <= «end»",
+   "after": "if start <= length"
+  },
+  {
+   "note": "last-block mask off by one (the last bit of a range is not covered / one extra bit)",
+   "decl": "fixedbitset.Masks.new",
+   "before": "let i4 ← i3 - 1#usize",
+   "after": "let i4 ← ok i3"
+  },
+  {
+   "note": "an empty final mask is still yielded: ranges ending on a block boundary touch a nonexistent block",
+   "decl": "fixedbitset.Masks.Insts.CoreIterTraitsIteratorIteratorPairUsizeU32.next",
+   "before": "then ok core.option.Option.None",
+   "after": "then ok (core.option.Option.Some (self.first_block, mask))"
+  },
+  {
+   "note": "put returns the negated previous value",
+   "decl": "fixedbitset.FixedBitSet.put",
+   "before": "ok (i2 != 0#u32, { self with data := v })",
+   "after": "ok (i2 = 0#u32, { self with data := v })"
+  },
+  {
+   "note": "copy_bit reads the destination instead of the source",
+   "decl": "fixedbitset.FixedBitSet.copy_bit",
+   "before": "let enabled ← FixedBitSet.contains self «from»",
+   "after": "let enabled ← FixedBitSet.contains self «to»"
+  },
+  {
+   "note": "grow fills new blocks with ones",
+   "decl": "fixedbitset.FixedBitSet.grow",
+   "before": "0#u32",
+   "after": "1#u32"
+  },
+  {
+   "note": "with_capacity drops the partial block when len % 32 == 1",
+   "decl": "fixedbitset.FixedBitSet.with_capacity",
+   "before": "let i ← lift (UScalar.cast_fromBool .Usize (rem > 0#usize))",
+   "after": "let i ← lift (UScalar.cast_fromBool .Usize (rem > 1#usize))"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "with_capacity keeps one spare (zero) block: as_slice is one block longer, no observable bit differs",
+   "decl": "fixedbitset.FixedBitSet.with_capacity",
+   "before": "let blocks1 ← blocks + i",
+   "after": "let blocks1 ← (do let t ← blocks + i; t + 1#usize)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "hist1",
+   "kind": "historical",
+   "source": "https://github.com/petgraph/fixedbitset/commit/27404db472a1dad09310e807833d8e50208fb4b2",
+   "note": "before 'Check bit length more correctly', insert and set indexed the block vector directly without checking bit < len: a bit in [len, 32*blocks) is silently set (contains then reports a bit outside the capacity) instead of panicking as documented ('Panics if bit is out of bounds'). Ported to the 0.4.2 extraction by removing the length assertion (the remaining slice access still panics past the last block, like the pre-fix `self.data[block]`).",
+   "edits": [
+    {
+     "decl": "fixedbitset.FixedBitSet.insert",
+     "before": "if bit < self.length",
+     "after": "if true"
+    },
+    {
+     "decl": "fixedbitset.FixedBitSet.set",
+     "before": "if bit < self.length",
+     "after": "if true"
+    }
+   ]
+  }
+ ]
+}

@@ -87,8 +87,8 @@
  "manual_mutants": [
   {
    "decl": "crypto_bigint.primitives.borrowing_sub",
-   "before": "let i ← core.num.U64.BITS - 1#u32",
-   "after": "let i ← core.num.U64.BITS - 2#u32",
+   "before": "let i \u2190 core.num.U64.BITS - 1#u32",
+   "after": "let i \u2190 core.num.U64.BITS - 2#u32",
    "note": "incoming borrow read from bit 62 instead of the top bit: chained borrows (MAX) still work, an explicit borrow word 2^63 is ignored"
   },
   {
@@ -99,14 +99,14 @@
   },
   {
    "decl": "crypto_bigint.uint.encoding.Uint.from_le_slice_loop0_loop0.body",
-   "before": "let i2 ← i1 + j",
-   "after": "let i2 ← (do let k ← 7#usize - j; i1 + k)",
+   "before": "let i2 \u2190 i1 + j",
+   "after": "let i2 \u2190 (do let k \u2190 7#usize - j; i1 + k)",
    "note": "bytes within each limb read in big-endian order by from_le_slice"
   },
   {
    "decl": "crypto_bigint.primitives.borrowing_sub",
-   "before": "let i3 ← core.num.U64.wrapping_sub core.num.U64.MIN i2",
-   "after": "let i3 ← ok i2",
+   "before": "let i3 \u2190 core.num.U64.wrapping_sub core.num.U64.MIN i2",
+   "after": "let i3 \u2190 ok i2",
    "note": "borrow word 1 instead of MAX: single-limb results fine, the borrow is lost between limbs"
   },
   {
@@ -117,9 +117,24 @@
   },
   {
    "decl": "crypto_bigint.primitives.borrowing_sub",
-   "before": "let i2 ← lift (UScalar.cast_fromBool .U64 (b1 || b2))",
-   "after": "let i2 ← lift (UScalar.cast_fromBool .U64 b1)",
+   "before": "let i2 \u2190 lift (UScalar.cast_fromBool .U64 (b1 || b2))",
+   "after": "let i2 \u2190 lift (UScalar.cast_fromBool .U64 b1)",
    "note": "borrow lost when the limb is 0 and a borrow comes in (only visible with rippling borrows)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #2; cf. the historical endianness mix-up in from_le_bytes fixed by https://github.com/RustCrypto/crypto-bigint/pull/82, outside this API)",
+   "note": "from_le_slice reads the bytes inside each limb in big-endian order: from_le_slice disagrees with from_be_slice on the reversed slice and with the little-endian interpretation",
+   "edits": [
+    {
+     "decl": "crypto_bigint.uint.encoding.Uint.from_le_slice_loop0_loop0.body",
+     "before": "let i2 \u2190 i1 + j",
+     "after": "let i2 \u2190 (do let k \u2190 7#usize - j; i1 + k)"
+    }
+   ]
   }
  ]
 }

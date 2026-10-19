@@ -1,0 +1,167 @@
+{
+ "id": "adler32/rolling",
+ "package": "Adler32Rolling",
+ "module_prefix": "Benchmark.V2.Adler32.Rolling",
+ "rust_dir": "rust/adler32/rolling",
+ "api": [
+  "adler32.RollingAdler32.new",
+  "adler32.RollingAdler32.from_value",
+  "adler32.RollingAdler32.from_buffer",
+  "adler32.RollingAdler32.hash",
+  "adler32.RollingAdler32.update",
+  "adler32.RollingAdler32.update_buffer",
+  "adler32.RollingAdler32.remove"
+ ],
+ "mutation_roots": [
+  "adler32.RollingAdler32.new",
+  "adler32.RollingAdler32.from_value",
+  "adler32.RollingAdler32.from_buffer",
+  "adler32.RollingAdler32.hash",
+  "adler32.RollingAdler32.update",
+  "adler32.RollingAdler32.update_buffer",
+  "adler32.RollingAdler32.remove"
+ ],
+ "forbidden_constants": [
+  "adler32.do1",
+  "adler32.do2",
+  "adler32.do4",
+  "adler32.do8",
+  "adler32.do16",
+  "adler32.BASE",
+  "adler32.NMAX",
+  "adler32.RollingAdler32.update_buffer_loop0",
+  "adler32.RollingAdler32.update_buffer_loop0.body",
+  "adler32.RollingAdler32.update_buffer_loop1",
+  "adler32.RollingAdler32.update_buffer_loop1.body",
+  "adler32.RollingAdler32.update_buffer_loop1_loop0",
+  "adler32.RollingAdler32.update_buffer_loop1_loop0.body",
+  "adler32.RollingAdler32.update_buffer_loop2",
+  "adler32.RollingAdler32.update_buffer_loop2.body",
+  "adler32.RollingAdler32.update_buffer_loop3",
+  "adler32.RollingAdler32.update_buffer_loop3.body"
+ ],
+ "allowed_imports": [
+  "Adler32Rolling.Extraction"
+ ],
+ "opens": [
+  "adler32"
+ ],
+ "upstream_imports": [],
+ "upstream_props": [],
+ "intent": "Specify the public API of `adler32::RollingAdler32` (crate `adler32` 1.2.0): `new() -> RollingAdler32`, `from_value(adler32: u32) -> RollingAdler32`, `from_buffer(buffer: &[u8]) -> RollingAdler32`, `hash(&self) -> u32`, `remove(&mut self, size: usize, byte: u8)`, `update(&mut self, byte: u8)` and `update_buffer(&mut self, buffer: &[u8])`. In Lean they are `RollingAdler32.new`, `RollingAdler32.from_value`, `RollingAdler32.from_buffer`, `RollingAdler32.hash`, `RollingAdler32.remove`, `RollingAdler32.update`, `RollingAdler32.update_buffer`; the `&mut self` methods return the updated context.",
+ "manual_mutants": [
+  {
+   "note": "short-buffer path (2..15 bytes) leaves A = 65521 unreduced when the running sum lands exactly on the modulus",
+   "decl": "adler32.RollingAdler32.update_buffer",
+   "before": "let i1 ← if self1.a >= BASE",
+   "after": "let i1 ← if self1.a > BASE"
+  },
+  {
+   "note": "update adds the unreduced A to B (wrong only when A + byte wraps past the modulus)",
+   "decl": "adler32.RollingAdler32.update",
+   "before": "let i2 ← self.b + i1",
+   "after": "let i2 ← self.b + i"
+  },
+  {
+   "note": "remove forgets the per-position initial 1 that the removed byte contributed to B",
+   "decl": "adler32.RollingAdler32.remove",
+   "before": "let i4 ← i3 - 1#u32",
+   "after": "let i4 ← ok i3"
+  },
+  {
+   "note": "remove treats `size` as the distance after the removed byte (off by one; also panics for size 0)",
+   "decl": "adler32.RollingAdler32.remove",
+   "before": "let i5 ← lift (UScalar.cast .U32 size)",
+   "after": "let i5 ← (do let t ← size - 1#usize; lift (UScalar.cast .U32 t))"
+  },
+  {
+   "note": "B is not reduced after each 5552-byte block (only inputs longer than one block are affected)",
+   "decl": "adler32.RollingAdler32.update_buffer_loop1.body",
+   "before": "let i2 ← self1.b % BASE",
+   "after": "let i2 ← ok self1.b"
+  },
+  {
+   "note": "single-byte fast path taken for 2-byte buffers (second byte dropped)",
+   "decl": "adler32.RollingAdler32.update_buffer",
+   "before": "if len = 1#usize",
+   "after": "if len = 2#usize"
+  },
+  {
+   "note": "block size 5568 instead of 5552: B can overflow u32 for worst-case (0xFF) input continuing from a large A",
+   "edits": [
+    {
+     "replace_decl": "adler32.NMAX",
+     "with_text": "@[global_simps, irreducible] def NMAX : Std.Usize := 5568#usize"
+    }
+   ]
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "smaller deferred-reduction block (4000 bytes, still overflow-free)",
+   "edits": [
+    {
+     "replace_decl": "adler32.NMAX",
+     "with_text": "@[global_simps, irreducible] def NMAX : Std.Usize := 4000#usize"
+    }
+   ]
+  },
+  {
+   "note": "short-buffer fast path only below 4 bytes (others take the block path)",
+   "decl": "adler32.RollingAdler32.update_buffer",
+   "before": "if len < 16#usize",
+   "after": "if len < 4#usize"
+  },
+  {
+   "note": "remove reduces the window size mod 65521 first (correct for every window size, unlike the wrapping original beyond ~65777 bytes)",
+   "decl": "adler32.RollingAdler32.remove",
+   "before": "let i5 ← lift (UScalar.cast .U32 size)",
+   "after": "let i5 ← (do let t ← size % 65521#usize; lift (UScalar.cast .U32 t))"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/remram44/adler32-rs/commit/aed993636d185a979425ec180fc90e7e1c28ffd3",
+   "note": "pre-fix remove computes (BASE - size as u32) * byte with checked arithmetic: panics (subtract overflow) for windows longer than 65521 bytes, e.g. 64 KiB windows (issue #4); remove must be total",
+   "edits": [
+    {
+     "decl": "adler32.RollingAdler32.remove",
+     "before": "let i6 ← core.num.U32.wrapping_sub BASE i5",
+     "after": "let i6 ← BASE - i5"
+    },
+    {
+     "decl": "adler32.RollingAdler32.remove",
+     "before": "let i7 ← core.num.U32.wrapping_mul i6 byte1",
+     "after": "let i7 ← i6 * byte1"
+    },
+    {
+     "decl": "adler32.RollingAdler32.remove",
+     "before": "let i8 ← core.num.U32.wrapping_add i4 i7",
+     "after": "let i8 ← i4 + i7"
+    }
+   ]
+  },
+  {
+   "id": "bug2",
+   "kind": "historical",
+   "source": "https://github.com/remram44/adler32-rs/commit/43670ea8f324aa4647e085d00701a2f0a12a6a27",
+   "note": "pre-fix update_buffer block loop iterates `for i in pos..pos+NMAX` hashing overlapping 16-byte windows buffer[i..i+16] (5552 of them per block): any buffer longer than 5552 bytes panics (out-of-bounds slice or u32 overflow) instead of returning its checksum",
+   "edits": [
+    {
+     "replace_decl": "adler32.RollingAdler32.update_buffer_loop1_loop0.body",
+     "with_text": "def RollingAdler32.update_buffer_loop1_loop0.body\n  (buffer : Slice Std.U8) (iter : core.ops.range.Range Std.Usize)\n  (self : RollingAdler32) (pos : Std.Usize) :\n  RustM (ControlFlow ((core.ops.range.Range Std.Usize) × RollingAdler32 ×\n    Std.Usize) (RollingAdler32 × Std.Usize))\n  := do\n  let (o, iter1) ←\n    core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.next\n      core.Usize.Insts.CoreIterRangeStep iter\n  match o with\n  | core.option.Option.None => ok (done (self, pos))\n  | core.option.Option.Some i =>\n    let i1 ← i + 16#usize\n    let s ←\n      core.Slice.Insts.CoreOpsIndexIndex.index\n        (core.ops.range.RangeUsize.Insts.CoreSliceIndexSliceIndexSliceSlice\n        Std.U8) buffer { start := i, «end» := i1 }\n    let (i2, i3) ← do16 self.a self.b s\n    let pos1 ← pos + 16#usize\n    ok (cont (iter1, { a := i2, b := i3 }, pos1))"
+    },
+    {
+     "replace_decl": "adler32.RollingAdler32.update_buffer_loop1_loop0",
+     "with_text": "def RollingAdler32.update_buffer_loop1_loop0\n  (iter : core.ops.range.Range Std.Usize) (self : RollingAdler32)\n  (buffer : Slice Std.U8) (pos : Std.Usize) :\n  RustM (RollingAdler32 × Std.Usize)\n  := do\n  loop\n    (fun (iter1, self1, pos1) => RollingAdler32.update_buffer_loop1_loop0.body\n      buffer iter1 self1 pos1)\n    (iter, self, pos)"
+    },
+    {
+     "replace_decl": "adler32.RollingAdler32.update_buffer_loop1.body",
+     "with_text": "def RollingAdler32.update_buffer_loop1.body\n  (buffer : Slice Std.U8) (len : Std.Usize) (self : RollingAdler32)\n  (pos : Std.Usize) :\n  RustM (ControlFlow (RollingAdler32 × Std.Usize) (RollingAdler32 ×\n    Std.Usize))\n  := do\n  let i ← pos + NMAX\n  if i < len\n  then\n    let (self1, pos1) ←\n      RollingAdler32.update_buffer_loop1_loop0 { start := pos, «end» := i }\n        self buffer pos\n    let i1 ← self1.a % BASE\n    let i2 ← self1.b % BASE\n    ok (cont ({ a := i1, b := i2 }, pos1))\n  else ok (done (self, pos))"
+    }
+   ]
+  }
+ ]
+}

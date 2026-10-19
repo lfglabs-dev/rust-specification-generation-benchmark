@@ -37,5 +37,8 @@
   {"decl": "sigma_ser.zig_zag_encode.decode_u32", "before": "let i ← lift (UScalar.cast .U32 v)", "after": "let i ← (if v.val < 2^32 then ok (UScalar.cast .U32 v) else fail .panic)", "note": "u32::try_from(v).unwrap(): rejects the sign-extended codes produced by encode_i32"},
   {"decl": "sigma_ser.zig_zag_encode.encode_i64", "before": "let i1 ← v >>> 63#i32", "after": "let i1 ← (do let u ← (IScalar.hcast .U64 v) >>> 63#i32; ok (UScalar.hcast .I64 u))", "note": "logical instead of arithmetic shift for the sign mask"},
   {"decl": "sigma_ser.zig_zag_encode.decode_u64", "before": "let i ← v >>> 1#i32", "after": "let i ← (do let s ← (UScalar.hcast .I64 v) >>> 1#i32; ok (IScalar.hcast .U64 s))", "note": "arithmetic instead of logical shift: wrong for codes >= 2^63"}
+ ],
+ "bug_variants": [
+  {"id": "inj1", "kind": "injected", "source": "injected regression (promoted manual mutant #5); no usable historical fix found upstream", "note": "decode_u64 uses an arithmetic instead of a logical right shift: codes >= 2^63 (|v| >= 2^62) decode to the wrong value, breaking the decode_u64(encode_i64(v)) = v round trip", "edits": [{"decl": "sigma_ser.zig_zag_encode.decode_u64", "before": "let i ← v >>> 1#i32", "after": "let i ← (do let s ← (UScalar.hcast .I64 v) >>> 1#i32; ok (IScalar.hcast .U64 s))"}]}
  ]
 }

@@ -1,0 +1,128 @@
+{
+ "id": "memchr/twoway",
+ "package": "MemchrTwoway",
+ "module_prefix": "Benchmark.V2.Memchr.Twoway",
+ "rust_dir": "rust/memchr/twoway",
+ "api": [
+  "memchr.arch.all.twoway.Suffix.forward",
+  "memchr.arch.all.twoway.Suffix.reverse",
+  "memchr.arch.all.twoway.FinderRev.new",
+  "memchr.arch.all.twoway.FinderRev.rfind"
+ ],
+ "mutation_roots": [
+  "memchr.arch.all.twoway.Suffix.forward",
+  "memchr.arch.all.twoway.Suffix.reverse",
+  "memchr.arch.all.twoway.FinderRev.new",
+  "memchr.arch.all.twoway.FinderRev.rfind"
+ ],
+ "forbidden_constants": [
+  "memchr.arch.all.twoway.Suffix.forward_loop",
+  "memchr.arch.all.twoway.Suffix.forward_loop.body",
+  "memchr.arch.all.twoway.Suffix.reverse_loop",
+  "memchr.arch.all.twoway.Suffix.reverse_loop.body",
+  "memchr.arch.all.twoway.FinderRev.rfind_small_imp",
+  "memchr.arch.all.twoway.FinderRev.rfind_large_imp",
+  "memchr.arch.all.twoway.FinderRev.rfind_small_imp_loop0",
+  "memchr.arch.all.twoway.FinderRev.rfind_small_imp_loop0_loop0",
+  "memchr.arch.all.twoway.FinderRev.rfind_small_imp_loop0_loop1",
+  "memchr.arch.all.twoway.FinderRev.rfind_large_imp_loop0",
+  "memchr.arch.all.twoway.FinderRev.rfind_large_imp_loop0_loop0",
+  "memchr.arch.all.twoway.FinderRev.rfind_large_imp_loop0_loop1"
+ ],
+ "allowed_imports": [
+  "MemchrTwoway.Extraction"
+ ],
+ "opens": [
+  "memchr"
+ ],
+ "upstream_imports": [
+  "Benchmark.Cases.Memchr.Twoway.Specs"
+ ],
+ "upstream_props": [
+  "Benchmark.Cases.Memchr.Twoway.Oracle.suffix_forward_maximal",
+  "Benchmark.Cases.Memchr.Twoway.Oracle.suffix_reverse_maximal"
+ ],
+ "intent": "Specify the Two-Way substring-search API of `memchr::arch::all::twoway`: the critical-factorisation helpers `Suffix::forward(needle, kind)` and `Suffix::reverse(needle, kind)` (both `SuffixKind`s; Lean: `arch.all.twoway.Suffix.forward` / `.reverse`, returning a `Suffix` with fields `pos` and `period`), and the reverse searcher `FinderRev::new(needle)` together with `FinderRev::rfind(&self, haystack, needle)` (Lean: `arch.all.twoway.FinderRev.new`, `arch.all.twoway.FinderRev.rfind`).",
+ "manual_mutants": [
+  {
+   "note": "forward Skip case forgets the +offset+1 when updating the period (position still right, period wrong)",
+   "decl": "memchr.arch.all.twoway.Suffix.forward_loop.body",
+   "before": "let i6 ← candidate_start1 - i",
+   "after": "let i6 ← candidate_start - i"
+  },
+  {
+   "note": "reverse Accept keeps the old period instead of resetting it to 1",
+   "decl": "memchr.arch.all.twoway.Suffix.reverse_loop.body",
+   "before": "ok (cont (candidate_start, 1#usize, candidate_start1, 0#usize))",
+   "after": "ok (cont (candidate_start, i1, candidate_start1, 0#usize))"
+  },
+  {
+   "note": "Minimal accepts on equal bytes: picks the shorter suffix on prefix ties (true minimum), contrary to the documented choice of `aa` over `a`",
+   "decl": "memchr.arch.all.twoway.SuffixKind.cmp",
+   "before": "| arch.all.twoway.SuffixKind.Minimal =>",
+   "after": "| arch.all.twoway.SuffixKind.Minimal => if candidate = current then ok arch.all.twoway.SuffixOrdering.Accept else"
+  },
+  {
+   "note": "reverse finder picks the right-most instead of the left-most critical position",
+   "decl": "memchr.arch.all.twoway.FinderRev.new",
+   "before": "if min_suffix.pos < max_suffix.pos",
+   "after": "if min_suffix.pos > max_suffix.pos"
+  },
+  {
+   "note": "empty needle reported at position 0 instead of haystack.len()",
+   "decl": "memchr.arch.all.twoway.FinderRev.rfind_large_imp",
+   "before": "| core.option.Option.None => ok (core.option.Option.Some pos)",
+   "after": "| core.option.Option.None => ok (core.option.Option.Some 0#usize)"
+  },
+  {
+   "note": "small-period test uses > instead of >= at exactly half the needle",
+   "decl": "memchr.arch.all.twoway.Shift.reverse",
+   "before": "if i3 >= i",
+   "after": "if i3 > i"
+  },
+  {
+   "note": "byteset prefilter query uses a different bucket (% 63) than construction: false negatives skip real matches",
+   "decl": "memchr.arch.all.twoway.ApproximateByteSet.contains",
+   "before": "let i ← byte % 64#u8",
+   "after": "let i ← byte % 63#u8"
+  }
+ ],
+ "sibling_mutants": [
+  {
+   "note": "approximate byte set buckets bytes by b / 4 instead of b % 64 (different but valid prefilter representation)",
+   "edits": [
+    {
+     "decl": "memchr.arch.all.twoway.ApproximateByteSet.new_loop.body",
+     "before": "let i ← b % 64#u8",
+     "after": "let i ← b / 4#u8"
+    },
+    {
+     "decl": "memchr.arch.all.twoway.ApproximateByteSet.contains",
+     "before": "let i ← byte % 64#u8",
+     "after": "let i ← byte / 4#u8"
+    }
+   ]
+  },
+  {
+   "note": "reverse suffix of an empty needle reports period 0 (the period of an empty string is not meaningful)",
+   "decl": "memchr.arch.all.twoway.Suffix.reverse",
+   "before": "| core.option.Option.None => ok { pos := i, period := 1#usize }",
+   "after": "| core.option.Option.None => ok { pos := i, period := 0#usize }"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/BurntSushi/memchr/commit/1233467fa645b8536834801a24d101401b848f29 (fixes the reverse Two-Way of bstr 89f1aba63fdafba263be56f068d9b86ee836228e; regression test `regression_rev_small_period`)",
+   "note": "small-period reverse search reports a match only when the left-to-right verification stops exactly at `shift` (`j == shift`) instead of `j >= shift`: after a period shift the verified window can end past `shift`, so real occurrences are missed (rfind(\"ababaz\", \"abab\") = None instead of Some(0)); breaks 'returns the last occurrence'",
+   "edits": [
+    {
+     "decl": "memchr.arch.all.twoway.FinderRev.rfind_small_imp_loop0.body",
+     "before": "if j >= shift",
+     "after": "if j = shift"
+    }
+   ]
+  }
+ ]
+}

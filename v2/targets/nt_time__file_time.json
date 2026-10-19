@@ -90,5 +90,20 @@
    "after": "ok error.FileTimeRangeErrorKind.Overflow",
    "note": "times before the NT epoch report the wrong error kind"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #0)",
+   "note": "from_unix_time_secs upper bound forgets the epoch offset: too-late Unix times panic on overflow instead of returning Err(FileTimeRangeError Overflow) as documented",
+   "edits": [
+    {
+     "decl": "nt_time.file_time.unix_time.FileTime.from_unix_time_secs",
+     "before": "if secs <= 1833029933770#i64",
+     "after": "if secs <= 1844674407370#i64"
+    }
+   ]
+  }
  ]
 }

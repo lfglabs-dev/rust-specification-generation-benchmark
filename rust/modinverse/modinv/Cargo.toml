@@ -1,0 +1,22 @@
+[package]
+name = "modinverse"
+version = "0.2.0"
+authors = ["Simon Andrews <public@simonandre.ws>"]
+edition = "2021"
+
+description = "Small library for finding the modular multiplicative inverses."
+repository = "https://github.com/simon-andrews/rust-modinverse"
+readme = "README.md"
+license = "Unlicense"
+keywords = ["modular", "inverse", "number-theory", "mathematics", "no-std"]
+categories = ["mathematics", "algorithms", "no-std"]
+
+[features]
+default = []
+bigint = ["dep:num-bigint"]
+
+[dependencies]
+num-integer = { version = "0.1", default-features = false }
+num-traits = { version = "0.2.19", default-features = false }
+num-bigint = { version = "0.4.6", default-features = false, optional = true }
+

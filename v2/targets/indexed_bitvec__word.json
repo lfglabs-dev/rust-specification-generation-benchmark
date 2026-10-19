@@ -75,8 +75,8 @@
   },
   {
    "decl": "indexed_bitvec_core.ceil_div_u64_slow",
-   "before": "let i2 ← if i1 > 0#u64",
-   "after": "let i2 ← if i1 > 1#u64",
+   "before": "let i2 \u2190 if i1 > 0#u64",
+   "after": "let i2 \u2190 if i1 > 1#u64",
    "note": "slow path (only reached near u64::MAX) misses the round-up when n % d = 1"
   },
   {
@@ -108,8 +108,23 @@
   {
    "decl": "indexed_bitvec_core.word.select_ones_u16_loop.body",
    "before": "if n_leading_zeros >= 16#u32",
-   "after": "if n_leading_zeros >= 16#u32 ∨ nth >= 17#u32",
+   "after": "if n_leading_zeros >= 16#u32 \u2228 nth >= 17#u32",
    "note": "select_ones_u16 returns the not-found sentinel 16 for every nth > 16 instead of panicking on a shift overflow for large nth (out of its domain)"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #1)",
+   "note": "ceil_div drops the overflow fallback: when n + d - 1 wraps the result is (wrapped) / d instead of the ceiling of n / d",
+   "edits": [
+    {
+     "decl": "indexed_bitvec_core.ceil_div",
+     "before": "then ceil_div_slow n d",
+     "after": "then nb / d"
+    }
+   ]
   }
  ]
 }

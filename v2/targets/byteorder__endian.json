@@ -85,5 +85,47 @@
    "after": "(core.num.U16.from_le_bytes a) >>= fun r => ok (r &&& 32767#u16)",
    "note": "most significant bit lost (sign-bit style bug; wrong only when the second byte is >= 0x80)"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/BurntSushi/byteorder/commit/0ead1057d4d1ea59ad9c8e5bc35514646ef8fb83 (fixes #173)",
+   "note": "read_u16/u32/u64/u128 pass the whole buffer to the std array conversion (TryFrom<&[u8]> for [u8; N]) instead of buf[..N]: reading from any buffer longer than N bytes panics, although the docs promise reading the first N bytes and panicking only when buf.len() < N",
+   "edits": [
+    {
+     "replace_decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u16",
+     "with_text": "def BigEndian.Insts.ByteorderByteOrder.read_u16\n  (buf : Slice Std.U8) : RustM Std.U16 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      2#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U16.from_be_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u32",
+     "with_text": "def BigEndian.Insts.ByteorderByteOrder.read_u32\n  (buf : Slice Std.U8) : RustM Std.U32 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      4#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U32.from_be_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u64",
+     "with_text": "def BigEndian.Insts.ByteorderByteOrder.read_u64\n  (buf : Slice Std.U8) : RustM Std.U64 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      8#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U64.from_be_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.BigEndian.Insts.ByteorderByteOrder.read_u128",
+     "with_text": "def BigEndian.Insts.ByteorderByteOrder.read_u128\n  (buf : Slice Std.U8) : RustM Std.U128 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      16#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U128.from_be_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u16",
+     "with_text": "def LittleEndian.Insts.ByteorderByteOrder.read_u16\n  (buf : Slice Std.U8) : RustM Std.U16 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      2#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U16.from_le_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u32",
+     "with_text": "def LittleEndian.Insts.ByteorderByteOrder.read_u32\n  (buf : Slice Std.U8) : RustM Std.U32 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      4#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U32.from_le_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u64",
+     "with_text": "def LittleEndian.Insts.ByteorderByteOrder.read_u64\n  (buf : Slice Std.U8) : RustM Std.U64 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      8#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U64.from_le_bytes a"
+    },
+    {
+     "replace_decl": "byteorder.LittleEndian.Insts.ByteorderByteOrder.read_u128",
+     "with_text": "def LittleEndian.Insts.ByteorderByteOrder.read_u128\n  (buf : Slice Std.U8) : RustM Std.U128 := do\n  let r \u2190\n    core.Array.Insts.CoreConvertTryFromShared0SliceTryFromSliceError.try_from\n      16#usize core.U8.Insts.CoreMarkerCopy buf\n  let a \u2190\n    core.result.Result.unwrap core.array.TryFromSliceError.Insts.CoreFmtDebug r\n  core.num.U128.from_le_bytes a"
+    }
+   ]
+  }
  ]
 }

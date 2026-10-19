@@ -72,5 +72,20 @@
    "after": "massert (0#usize <= nbytes)",
    "note": "nbytes = 0 returns 0 instead of panicking"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #1; cf. the same class of bug reported upstream for write_int: https://github.com/BurntSushi/byteorder/issues/205)",
+   "note": "BigEndian::write_uint drops the representability assertion: values that do not fit in nbytes are silently truncated instead of panicking as documented ('Panics when n cannot be represented in nbytes')",
+   "edits": [
+    {
+     "decl": "byteorder_lite.BigEndian.Insts.Byteorder_liteByteOrder.write_uint",
+     "before": "massert (i <= nbytes)",
+     "after": "ok ()"
+    }
+   ]
+  }
  ]
 }

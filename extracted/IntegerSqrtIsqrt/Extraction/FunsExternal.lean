@@ -1,0 +1,1 @@
+import IntegerSqrtIsqrt.Assumptions.FunsExternal

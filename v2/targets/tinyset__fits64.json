@@ -118,5 +118,55 @@
    "after": "let i ← (x &&& 511#u64) >>> 1#i32",
    "note": "decoder only looks at the low 9 bits (enough for every i8 encoding)"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "bug1",
+   "kind": "historical",
+   "source": "https://github.com/droundy/tinyset/commit/25c415bed91bac37bccf6470ff60d055d4548449 (\"fix a bug in my Fits64 implementation for minimum negative integers\")",
+   "note": "pre-fix signed Fits64 (tinyset 0.4.1) encodes `(self.abs() << 1) + sign_bit`: `abs()` overflows on the minimum value (i8::MIN, ..., i64::MIN, isize::MIN), so to_u64 panics instead of being the documented infallible, lossless conversion and the test_fits64 round trip fails there (the old sign-magnitude decoder `abs*(neg*(-2)+1)` also maps words 0 and 1 both to 0, so the encoding is not a bijection on the type's words); the extracted `core.mem.size_of::<Self>()` call (an opaque external in Aeneas) is replaced by its constant value (1/2/4/8/8 bytes)",
+   "edits": [
+    {
+     "replace_decl": "tinyset.I8.Insts.TinysetSet64Fits64.to_u64",
+     "with_text": "def I8.Insts.TinysetSet64Fits64.to_u64 (self : Std.I8) : RustM Std.U64 := do\n  let i ← core.num.I8.abs self\n  let i1 ← lift (IScalar.hcast .U64 i)\n  let a ← i1 <<< 1#i32\n  let i2 ← lift (IScalar.hcast .U8 self)\n  let i3 ← ok 1#usize\n  let i4 ← 8#usize * i3\n  let i5 ← i4 - 1#usize\n  let i6 ← i2 >>> i5\n  let b ← lift (UScalar.cast .U64 i6)\n  a + b"
+    },
+    {
+     "replace_decl": "tinyset.I8.Insts.TinysetSet64Fits64.from_u64",
+     "with_text": "def I8.Insts.TinysetSet64Fits64.from_u64 (x : Std.U64) : RustM Std.I8 := do\n  let i ← x >>> 1#i32\n  let abs ← lift (UScalar.hcast .I8 i)\n  let i1 ← lift (x &&& 1#u64)\n  let neg ← lift (UScalar.hcast .I8 i1)\n  let i2 ← neg * (-2)#i8\n  let i3 ← i2 + 1#i8\n  abs * i3"
+    },
+    {
+     "replace_decl": "tinyset.I16.Insts.TinysetSet64Fits64.to_u64",
+     "with_text": "def I16.Insts.TinysetSet64Fits64.to_u64 (self : Std.I16) : RustM Std.U64 := do\n  let i ← core.num.I16.abs self\n  let i1 ← lift (IScalar.hcast .U64 i)\n  let a ← i1 <<< 1#i32\n  let i2 ← lift (IScalar.hcast .U16 self)\n  let i3 ← ok 2#usize\n  let i4 ← 8#usize * i3\n  let i5 ← i4 - 1#usize\n  let i6 ← i2 >>> i5\n  let b ← lift (UScalar.cast .U64 i6)\n  a + b"
+    },
+    {
+     "replace_decl": "tinyset.I16.Insts.TinysetSet64Fits64.from_u64",
+     "with_text": "def I16.Insts.TinysetSet64Fits64.from_u64 (x : Std.U64) : RustM Std.I16 := do\n  let i ← x >>> 1#i32\n  let abs ← lift (UScalar.hcast .I16 i)\n  let i1 ← lift (x &&& 1#u64)\n  let neg ← lift (UScalar.hcast .I16 i1)\n  let i2 ← neg * (-2)#i16\n  let i3 ← i2 + 1#i16\n  abs * i3"
+    },
+    {
+     "replace_decl": "tinyset.I32.Insts.TinysetSet64Fits64.to_u64",
+     "with_text": "def I32.Insts.TinysetSet64Fits64.to_u64 (self : Std.I32) : RustM Std.U64 := do\n  let i ← core.num.I32.abs self\n  let i1 ← lift (IScalar.hcast .U64 i)\n  let a ← i1 <<< 1#i32\n  let i2 ← lift (IScalar.hcast .U32 self)\n  let i3 ← ok 4#usize\n  let i4 ← 8#usize * i3\n  let i5 ← i4 - 1#usize\n  let i6 ← i2 >>> i5\n  let b ← lift (UScalar.cast .U64 i6)\n  a + b"
+    },
+    {
+     "replace_decl": "tinyset.I32.Insts.TinysetSet64Fits64.from_u64",
+     "with_text": "def I32.Insts.TinysetSet64Fits64.from_u64 (x : Std.U64) : RustM Std.I32 := do\n  let i ← x >>> 1#i32\n  let abs ← lift (UScalar.hcast .I32 i)\n  let i1 ← lift (x &&& 1#u64)\n  let neg ← lift (UScalar.hcast .I32 i1)\n  let i2 ← neg * (-2)#i32\n  let i3 ← i2 + 1#i32\n  abs * i3"
+    },
+    {
+     "replace_decl": "tinyset.I64.Insts.TinysetSet64Fits64.to_u64",
+     "with_text": "def I64.Insts.TinysetSet64Fits64.to_u64 (self : Std.I64) : RustM Std.U64 := do\n  let i ← core.num.I64.abs self\n  let i1 ← lift (IScalar.hcast .U64 i)\n  let a ← i1 <<< 1#i32\n  let i2 ← lift (IScalar.hcast .U64 self)\n  let i3 ← ok 8#usize\n  let i4 ← 8#usize * i3\n  let i5 ← i4 - 1#usize\n  let b ← i2 >>> i5\n  a + b"
+    },
+    {
+     "replace_decl": "tinyset.I64.Insts.TinysetSet64Fits64.from_u64",
+     "with_text": "def I64.Insts.TinysetSet64Fits64.from_u64 (x : Std.U64) : RustM Std.I64 := do\n  let i ← x >>> 1#i32\n  let abs ← lift (UScalar.hcast .I64 i)\n  let i1 ← lift (x &&& 1#u64)\n  let neg ← lift (UScalar.hcast .I64 i1)\n  let i2 ← neg * (-2)#i64\n  let i3 ← i2 + 1#i64\n  abs * i3"
+    },
+    {
+     "replace_decl": "tinyset.Isize.Insts.TinysetSet64Fits64.to_u64",
+     "with_text": "def Isize.Insts.TinysetSet64Fits64.to_u64\n  (self : Std.Isize) : RustM Std.U64 := do\n  let i ← core.num.Isize.abs self\n  let i1 ← lift (IScalar.hcast .U64 i)\n  let a ← i1 <<< 1#i32\n  let i2 ← lift (IScalar.hcast .Usize self)\n  let i3 ← ok 8#usize\n  let i4 ← 8#usize * i3\n  let i5 ← i4 - 1#usize\n  let i6 ← i2 >>> i5\n  let b ← lift (UScalar.cast .U64 i6)\n  a + b"
+    },
+    {
+     "replace_decl": "tinyset.Isize.Insts.TinysetSet64Fits64.from_u64",
+     "with_text": "def Isize.Insts.TinysetSet64Fits64.from_u64\n  (x : Std.U64) : RustM Std.Isize := do\n  let i ← x >>> 1#i32\n  let abs ← lift (UScalar.hcast .Isize i)\n  let i1 ← lift (x &&& 1#u64)\n  let neg ← lift (UScalar.hcast .Isize i1)\n  let i2 ← neg * (-2)#isize\n  let i3 ← i2 + 1#isize\n  abs * i3"
+    }
+   ]
+  }
  ]
 }

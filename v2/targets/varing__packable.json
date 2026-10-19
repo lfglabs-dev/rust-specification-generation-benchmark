@@ -159,5 +159,20 @@
    "after": "let i ← value * 2#i64",
    "note": "checked multiplication in ZigZag encode: panics for |v| >= 2^62"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #2); no usable historical fix found upstream",
+   "note": "copy-paste in pack for (u16, u64)-style packing: the wide field is shifted by 8 instead of 16 bits, so it overlaps the narrow field and unpack no longer inverts pack",
+   "edits": [
+    {
+     "decl": "varing.packable.builtin.pack_u16_u64",
+     "before": "let i ← large <<< core.num.U16.BITS",
+     "after": "let i ← large <<< core.num.U8.BITS"
+    }
+   ]
+  }
  ]
 }

@@ -31,31 +31,31 @@
  "upstream_props": [
   "Benchmark.Cases.Blue.ScrunchBinarySearch.Oracle.binary_search_finds_index"
  ],
- "intent": "Specify the public API of `scrunch::binary_search`: `binary_search_by<F: FnMut(usize) -> Ordering>(first, last, search) -> usize` and `partition_by<F: FnMut(usize) -> bool>(first, last, search) -> usize`. Both are generic over the closure: in Lean they take an explicit closure-instance record (`core.ops.function.FnMut F Std.Usize core.cmp.Ordering`, resp. `core.ops.function.FnMut F Std.Usize Bool`, with fields `FnOnceInst := { call_once := … }` and `call_mut : F → Std.Usize → RustM (Out × F)`), then `first last : Std.Usize` and the closure state `search : F`. Instantiate them with closure types of your own (any Lean type `F` and `call_mut` you define in your file).",
+ "intent": "Specify the public API of `scrunch::binary_search`: `binary_search_by<F: FnMut(usize) -> Ordering>(first, last, search) -> usize` and `partition_by<F: FnMut(usize) -> bool>(first, last, search) -> usize`. Both are generic over the closure: in Lean they take an explicit closure-instance record (`core.ops.function.FnMut F Std.Usize core.cmp.Ordering`, resp. `core.ops.function.FnMut F Std.Usize Bool`, with fields `FnOnceInst := { call_once := \u2026 }` and `call_mut : F \u2192 Std.Usize \u2192 RustM (Out \u00d7 F)`), then `first last : Std.Usize` and the closure state `search : F`. Instantiate them with closure types of your own (any Lean type `F` and `call_mut` you define in your file).",
  "manual_mutants": [
   {
    "note": "midpoint computed as (left + right) / 2: overflows for ranges near usize::MAX",
    "decl": "scrunch.binary_search.binary_search_by_loop.body",
-   "before": "let mid ← left + i1",
-   "after": "let mid ← (do let s ← left + right; s / 2#usize)"
+   "before": "let mid \u2190 left + i1",
+   "after": "let mid \u2190 (do let s \u2190 left + right; s / 2#usize)"
   },
   {
    "note": "Greater moves right to mid - 1 (classic inclusive-bound bug): result can skip the answer",
    "decl": "scrunch.binary_search.binary_search_by_loop.body",
    "before": "then ok (cont (search1, left, mid))",
-   "after": "then (do let m ← (if mid = 0#usize then ok mid else mid - 1#usize); ok (cont (search1, left, m)))"
+   "after": "then (do let m \u2190 (if mid = 0#usize then ok mid else mid - 1#usize); ok (cont (search1, left, m)))"
   },
   {
    "note": "bisects at a third instead of the middle: same answers on sorted input but more than log2 probes",
    "decl": "scrunch.binary_search.binary_search_by_loop.body",
-   "before": "let i1 ← i / 2#usize",
-   "after": "let i1 ← i / 3#usize"
+   "before": "let i1 \u2190 i / 2#usize",
+   "after": "let i1 \u2190 i / 3#usize"
   },
   {
    "note": "partition_by treats [first, last] as inclusive and passes last - 1: can never return last",
    "decl": "scrunch.binary_search.partition_by",
    "before": "coreopsfunctionFnMutFTupleUsizeBoolInst) first last search",
-   "after": "coreopsfunctionFnMutFTupleUsizeBoolInst) first (if first < last then ⟨last.bv - 1⟩ else last) search"
+   "after": "coreopsfunctionFnMutFTupleUsizeBoolInst) first (if first < last then \u27e8last.bv - 1\u27e9 else last) search"
   },
   {
    "note": "empty/inverted range returns last instead of first",
@@ -76,6 +76,21 @@
    "decl": "scrunch.binary_search.binary_search_by_loop.body",
    "before": "else ok (done mid)",
    "after": "else ok (cont (search1, left, mid))"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #0; scrunch/src/binary_search.rs unchanged since b6ff1e93)",
+   "note": "midpoint computed as (left + right) / 2 (the classic binary-search overflow bug): panics on overflow for ranges near usize::MAX although the search is documented for any inclusive range [first, last]",
+   "edits": [
+    {
+     "decl": "scrunch.binary_search.binary_search_by_loop.body",
+     "before": "let mid \u2190 left + i1",
+     "after": "let mid \u2190 (do let s \u2190 left + right; s / 2#usize)"
+    }
+   ]
   }
  ]
 }

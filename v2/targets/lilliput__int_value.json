@@ -103,21 +103,21 @@
  "manual_mutants": [
   {
    "decl": "lilliput_core.I16.Insts.Lilliput_coreNumZigzagToZigZagU16.to_zig_zag",
-   "before": "let i1 ← i - 1#usize",
-   "after": "let i1 ← i - 2#usize",
+   "before": "let i1 \u2190 i - 1#usize",
+   "after": "let i1 \u2190 i - 2#usize",
    "note": "sign mask shift off by one: wrong only for large-magnitude negative i16"
   },
   {
    "edits": [
     {
      "decl": "lilliput_core.I8.Insts.Lilliput_coreNumZigzagToZigZagU8.to_zig_zag",
-     "before": "let i2 ← self >>> i1",
-     "after": "let i2u ← lift (IScalar.hcast .U8 self)"
+     "before": "let i2 \u2190 self >>> i1",
+     "after": "let i2u \u2190 lift (IScalar.hcast .U8 self)"
     },
     {
      "decl": "lilliput_core.I8.Insts.Lilliput_coreNumZigzagToZigZagU8.to_zig_zag",
-     "before": "let i3 ← lift (IScalar.hcast .U8 i2)",
-     "after": "let i3 ← i2u >>> i1"
+     "before": "let i3 \u2190 lift (IScalar.hcast .U8 i2)",
+     "after": "let i3 \u2190 i2u >>> i1"
     }
    ],
    "note": "logical instead of arithmetic shift for the sign mask: wrong for negative i8"
@@ -126,13 +126,13 @@
    "edits": [
     {
      "decl": "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
-     "before": "let i ← zig_zag >>> 1#i32",
-     "after": "let i ← lift (UScalar.hcast .I32 zig_zag)"
+     "before": "let i \u2190 zig_zag >>> 1#i32",
+     "after": "let i \u2190 lift (UScalar.hcast .I32 zig_zag)"
     },
     {
      "decl": "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
-     "before": "let i1 ← lift (UScalar.hcast .I32 i)",
-     "after": "let i1 ← i >>> 1#i32"
+     "before": "let i1 \u2190 lift (UScalar.hcast .I32 i)",
+     "after": "let i1 \u2190 i >>> 1#i32"
     }
    ],
    "note": "decode shifts after the signed cast (arithmetic shift): wrong for codes >= 2^31"
@@ -157,8 +157,8 @@
   },
   {
    "decl": "lilliput_core.I64.Insts.Lilliput_coreNumZigzagFromZigZagU64.from_zig_zag",
-   "before": "let i4 ← -. i3",
-   "after": "let i4 ← ok (0#i64 : Std.I64)",
+   "before": "let i4 \u2190 -. i3",
+   "after": "let i4 \u2190 ok (0#i64 : Std.I64)",
    "note": "sign of odd codes dropped: odd codes decode as non-negative"
   }
  ],
@@ -180,6 +180,26 @@
    "before": "ok (value.int.IntValue.Unsigned uiv)",
    "after": "ok (value.int.IntValue.Signed (value.int.signed.SignedIntValue.I8 0#i8))",
    "note": "default IntValue is a signed zero"
+  }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected (no fixed upstream bug found in the API functions' history; promoted manual mutant #2)",
+   "note": "i32 from_zig_zag casts to i32 before shifting (arithmetic shift): codes >= 2^31 decode wrongly, breaking the zig-zag round trip",
+   "edits": [
+    {
+     "decl": "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
+     "before": "let i \u2190 zig_zag >>> 1#i32",
+     "after": "let i \u2190 lift (UScalar.hcast .I32 zig_zag)"
+    },
+    {
+     "decl": "lilliput_core.I32.Insts.Lilliput_coreNumZigzagFromZigZagU32.from_zig_zag",
+     "before": "let i1 \u2190 lift (UScalar.hcast .I32 i)",
+     "after": "let i1 \u2190 i >>> 1#i32"
+    }
+   ]
   }
  ]
 }

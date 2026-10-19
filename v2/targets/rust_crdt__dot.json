@@ -97,5 +97,20 @@
    "after": "ok { actor := d.actor, counter := (if d.counter.val = 2^64 - 1 then 0#u64 else d.counter) }",
    "note": "conversion to OrdDot wraps the maximal counter to 0"
   }
+ ],
+ "bug_variants": [
+  {
+   "id": "inj1",
+   "kind": "injected",
+   "source": "injected regression (promoted manual mutant #1); no usable historical fix found upstream",
+   "note": "Dot::partial_cmp drops the same-actor check: dots of different actors become comparable by their counters, although dots of different actors are causally unrelated (partial order must return None)",
+   "edits": [
+    {
+     "decl": "crdts.dot.Dot.Insts.CoreCmpPartialOrdDot.partial_cmp",
+     "before": "if b",
+     "after": "if true"
+    }
+   ]
+  }
  ]
 }
