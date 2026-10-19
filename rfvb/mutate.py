@@ -259,14 +259,25 @@ def _env(lean_path: str) -> dict:
 
 
 LEAN_SLOTS = int(__import__("os").environ.get("RSGB_LEAN_SLOTS", "8"))
+# `lean` runs a fresh process per file. `turbo` runs `turbo-lean eval`, a drop-in for
+# `lean <file>` (same output bytes and exit code) that keeps imported environments warm
+# in a local daemon between calls, keyed by the content of the .olean files on LEAN_PATH.
+LEAN_BACKEND = __import__("os").environ.get("RSGB_LEAN_BACKEND", "lean")
+TURBO_LEAN_BIN = __import__("os").environ.get("TURBO_LEAN_BIN", "turbo-lean")
+
+
+def lean_command(path: Path, timeout: int) -> list[str]:
+    if LEAN_BACKEND == "turbo":
+        return [TURBO_LEAN_BIN, "eval", "--timeout-ms", str(timeout * 1000), str(path)]
+    return ["timeout", "-k", "10", str(timeout), "lean", str(path)]
 
 
 def run_lean_file(exec_root: Path, lean_path: str, path: Path, timeout: int = 900) -> str:
     from .slots import slot
     with slot("lean", LEAN_SLOTS):
         try:
-            proc = subprocess.run(["timeout", "-k", "10", str(timeout), "lean", str(path)], cwd=exec_root, env=_env(lean_path),
-                                  capture_output=True, text=True, timeout=timeout)
+            proc = subprocess.run(lean_command(path, timeout), cwd=exec_root, env=_env(lean_path),
+                                  capture_output=True, text=True, timeout=timeout + 30)
         except subprocess.TimeoutExpired:
             return "RSGB_TIMEOUT"
     if proc.returncode in (124, 137):
