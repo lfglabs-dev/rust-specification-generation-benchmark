@@ -262,27 +262,58 @@ LEAN_SLOTS = int(__import__("os").environ.get("RSGB_LEAN_SLOTS", "8"))
 # `lean` runs a fresh process per file. `turbo` runs `turbo-lean eval`, a drop-in for
 # `lean <file>` (same output bytes and exit code) that keeps imported environments warm
 # in a local daemon between calls, keyed by the content of the .olean files on LEAN_PATH.
+# `compare` runs both, returns the `lean` result and logs the comparison (RSGB_COMPARE_LOG).
 LEAN_BACKEND = __import__("os").environ.get("RSGB_LEAN_BACKEND", "lean")
 TURBO_LEAN_BIN = __import__("os").environ.get("TURBO_LEAN_BIN", "turbo-lean")
 
 
-def lean_command(path: Path, timeout: int) -> list[str]:
-    if LEAN_BACKEND == "turbo":
+def lean_command(path: Path, timeout: int, backend: str = LEAN_BACKEND) -> list[str]:
+    if backend == "turbo":
         return [TURBO_LEAN_BIN, "eval", "--timeout-ms", str(timeout * 1000), str(path)]
     return ["timeout", "-k", "10", str(timeout), "lean", str(path)]
+
+
+def _run_lean_file(backend: str, exec_root: Path, lean_path: str, path: Path, timeout: int) -> tuple[str, int, float]:
+    import time
+    t0 = time.time()
+    try:
+        proc = subprocess.run(lean_command(path, timeout, backend), cwd=exec_root, env=_env(lean_path),
+                              capture_output=True, text=True, timeout=timeout + 30)
+    except subprocess.TimeoutExpired:
+        return "RSGB_TIMEOUT", 124, time.time() - t0
+    if proc.returncode in (124, 137):
+        return "RSGB_TIMEOUT", proc.returncode, time.time() - t0
+    return proc.stdout + proc.stderr, proc.returncode, time.time() - t0
 
 
 def run_lean_file(exec_root: Path, lean_path: str, path: Path, timeout: int = 900) -> str:
     from .slots import slot
     with slot("lean", LEAN_SLOTS):
-        try:
-            proc = subprocess.run(lean_command(path, timeout), cwd=exec_root, env=_env(lean_path),
-                                  capture_output=True, text=True, timeout=timeout + 30)
-        except subprocess.TimeoutExpired:
-            return "RSGB_TIMEOUT"
-    if proc.returncode in (124, 137):
-        return "RSGB_TIMEOUT"
-    return proc.stdout + proc.stderr
+        if LEAN_BACKEND != "compare":
+            return _run_lean_file(LEAN_BACKEND, exec_root, lean_path, path, timeout)[0]
+        # Validation mode: run both backends, log the comparison, return the `lean` result.
+        ref, ref_code, ref_t = _run_lean_file("lean", exec_root, lean_path, path, timeout)
+        cand, cand_code, cand_t = _run_lean_file("turbo", exec_root, lean_path, path, timeout)
+    import hashlib
+    import os
+    row = {
+        "file": str(path), "lean_path": lean_path, "ref_code": ref_code, "cand_code": cand_code,
+        "ref_seconds": round(ref_t, 2), "cand_seconds": round(cand_t, 2),
+        "identical_bytes": ref == cand and ref_code == cand_code,
+        "same_verdicts": (parse_results(ref), parse_outputs(ref), "RSGB_TIMEOUT" in ref, "RSGB_KILL" in ref)
+                         == (parse_results(cand), parse_outputs(cand), "RSGB_TIMEOUT" in cand, "RSGB_KILL" in cand),
+        "ref_sha": hashlib.sha256(ref.encode()).hexdigest(), "cand_sha": hashlib.sha256(cand.encode()).hexdigest(),
+    }
+    log = Path(os.environ.get("RSGB_COMPARE_LOG", "lean_backend_compare.jsonl"))
+    if not row["identical_bytes"]:
+        keep = log.with_suffix("") / row["ref_sha"][:12]
+        keep.mkdir(parents=True, exist_ok=True)
+        (keep / "input.lean").write_bytes(Path(path).read_bytes())
+        (keep / "lean.out").write_text(ref)
+        (keep / "turbo.out").write_text(cand)
+    with open(log, "a") as fh:
+        fh.write(json.dumps(row) + "\n")
+    return ref
 
 
 def parse_results(out: str) -> dict[str, dict]:
